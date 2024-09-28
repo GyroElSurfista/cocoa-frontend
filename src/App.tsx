@@ -12,7 +12,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route path="/objetivos" element={<ObjectivePage />} />
           <Route path="/seguimiento" element={<SeguimientoPage />}>
-            <Route path='objetivo/:idObjetivo' element={<TrackingSheet/>}/>
+            <Route path="objetivo/:idObjetivo" element={<TrackingSheet />} />
           </Route>
         </Route>
       </Routes>
