@@ -69,33 +69,33 @@ const Sidebar = () => {
           <div className="px-5">
             <h2 className="text-black text-xl font-semibold">Nombre_Proyecto</h2>
             <div className="flex items-center w-full pt-2 bg-white shadow-lg">
-            <NavLink
-              to="/objetivos"
-              className={({ isActive }) =>
-                `hover:text-[#6344e7] py-4 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-t-2 border-[#6344e7]' : ''}`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {/* Pasa el estado isActive para cambiar el color del icono */}
-                  <GoalIcon fill={isActive ? '#6344e7' : 'currentColor'} />
-                  Objetivos
-                </>
-              )}
-            </NavLink>
-            <NavLink
-              to="/seguimiento"
-              className={({ isActive }) =>
-                `hover:text-[#6344e7] py-4 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-t-2 border-[#6344e7]' : ''}`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <TrackerIcon fill={isActive ? '#6344e7' : 'currentColor'} />
-                  Seguimiento
-                </>
-              )}
-            </NavLink>
+              <NavLink
+                to="/objetivos"
+                className={({ isActive }) =>
+                  `hover:text-[#6344e7] py-4 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-t-2 border-[#6344e7]' : ''}`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {/* Pasa el estado isActive para cambiar el color del icono */}
+                    <GoalIcon fill={isActive ? '#6344e7' : 'currentColor'} />
+                    Objetivos
+                  </>
+                )}
+              </NavLink>
+              <NavLink
+                to="/seguimiento"
+                className={({ isActive }) =>
+                  `hover:text-[#6344e7] py-4 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-t-2 border-[#6344e7]' : ''}`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <TrackerIcon fill={isActive ? '#6344e7' : 'currentColor'} />
+                    Seguimiento
+                  </>
+                )}
+              </NavLink>
             </div>
           </div>
         )}
