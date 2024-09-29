@@ -77,9 +77,13 @@ export const AddObservation: React.FC = () => {
           onSave={handleSaveObservation}
         />
       )}
-      <button onClick={handleAddObjetive} className="bg-indigo-800 text-white px-2 py-1 rounded">
-        +Nueva Observación
-      </button>
+      <div className="w-[calc(100%-3rem)] py-[29px] bg-[#eef0ff] flex justify-center">
+        <div className="pl-[5px] pr-2.5 py-[4.50px] bg-[#251b4d] rounded-lg shadow justify-center items-center inline-flex">
+          <button onClick={handleAddObjetive} className="button-primary w-auto px-4 py-2">
+            + Nueva Observacion
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

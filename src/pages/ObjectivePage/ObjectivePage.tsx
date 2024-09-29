@@ -122,9 +122,9 @@ const ObjectivePage = () => {
                 handleActivityClick={(activity) => handleActivityClick(activity, index)}
                 handleAddActivityClick={() => handleAddActivityClick(index)}
               />
-              <hr className="border-[1.5px] border-[#c6caff] mt-4" />
             </>
           ))}
+          <hr className="border-[1.5px] border-[#c6caff] mt-4" />
 
           <div className="flex justify-center pt-3">
             <button onClick={openModal} className="button-primary">
