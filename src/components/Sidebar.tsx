@@ -49,7 +49,7 @@ const Sidebar = () => {
         </button>
 
         {isOpen && (
-          <div className='px-5'>
+          <div className="px-5">
             <h2 className="text-black text-xl font-semibold">Nombre_Proyecto</h2>
             <div className="flex items-center w-full pt-2 bg-white shadow-lg">
               <NavLink
