@@ -48,12 +48,11 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         valorPorce: parseFloat(data.valueP),
       })
 
-      console.log(createObjective)
       // Clear any previous errors
       setApiError(null)
 
       // Se pasa el nuevo objetivo al componente padre
-      onCreate(createdObjective)
+      onCreate(data)
 
       // Reset form and close modal
       reset()
