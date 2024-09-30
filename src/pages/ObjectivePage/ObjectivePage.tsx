@@ -94,7 +94,6 @@ const ObjectivePage = () => {
   }
 
   // Propio de ObjectivePage
-  // const [objectives, setObjectives] = useState<Objective[]>([]) // Estado para almacenar los objetivos
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
