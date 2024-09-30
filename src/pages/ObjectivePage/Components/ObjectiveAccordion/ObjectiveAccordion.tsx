@@ -20,6 +20,7 @@ interface ObjectiveAccordionProps {
   activities: ActivityProps[]
   handleActivityClick: (activity: ActivityProps) => void
   handleAddActivityClick: () => void
+  handleDeleteActivityClick: (activityIndex: number) => void
 }
 
 const formatDate = (dateString: string) => {
@@ -35,6 +36,7 @@ const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({
   activities,
   handleActivityClick,
   handleAddActivityClick,
+  handleDeleteActivityClick,
 }) => {
   // Propio de ObjectiveAccordion
   const [isOpen, setIsOpen] = useState(false)
@@ -73,6 +75,7 @@ const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({
               responsable={activity.responsable}
               resultado={activity.resultado}
               onClick={() => handleActivityClick(activity)}
+              onDelete={() => handleDeleteActivityClick(index)}
             />
           ))}
           <button onClick={handleAddActivityClick} className="button-primary">
