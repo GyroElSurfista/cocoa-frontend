@@ -127,7 +127,7 @@ const ObjectivePage = () => {
 
           <div className="flex justify-center pt-3">
             <button onClick={openModal} className="button-primary">
-              Nuevo Objetivo
+              + Nuevo Objetivo
             </button>
           </div>
         </div>

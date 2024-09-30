@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { ActivityProps } from '../../ObjectivePage'
 import { createObjective } from '../../../../services/objective.service'
@@ -23,10 +23,19 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     register,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors }, watch,
     reset,
   } = useForm<Objective>()
   const [apiError, setApiError] = useState<string | null>(null) // State to hold API error
+  const [equivalence, setEquivalence] = useState<number>(0)
+  const planningCost = 140000 // Costo de la planificación constante
+
+  const valueP = watch('valueP') // Observa el valor porcentual
+
+  const onCloseHandler = () => {
+    reset() // Reinicia el formulario al cerrar el modal
+    onClose() // Llama a la función para cerrar el modal
+  } 
 
   const onSubmit: SubmitHandler<Objective> = async (data) => {
     try {
@@ -35,12 +44,14 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       const formattedFinDate = formatDateToDMY(data.finDate)
 
       const createdObjective = await createObjective({
+        identificadorPlani: 1,
         nombre: data.objective,
         fechaInici: formattedIniDate,
         fechaFin: formattedFinDate,
         valorPorce: parseFloat(data.valueP),
       })
 
+      console.log(createObjective)
       // Clear any previous errors
       setApiError(null)
 
@@ -76,6 +87,19 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       }
     }
   }
+
+  useEffect(() => {
+    if (valueP) {
+      const value = parseFloat(valueP)
+      if (!isNaN(value)) {
+        setEquivalence((value / 100) * planningCost) // Aplica el valor porcentual al costo de la planificación
+      } else {
+        setEquivalence(0)
+      }
+    } else {
+      setEquivalence(0)
+    }
+  }, [valueP])
 
   if (!isOpen) return null
 
@@ -153,13 +177,13 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               </div>
               <div className="text-center pt-4 col-span-2">
                 <p className="text-lg font-semibold">Equivalencia:</p>
-                <p className="text-gray-500">Bs. 00.00</p>
+                <p className="text-gray-500">Bs. {equivalence}</p>
               </div>
             </div>
             {apiError && <p className="text-red-500 text-sm mt-4">{apiError}</p>}
           </div>
           <div className="mt-6 flex justify-end gap-2">
-            <button onClick={onClose} className="button-secondary_outlined">
+            <button onClick={onCloseHandler} className="button-secondary_outlined">
               Cancelar
             </button>
             <button type="submit" className="button-primary">
