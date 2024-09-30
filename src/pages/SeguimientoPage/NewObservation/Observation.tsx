@@ -4,7 +4,7 @@ import OutlinedInput from '@mui/material/OutlinedInput'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Dots from './../../../assets/dots.svg'
 
 interface Activity {
@@ -16,6 +16,7 @@ interface ObservationProps {
   observation: string
   activities: Activity[]
   onSave: (observation: string, activities: Activity[]) => void
+  onDelete: () => void // Added for deleting the component
 }
 
 const ITEM_HEIGHT = 48
@@ -35,7 +36,6 @@ function getStyles(name: string, selectedActivities: readonly string[], theme: T
   }
 }
 
-// Componente MultipleSelectPlaceholder actualizado para recibir props
 const MultipleSelectPlaceholder: React.FC<{
   selectedActivities: Activity[]
   setSelectedActivities: React.Dispatch<React.SetStateAction<Activity[] | null>>
@@ -47,14 +47,24 @@ const MultipleSelectPlaceholder: React.FC<{
     const {
       target: { value },
     } = event
-    // Filtrar actividades a partir del valor seleccionado
     const selected = typeof value === 'string' ? value.split(',') : value
     const updatedActivities = activities.filter((activity) => selected.includes(activity.name))
     setSelectedActivities(updatedActivities)
   }
 
   return (
-    <FormControl sx={{ m: 1, width: 300, mt: 3 }}>
+    <FormControl
+      sx={{
+        m: 0,
+        width: {
+          xs: '150px', // Small screens
+          sm: '200px', // Medium screens
+          md: '250px', // Large screens
+        },
+        my: 1,
+        padding: 0,
+      }}
+    >
       <Select
         multiple
         displayEmpty
@@ -70,9 +80,13 @@ const MultipleSelectPlaceholder: React.FC<{
         }}
         MenuProps={MenuProps}
         inputProps={{ 'aria-label': 'Without label' }}
+        sx={{
+          fontSize: '12px', // Reduced font size in Select
+          padding: 0, // Remove padding in Select
+        }}
       >
-        <MenuItem disabled value="">
-          <em>Seleccionar Actividad</em>
+        <MenuItem disabled value="" sx={{ padding: 0 }}>
+          <em style={{ fontSize: '12px' }}>Seleccionar Actividad</em>
         </MenuItem>
         {activities.map((activity) => (
           <MenuItem
@@ -83,6 +97,10 @@ const MultipleSelectPlaceholder: React.FC<{
               selectedActivities.map((a) => a.name),
               theme
             )}
+            sx={{
+              fontSize: '12px', // Reduced font size in MenuItem
+              paddingTop: 0, // Remove padding in MenuItem
+            }}
           >
             {activity.name}
           </MenuItem>
@@ -92,25 +110,46 @@ const MultipleSelectPlaceholder: React.FC<{
   )
 }
 
-// Componente Observation actualizado con MultipleSelectPlaceholder
-export const Observation: React.FC<ObservationProps> = ({ observation, activities, onSave }) => {
+export const Observation: React.FC<ObservationProps> = ({ observation, activities, onSave, onDelete }) => {
   const [selectedActivities, setSelectedActivities] = useState<Activity[] | null>(null)
   const [editableObservation, setEditableObservation] = useState<string>(observation)
   const [error, setError] = useState<string>('')
 
-  // Manejar los cambios en el textarea y validar longitud
+  const textAreaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Focus on textarea when component is mounted
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.focus()
+    }
+  }, [])
+
   const handleObservationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value
     if (newValue.length <= 256) {
       setEditableObservation(newValue)
-      setError('') // Limpiar error si la longitud es válida
+      setError('')
     } else {
       setError('La observación no puede exceder los 256 caracteres.')
     }
   }
 
-  // Verificar y validar antes de guardar
-  const validateAndSave = () => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      validateAndSave()
+    }
+  }
+
+  const handleBlur = () => {
+    if (!editableObservation.trim()) {
+      setError('La observación no puede estar vacía.')
+    } else {
+      validateAndSave()
+    }
+  }
+
+  const validateAndSave = async () => {
     if (!editableObservation.trim()) {
       setError('La observación no puede estar vacía.')
       return
@@ -121,44 +160,63 @@ export const Observation: React.FC<ObservationProps> = ({ observation, activitie
       return
     }
 
-    // Si pasa la validación, ejecutamos la función onSave
-    onSave(editableObservation, selectedActivities)
-    setError('') // Limpiar errores después de guardar
-  }
+    // Preparing the data for the API
+    const newObservation = {
+      descripcion: editableObservation,
+      fecha: new Date().toISOString().split('T')[0], // Automatically generated
+      identificadorPlaniSegui: 1, // Static for now
+      identificadorActiv: selectedActivities[0].id, // Assume first selected activity for now
+    }
 
-  // Manejar el evento de presionar la tecla Enter
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault() // Evitar salto de línea en el textarea
-      validateAndSave() // Guardar al presionar Enter
+    try {
+      const response = await fetch('https://cocoabackend.onrender.com/api/crear-observacion/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newObservation),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        onSave(editableObservation, selectedActivities)
+        setError('')
+      } else {
+        console.error(result.message)
+        setError(result.errors?.descripcion?.[0] || 'Error al guardar la observación')
+      }
+    } catch (err) {
+      console.error('Error al enviar los datos:', err)
+      setError('Error de conexión al intentar guardar la observación.')
     }
   }
 
-  // Manejar el evento onBlur (cuando el textarea pierde el foco)
-  const handleBlur = () => {
-    validateAndSave() // Guardar al perder el foco
-  }
-
   return (
-    <div>
-      <div className="flex border border-black rounded-lg w-5/6 h-[80px] my-5 mx-auto">
+    <div className="bg-white rounded-lg shadow-md w-full">
+      <div className="flex items-center borde rounded-lg w-full">
         <textarea
-          className="flex justify-end text-left mx-2 my-2 w-full resize-none h-4/5 border-none rounded-lg focus:margin focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          ref={textAreaRef}
+          className="text-left mx-2 w-full resize-none border-none rounded-lg focus:margin focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           value={editableObservation}
           onChange={handleObservationChange}
-          onKeyDown={handleKeyPress} // Guardar al presionar Enter
-          onBlur={handleBlur} // Guardar al perder el foco
+          onKeyPress={handleKeyPress} // Handle enter key
+          onBlur={handleBlur} // Handle when textarea loses focus
         />
-        <div className="ml-auto flex items-center my-[2.1%] mx-4">
+        <div className="ml-4 flex mb-2">
           <MultipleSelectPlaceholder
             selectedActivities={selectedActivities || []}
             setSelectedActivities={setSelectedActivities}
             activities={activities}
           />
-          <img className="m-2 ml-8" src={Dots} alt="Dots icon" />
+          <img
+            className="mx-4 mt-2 cursor-pointer"
+            src={Dots}
+            alt="Dots icon"
+            onClick={onDelete} // Deletes the component
+          />
         </div>
       </div>
-      {error && <p className="text-red-500">{error}</p>}
     </div>
   )
 }
