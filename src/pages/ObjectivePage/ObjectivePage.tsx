@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ObjectiveAccordion from './Components/ObjectiveAccordion/ObjectiveAccordion'
 import NewObjectiveModal from './Components/NewObjectiveModal/NewObjectiveModal'
 
 // Propio de ActivityPage
 import DialogActivity from '../ActivityPage/Components/DialogActivity'
 import { Dayjs } from 'dayjs'
+import { getObjectives } from '../../services/objective.service'
 
 export type ActivityProps = {
   nroActividad: number
@@ -94,7 +95,6 @@ const ObjectivePage = () => {
   }
 
   // Propio de ObjectivePage
-  // const [objectives, setObjectives] = useState<Objective[]>([]) // Estado para almacenar los objetivos
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -105,6 +105,29 @@ const ObjectivePage = () => {
   const handleCreateObjective = (newObjective: Objective) => {
     setObjectives([...objectives, { ...newObjective, activities: [] }])
   }
+
+  useEffect(() => {
+    const cargarObjetivos = async () => {
+      try {
+        const response = await getObjectives()
+        console.log(response)
+        const objetivos = response.data.map((obj: any) => ({
+          iniDate: obj.fechaInici,
+          finDate: obj.fechaFin,
+          objective: obj.nombre,
+          valueP: obj.valorPorce,
+          activities: [], // Inicializa las actividades si es necesario
+        }));
+  
+        setObjectives(objetivos); 
+        
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+    cargarObjetivos()
+  }, [])
 
   return (
     <div className="px-2 mx-6">
@@ -122,13 +145,13 @@ const ObjectivePage = () => {
                 handleActivityClick={(activity) => handleActivityClick(activity, index)}
                 handleAddActivityClick={() => handleAddActivityClick(index)}
               />
-              <hr className="border-[1.5px] border-[#c6caff] mt-4" />
             </>
           ))}
+          <hr className="border-[1.5px] border-[#c6caff] mt-4" />
 
           <div className="flex justify-center pt-3">
             <button onClick={openModal} className="button-primary">
-              Nuevo Objetivo
+              + Nuevo Objetivo
             </button>
           </div>
         </div>
