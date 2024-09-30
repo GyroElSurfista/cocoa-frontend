@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { ActivityProps } from '../../ObjectivePage'
 import { createObjective } from '../../../../services/objective.service'
-import { formatDateToDMY } from '../../../../utils/formatDate'
 
 interface Objective {
   iniDate: string
@@ -40,14 +39,12 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   const onSubmit: SubmitHandler<Objective> = async (data) => {
     try {
       console.log(data)
-      const formattedIniDate = formatDateToDMY(data.iniDate)
-      const formattedFinDate = formatDateToDMY(data.finDate)
 
       const createdObjective = await createObjective({
         identificadorPlani: 1,
         nombre: data.objective,
-        fechaInici: formattedIniDate,
-        fechaFin: formattedFinDate,
+        fechaInici: data.iniDate,
+        fechaFin: data.finDate,
         valorPorce: parseFloat(data.valueP),
       })
 
