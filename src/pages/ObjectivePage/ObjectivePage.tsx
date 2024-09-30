@@ -9,9 +9,9 @@ import { getObjectives, ObjectiveData } from '../../services/objective.service'
 import { createActivity } from '../../services/activity.service'
 
 export type ActivityProps = {
-  nroActividad: number
-  nombreActividad: string
-  fechaInicio: Date
+  identificador: number
+  nombre: string
+  fechaInici: Date
   fechaFin: Date
   descripcion: string
   responsable: string | null
@@ -51,7 +51,7 @@ const ObjectivePage = () => {
 
   const handleNewInitialDateActivityChange = (value: Dayjs | null) => {
     if (value) {
-      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaInicio: value.toDate() } : null))
+      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaInici: value.toDate() } : null))
     }
   }
 
@@ -65,9 +65,9 @@ const ObjectivePage = () => {
     if (selectedActivity !== null && selectedObjectiveIndex !== null) {
       console.log('Valor identificador de objective ', objectives[selectedObjectiveIndex].identificador)
       createActivity({
-        nombre: selectedActivity.nombreActividad,
+        nombre: selectedActivity.nombre,
         descripcion: selectedActivity.descripcion,
-        fechaInici: selectedActivity.fechaInicio,
+        fechaInici: selectedActivity.fechaInici,
         fechaFin: selectedActivity.fechaFin,
         identificadorUsua: 1,
         identificadorObjet: objectives[selectedObjectiveIndex].identificador,
@@ -76,7 +76,7 @@ const ObjectivePage = () => {
       const updatedObjectives = [...objectives]
       updatedObjectives[selectedObjectiveIndex].activities.push({
         ...selectedActivity,
-        nroActividad: updatedObjectives[selectedObjectiveIndex].activities.length + 1,
+        identificador: updatedObjectives[selectedObjectiveIndex].activities.length + 1,
       })
       setObjectives(updatedObjectives)
       handleDialogClose()
@@ -104,9 +104,9 @@ const ObjectivePage = () => {
 
   const handleAddActivityClick = (objectiveIndex: number) => {
     setSelectedActivity({
-      nroActividad: 0,
-      nombreActividad: '',
-      fechaInicio: new Date(),
+      identificador: 0,
+      nombre: '',
+      fechaInici: new Date(),
       fechaFin: new Date(),
       descripcion: '',
       responsable: null,

@@ -1,4 +1,3 @@
-import { ActivityProps } from '../ActivityPage'
 import { MenuItem, Button, TextField, FormControl, InputAdornment } from '@mui/material'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -6,6 +5,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs, { Dayjs } from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
 import { DateValidationError, PickerChangeHandlerContext } from '@mui/x-date-pickers'
+import { ActivityProps } from '../ActivityPage'
 
 type DialogActivityProps = {
   activity: ActivityProps | null
@@ -60,7 +60,7 @@ const DialogActivity = ({
                 }}
               ></TextField>
             ) : (
-              <h2 className="text-xl font-bold">{activity?.nombreActividad}</h2>
+              <h2 className="text-xl">{activity?.nombre}</h2>
             )}
             <Button onClick={onHide} className="text-black">
               X
@@ -72,7 +72,7 @@ const DialogActivity = ({
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               name="fechaInicio"
-              value={dayjs(activity.fechaInicio)}
+              value={dayjs(activity.fechaInici)}
               onChange={onChangeInitialDate}
               label="Fecha de Inicio"
               className="mb-2 w-2/5"

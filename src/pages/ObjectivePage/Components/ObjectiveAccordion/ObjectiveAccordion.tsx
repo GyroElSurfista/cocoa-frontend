@@ -66,10 +66,11 @@ const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({
 
           {activities.map((activity, index) => (
             <Activity
-              key={activity.nroActividad}
-              nroActividad={index + 1}
-              nombreActividad={activity.nombreActividad}
-              fechaInicio={activity.fechaInicio}
+              key={activity.identificador}
+              orden={index + 1}
+              identificador={activity.identificador}
+              nombre={activity.nombre}
+              fechaInici={activity.fechaInici}
               fechaFin={activity.fechaFin}
               descripcion={activity.descripcion}
               responsable={activity.responsable}
