@@ -1,11 +1,14 @@
 import axios from 'axios'
+import { ActivityData } from './activity.service'
 
-interface ObjectiveData {
+export interface ObjectiveData {
+  identificador: number
   identificadorPlani: number
   nombre: string
   fechaInici: string
   fechaFin: string
   valorPorce: number
+  actividad?: ActivityData[]
 }
 
 export const createObjective = async (objectiveData: ObjectiveData) => {
@@ -18,5 +21,6 @@ export const createObjective = async (objectiveData: ObjectiveData) => {
   }
 }
 
-export const getObjectives = async () =>{
-    return await axios.get('https://cocoabackend.onrender.com/api/objetivos')}
+export const getObjectives = async () => {
+  return await axios.get('https://cocoabackend.onrender.com/api/grupo-empresa/1/objetivos/actividades')
+}

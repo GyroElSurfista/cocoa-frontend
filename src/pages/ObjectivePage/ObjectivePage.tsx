@@ -5,7 +5,8 @@ import NewObjectiveModal from './Components/NewObjectiveModal/NewObjectiveModal'
 // Propio de ActivityPage
 import DialogActivity from '../ActivityPage/Components/DialogActivity'
 import { Dayjs } from 'dayjs'
-import { getObjectives } from '../../services/objective.service'
+import { getObjectives, ObjectiveData } from '../../services/objective.service'
+import { createActivity } from '../../services/activity.service'
 
 export type ActivityProps = {
   nroActividad: number
@@ -20,6 +21,7 @@ export type ActivityProps = {
 type SelectedActivityState = ActivityProps | null
 
 interface Objective {
+  identificador: number
   iniDate: string
   finDate: string
   objective: string
@@ -59,8 +61,18 @@ const ObjectivePage = () => {
     }
   }
 
-  const handleAddNewActivity = () => {
+  const handleAddNewActivity = async () => {
     if (selectedActivity !== null && selectedObjectiveIndex !== null) {
+      console.log('Valor identificador de objective ', objectives[selectedObjectiveIndex].identificador)
+      createActivity({
+        nombre: selectedActivity.nombreActividad,
+        descripcion: selectedActivity.descripcion,
+        fechaInici: selectedActivity.fechaInicio,
+        fechaFin: selectedActivity.fechaFin,
+        identificadorUsua: 1,
+        identificadorObjet: objectives[selectedObjectiveIndex].identificador,
+      })
+
       const updatedObjectives = [...objectives]
       updatedObjectives[selectedObjectiveIndex].activities.push({
         ...selectedActivity,
@@ -75,9 +87,9 @@ const ObjectivePage = () => {
   const handleDeleteActivityClick = (objectiveIndex: number, activityIndex: number) => {
     setObjectives((prevObjectives) => {
       const updatedObjectives = [...prevObjectives]
-      console.log(objectiveIndex, activityIndex)
+      // console.log(objectiveIndex, activityIndex)
       updatedObjectives[objectiveIndex].activities = updatedObjectives[objectiveIndex].activities.filter(
-        (_, index) => index !== 1
+        (_, index) => index !== activityIndex
       )
       return updatedObjectives
     })
@@ -122,16 +134,16 @@ const ObjectivePage = () => {
       try {
         const response = await getObjectives()
         console.log(response)
-        const objetivos = response.data.map((obj: any) => ({
+        const objetivos = response.data.map((obj: ObjectiveData) => ({
+          identificador: obj.identificador,
           iniDate: obj.fechaInici,
           finDate: obj.fechaFin,
           objective: obj.nombre,
           valueP: obj.valorPorce,
-          activities: [], // Inicializa las actividades si es necesario
-        }));
-  
-        setObjectives(objetivos); 
-        
+          activities: obj.actividad,
+        }))
+
+        setObjectives(objetivos)
       } catch (error) {
         console.log(error)
       }
