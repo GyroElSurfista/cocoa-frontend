@@ -49,7 +49,7 @@ const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({
       <div className="hover:bg-[#c6caff] w-full border rounded border-[#c6caff] p-4" onClick={toggleAccordion}>
         <div className="flex flex-row w-full justify-between items-center">
           <div className="w-auto border-r-2 pr-2 border-[#c6caff]">
-            <span className="text-center text-[#1c1c1c] text-xl font-semibold">Objetivo {indexObj}</span>
+            <span className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {indexObj}</span>
           </div>
           <div className="w-9/12 text-start">
             <span className="bg-red-200 rounded-xl text-sm p-1 text-gray-600 font-normal">{formatDate(objective.iniDate)}</span> -

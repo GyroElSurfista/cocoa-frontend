@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { ActivityProps } from '../../ObjectivePage'
+import { createObjective } from '../../../../services/objective.service'
 
 interface Objective {
   iniDate: string
@@ -20,15 +21,81 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    setError,
+    formState: { errors }, watch,
     reset,
   } = useForm<Objective>()
+  const [apiError, setApiError] = useState<string | null>(null) // State to hold API error
+  const [equivalence, setEquivalence] = useState<number>(0)
+  const planningCost = 140000 // Costo de la planificación constante
 
-  const onSubmit: SubmitHandler<Objective> = (data) => {
-    onCreate(data) // Se pasa el nuevo objetivo al componente padre
-    reset() // Reinicia el formulario después de la creación
-    onClose() // Cierra el modal
+  const valueP = watch('valueP') // Observa el valor porcentual
+
+  const onCloseHandler = () => {
+    reset() // Reinicia el formulario al cerrar el modal
+    onClose() // Llama a la función para cerrar el modal
+  } 
+
+  const onSubmit: SubmitHandler<Objective> = async (data) => {
+    try {
+      console.log(data)
+
+      const createdObjective = await createObjective({
+        identificadorPlani: 1,
+        nombre: data.objective,
+        fechaInici: data.iniDate,
+        fechaFin: data.finDate,
+        valorPorce: parseFloat(data.valueP),
+      })
+
+      // Clear any previous errors
+      setApiError(null)
+
+      // Se pasa el nuevo objetivo al componente padre
+      onCreate(data)
+
+      // Reset form and close modal
+      reset()
+      onClose()
+    } catch (error: any) {
+      // Set API error if the request fails
+      console.log(error)
+      const errorData = error.response?.data
+
+      // General error message
+      //setApiError(errorData?.message || 'Error creating the objective')
+
+      // Field-specific errors
+      if (errorData?.errors) {
+        // Map the backend errors to the respective fields
+        if (errorData.errors.fechaInici) {
+          setError('iniDate', {
+            type: 'manual',
+            message: errorData.errors.fechaInici.join('. '), // Combine error messages for this field
+          })
+        }
+        if (errorData.errors.fechaFin) {
+          setError('finDate', {
+            type: 'manual',
+            message: errorData.errors.fechaFin.join(', '),
+          })
+        }
+      }
+    }
   }
+
+  useEffect(() => {
+    if (valueP) {
+      const value = parseFloat(valueP)
+      if (!isNaN(value)) {
+        setEquivalence((value / 100) * planningCost) // Aplica el valor porcentual al costo de la planificación
+      } else {
+        setEquivalence(0)
+      }
+    } else {
+      setEquivalence(0)
+    }
+  }, [valueP])
 
   if (!isOpen) return null
 
@@ -90,7 +157,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   <span className="text-[#f60c2e] text-base font-normal">*</span>
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="valueP"
                   {...register('valueP', {
                     required: 'El valor porcentual es obligatorio',
@@ -106,12 +173,13 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               </div>
               <div className="text-center pt-4 col-span-2">
                 <p className="text-lg font-semibold">Equivalencia:</p>
-                <p className="text-gray-500">Bs. 00.00</p>
+                <p className="text-gray-500">Bs. {equivalence}</p>
               </div>
             </div>
+            {apiError && <p className="text-red-500 text-sm mt-4">{apiError}</p>}
           </div>
           <div className="mt-6 flex justify-end gap-2">
-            <button onClick={onClose} className="button-secondary_outlined">
+            <button onClick={onCloseHandler} className="button-secondary_outlined">
               Cancelar
             </button>
             <button type="submit" className="button-primary">
