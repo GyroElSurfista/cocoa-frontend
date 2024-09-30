@@ -104,11 +104,15 @@ function ActivityPage() {
     setIsDialogOpen(true)
   }
 
+  const handleDeleteActivity = (id: number) => {
+    setActivities((prevActivities) => prevActivities.filter((activity) => activity.identificador !== id))
+  }
+
   return (
     <>
       <div className={`flex p-4 overflow-x-hidden`}>
         <div className={` ${isDialogOpen ? 'w-[65%] flex-shrink mr-4' : 'w-full'}`}>
-          {activities.map((activity) => (
+          {activities.map((activity, index) => (
             <Activity
               key={activity.identificador}
               identificador={activity.identificador}
@@ -118,6 +122,8 @@ function ActivityPage() {
               descripcion={activity.descripcion}
               responsable={activity.responsable}
               resultado={activity.resultado}
+              orden={index + 1} // Añade el orden si es necesario
+              onDelete={() => handleDeleteActivity(activity.identificador)} // Añade la función onDelete si es necesario
               onClick={() => handleActivityClick(activity)}
             />
           ))}

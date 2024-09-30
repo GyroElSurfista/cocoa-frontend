@@ -3,15 +3,15 @@ import Divider from '@mui/material/Divider'
 
 type ActivityProps = {
   identificador: number
-  orden: number
   nombre: string
   fechaInici: Date
   fechaFin: Date
   descripcion: string
   responsable: string | null
   resultado: string
+  orden?: number // Agrega orden si es necesario
+  onDelete?: () => void // Agrega onDelete si es necesario
   onClick: () => void
-  onDelete: () => void
 }
 
 const Activity: React.FC<ActivityProps> = ({ orden, nombre, responsable, onClick, onDelete }) => {
@@ -33,7 +33,9 @@ const Activity: React.FC<ActivityProps> = ({ orden, nombre, responsable, onClick
           className="mx-2 hover:fill-red-600"
           onClick={(event) => {
             event.stopPropagation()
-            onDelete()
+            if (onDelete) {
+              onDelete()
+            }
           }}
         />
       </div>
