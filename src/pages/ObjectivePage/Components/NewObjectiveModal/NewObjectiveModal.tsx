@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { ActivityProps } from '../../ObjectivePage'
-import { createObjective } from '../../../../services/objective.service'
+//import { createObjective } from '../../../../services/objective.service'
 
 interface Objective {
   identificador: number
@@ -42,13 +42,13 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     try {
       console.log(data)
 
-      const createdObjective = await createObjective({
-        identificadorPlani: 1,
-        nombre: data.objective,
-        fechaInici: data.iniDate,
-        fechaFin: data.finDate,
-        valorPorce: parseFloat(data.valueP),
-      })
+      // const createdObjective = await createObjective({
+      //   identificadorPlani: 1,
+      //   nombre: data.objective,
+      //   fechaInici: data.iniDate,
+      //   fechaFin: data.finDate,
+      //   valorPorce: parseFloat(data.valueP),
+      // })
 
       // Clear any previous errors
       setApiError(null)

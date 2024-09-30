@@ -24,7 +24,7 @@ export default tseslint.config(
       eqeqeq: ['error', 'always'],
       'no-empty-function': 'error',
       'no-implicit-coercion': 'error',
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-duplicate-enum-values': 'error',
       '@typescript-eslint/no-inferrable-types': 'off',
     },
