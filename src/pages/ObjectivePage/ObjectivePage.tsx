@@ -117,10 +117,9 @@ const ObjectivePage = () => {
           objective: obj.nombre,
           valueP: obj.valorPorce,
           activities: [], // Inicializa las actividades si es necesario
-        }));
-  
-        setObjectives(objetivos); 
-        
+        }))
+
+        setObjectives(objetivos)
       } catch (error) {
         console.log(error)
       }

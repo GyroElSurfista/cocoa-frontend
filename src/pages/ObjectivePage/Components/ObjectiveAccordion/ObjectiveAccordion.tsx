@@ -6,6 +6,7 @@ import Activity from '../../../ActivityPage/Components/Activity'
 // Propio de ObjectiveAccordion
 import { useState } from 'react'
 import { ActivityProps } from '../../ObjectivePage'
+import { NavLink } from 'react-router-dom'
 interface Objective {
   iniDate: string
   finDate: string
@@ -54,7 +55,9 @@ const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({
             <span className="bg-indigo-200 rounded-xl text-sm p-1 ml-1 text-gray-600 font-normal">{formatDate(objective.finDate)}</span>
           </div>
           <div className="w-auto pl-3 flex justify-items-end border-l-2 border-[#c6caff]">
-            <button className="button-primary">Ver entregable</button>
+            <NavLink to="/entregables" state={{ numeroObjetivo: indexObj }}>
+              <button className="button-primary">Ver entregable</button>
+            </NavLink>
           </div>
         </div>
       </div>
