@@ -5,9 +5,9 @@ import DialogActivity from './Components/DialogActivity'
 import { Dayjs } from 'dayjs'
 
 export type ActivityProps = {
-  nroActividad: number
-  nombreActividad: string
-  fechaInicio: Date
+  identificador: number
+  nombre: string
+  fechaInici: Date
   fechaFin: Date
   descripcion: string
   responsable: string | null
@@ -19,18 +19,18 @@ type SelectedActivityState = ActivityProps | null
 function ActivityPage() {
   const [activities, setActivities] = useState<ActivityProps[]>([
     {
-      nroActividad: 1,
-      nombreActividad: 'Entrevista a nuestro tutor TIS',
-      fechaInicio: new Date(),
+      identificador: 1,
+      nombre: 'Entrevista a nuestro tutor TIS',
+      fechaInici: new Date(),
       fechaFin: new Date(),
       descripcion: 'Descripcion 1 - Elicitación de requerimientos para obtener el Product Backlog.',
       responsable: null,
       resultado: 'Completar las historias de usuario con su estimación y priorización correspondiente',
     },
     {
-      nroActividad: 2,
-      nombreActividad: 'Observar procedimiento de evaluaciones TIS',
-      fechaInicio: new Date(),
+      identificador: 2,
+      nombre: 'Observar procedimiento de evaluaciones TIS',
+      fechaInici: new Date(),
       fechaFin: new Date(),
       descripcion:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam mi massa, posuere vel interdum a, posuere at mauris. Cras sem est, malesuada sed libero eget, egestas vulputate turpis. Vivamus eu placerat sem. Vestibulum lobortis velit sit amet nunc faucibus, vel viverra ex accumsan. Ut imperdiet nunc neque, nec sodales risus faucibus vitae. Mauris interdum nulla in elementum vulputate. Phasellus sollicitudin vehicula ornare. Morbi id mauris fermentum, consequat nisl nec, hendrerit neque. Maecenas pharetra mattis quam. Integer quis fringilla nibh, quis lobortis massa. Quisque non vehicula enim. Nullam non lorem in sem vulputate faucibus. Interdum et malesuada fames ac ante ipsum primis in faucibus.',
@@ -38,9 +38,9 @@ function ActivityPage() {
       resultado: 'Completar las historias de usuario con su estimación y priorización correspondiente',
     },
     {
-      nroActividad: 10,
-      nombreActividad: 'Prototipado del diseño',
-      fechaInicio: new Date(),
+      identificador: 10,
+      nombre: 'Prototipado del diseño',
+      fechaInici: new Date(),
       fechaFin: new Date(),
       descripcion: 'Prototipado del diseño para discutirlo junto al tutor TIS.',
       responsable: null,
@@ -72,7 +72,7 @@ function ActivityPage() {
 
   const handleNewInitialDateActivityChange = (value: Dayjs | null) => {
     if (value) {
-      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaInicio: value.toDate() } : null))
+      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaInici: value.toDate() } : null))
     }
   }
 
@@ -84,7 +84,7 @@ function ActivityPage() {
 
   const handleAddNewActivity = () => {
     if (selectedActivity) {
-      setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, nroActividad: activities.length + 1 }])
+      setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
       setIsDialogOpen(false)
       setSelectedActivity(null)
     }
@@ -92,9 +92,9 @@ function ActivityPage() {
 
   const handleAddActivityClick = () => {
     setSelectedActivity({
-      nroActividad: activities.length + 1,
-      nombreActividad: '',
-      fechaInicio: new Date(),
+      identificador: activities.length + 1,
+      nombre: '',
+      fechaInici: new Date(),
       fechaFin: new Date(),
       descripcion: '',
       responsable: null,
@@ -110,10 +110,10 @@ function ActivityPage() {
         <div className={` ${isDialogOpen ? 'w-[65%] flex-shrink mr-4' : 'w-full'}`}>
           {activities.map((activity) => (
             <Activity
-              key={activity.nroActividad}
-              nroActividad={activity.nroActividad}
-              nombreActividad={activity.nombreActividad}
-              fechaInicio={activity.fechaInicio}
+              key={activity.identificador}
+              identificador={activity.identificador}
+              nombre={activity.nombre}
+              fechaInici={activity.fechaInici}
               fechaFin={activity.fechaFin}
               descripcion={activity.descripcion}
               responsable={activity.responsable}

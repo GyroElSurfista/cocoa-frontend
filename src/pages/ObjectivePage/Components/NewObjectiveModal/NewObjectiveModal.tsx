@@ -4,6 +4,7 @@ import { ActivityProps } from '../../ObjectivePage'
 import { createObjective } from '../../../../services/objective.service'
 
 interface Objective {
+  identificador: number
   iniDate: string
   finDate: string
   objective: string
@@ -22,7 +23,8 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     register,
     handleSubmit,
     setError,
-    formState: { errors }, watch,
+    formState: { errors },
+    watch,
     reset,
   } = useForm<Objective>()
   const [apiError, setApiError] = useState<string | null>(null) // State to hold API error
@@ -34,7 +36,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   const onCloseHandler = () => {
     reset() // Reinicia el formulario al cerrar el modal
     onClose() // Llama a la función para cerrar el modal
-  } 
+  }
 
   const onSubmit: SubmitHandler<Objective> = async (data) => {
     try {
