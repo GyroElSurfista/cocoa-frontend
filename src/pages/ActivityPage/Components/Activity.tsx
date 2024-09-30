@@ -27,7 +27,7 @@ const Activity: React.FC<ActivityProps> = ({ orden, nombre, responsable, onClick
 
       <div className="flex items-center sm:opacity-0 lg:opacity-100">
         <AccountCircle fontSize="large" />
-        <p className="mx-2">{responsable === null ? 'No asignado' : responsable}</p>
+        <p className="mx-2">{responsable === null || responsable === undefined ? 'No asignado' : responsable}</p>
         <Delete
           fontSize="large"
           className="mx-2 hover:fill-red-600"

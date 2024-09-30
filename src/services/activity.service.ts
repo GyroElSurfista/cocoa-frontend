@@ -25,5 +25,5 @@ export const getActivities = async () => {
 }
 
 export const deleteActivity = async (identificador: number) => {
-  return await axios.delete('https://cocoabackend.onrender.com/api/actividades' + identificador)
+  return await axios.delete('https://cocoabackend.onrender.com/api/actividades/' + identificador)
 }

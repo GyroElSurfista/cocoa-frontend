@@ -6,7 +6,7 @@ import NewObjectiveModal from './Components/NewObjectiveModal/NewObjectiveModal'
 import DialogActivity from '../ActivityPage/Components/DialogActivity'
 import { Dayjs } from 'dayjs'
 import { getObjectives, ObjectiveData } from '../../services/objective.service'
-import { createActivity } from '../../services/activity.service'
+import { createActivity, deleteActivity } from '../../services/activity.service'
 
 export type ActivityProps = {
   identificador: number
@@ -87,6 +87,9 @@ const ObjectivePage = () => {
   const handleDeleteActivityClick = (objectiveIndex: number, activityIndex: number) => {
     setObjectives((prevObjectives) => {
       const updatedObjectives = [...prevObjectives]
+      // console.log(updatedObjectives[objectiveIndex].activities[activityIndex].identificador)
+      deleteActivity(updatedObjectives[objectiveIndex].activities[activityIndex].identificador)
+
       // console.log(objectiveIndex, activityIndex)
       updatedObjectives[objectiveIndex].activities = updatedObjectives[objectiveIndex].activities.filter(
         (_, index) => index !== activityIndex
