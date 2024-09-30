@@ -18,5 +18,6 @@ export const createObjective = async (objectiveData: ObjectiveData) => {
   }
 }
 
-export const getObjectives = async () =>{
-    return await axios.get('https://cocoabackend.onrender.com/api/objetivos')}
+export const getObjectives = async () => {
+  return await axios.get('https://cocoabackend.onrender.com/api/planificaciones/1/objetivos')
+}
