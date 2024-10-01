@@ -143,7 +143,7 @@ const ObjectivePage = () => {
           finDate: obj.fechaFin,
           objective: obj.nombre,
           valueP: obj.valorPorce,
-          activities: obj.actividad,
+          activities: [], // Inicializa las actividades si es necesario
         }))
 
         setObjectives(objetivos)
