@@ -23,21 +23,38 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
   } = useForm<Entregable>()
   const [apiError, setApiError] = useState<string | null>(null)
 
-  const onSubmit: SubmitHandler<Entregable> = (data) => {
+  const onSubmit: SubmitHandler<Entregable> = async (data) => {
+    setApiError(null) // Reseteamos cualquier error previo
+
+    // Creación del objeto entregable basado en el formulario
+    const newEntregable = {
+      ...data,
+      identificador: Date.now(), // Usamos un timestamp como identificador simulado
+      descripcion: 'Este es un entregable interesante', // Descripción predeterminada
+      identificadorObjet: 2, // Suponemos que es para un objetivo con ID 2
+    }
+
     try {
-      // Simulamos la creación del entregable
-      const newEntregable = {
-        ...data,
-        identificador: Date.now(), // Usamos un timestamp como identificador simulado
-        descripcion: 'Descripción predeterminada', // Valor simulado
-        identificadorObjet: 1, // Suponemos que es para un objetivo con ID 1
+      // Realizamos la solicitud POST a la API
+      const response = await fetch('https://cocoabackend.onrender.com/api/objetivos/entregables', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newEntregable),
+      })
+
+      if (!response.ok) {
+        throw new Error('Error en la respuesta del servidor')
       }
+
+      // Si la solicitud fue exitosa, invocamos el callback `onCreate` con el nuevo entregable
       onCreate(newEntregable)
       reset()
       onClose()
     } catch (error) {
-      setApiError('Error creando el entregable.')
-      console.log(error)
+      setApiError('Error creando el entregable. Inténtelo de nuevo más tarde.')
+      console.error('Error creando el entregable:', error)
     }
   }
 
@@ -62,7 +79,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
           {errors.nombre && <p className="text-red-500 text-sm">{errors.nombre.message}</p>}
           {apiError && <p className="text-red-500 text-sm mt-4">{apiError}</p>}
           <div className="mt-6 flex justify-end gap-2">
-            <button onClick={onClose} className="button-secondary_outlined">
+            <button type="button" onClick={onClose} className="button-secondary_outlined">
               Cancelar
             </button>
             <button type="submit" className="button-primary">
