@@ -24,9 +24,7 @@ interface ObjectiveAccordionProps {
 }
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  const day = date.getDate().toString().padStart(2, '0') // Añadir 0 si es menor a 10
-  const month = (date.getMonth() + 1).toString().padStart(2, '0') // Los meses empiezan desde 0
+  const [year, month, day] = dateString.split('-')
   return `${day}/${month}`
 }
 

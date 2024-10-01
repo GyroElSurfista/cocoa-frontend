@@ -82,10 +82,10 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
             message: errorData.errors.fechaFin.join(', '),
           })
         }
-        if(errorData.errors.nombre){
+        if (errorData.errors.nombre) {
           setError('objective', {
             type: 'manual',
-            message: errorData.errors.nombre.join(', ')
+            message: errorData.errors.nombre.join(', '),
           })
         }
       }
@@ -170,8 +170,12 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   {...register('valueP', {
                     required: 'El valor porcentual es obligatorio',
                     pattern: {
-                      value: /^[0-9]+(\.[0-9]{1,2})?$/,
-                      message: 'Por favor, ingresa un número válido',
+                      value: /^(100(\.00?)?|[0-9]{1,2}(\.[0-9]{1,2})?)$/, // Valida entre 0 y 100 con hasta dos decimales
+                      message: 'Por favor, ingresa un número válido con hasta dos decimales',
+                    },
+                    validate: (value) => {
+                      const numberValue = parseFloat(value)
+                      return numberValue > 0 && numberValue <= 100 ? true : 'El valor debe ser mayor a 0 y menor o igual a 100'
                     },
                   })}
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
