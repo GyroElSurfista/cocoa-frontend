@@ -5,12 +5,13 @@ import NewObjectiveModal from './Components/NewObjectiveModal/NewObjectiveModal'
 // Propio de ActivityPage
 import DialogActivity from '../ActivityPage/Components/DialogActivity'
 import { Dayjs } from 'dayjs'
-import { getObjectives } from '../../services/objective.service'
+import { getObjectives, ObjectiveData } from '../../services/objective.service'
+import { createActivity, deleteActivity } from '../../services/activity.service'
 
 export type ActivityProps = {
-  nroActividad: number
-  nombreActividad: string
-  fechaInicio: Date
+  identificador: number
+  nombre: string
+  fechaInici: Date
   fechaFin: Date
   descripcion: string
   responsable: string | null
@@ -20,6 +21,7 @@ export type ActivityProps = {
 type SelectedActivityState = ActivityProps | null
 
 interface Objective {
+  identificador: number
   iniDate: string
   finDate: string
   objective: string
@@ -49,7 +51,7 @@ const ObjectivePage = () => {
 
   const handleNewInitialDateActivityChange = (value: Dayjs | null) => {
     if (value) {
-      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaInicio: value.toDate() } : null))
+      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaInici: value.toDate() } : null))
     }
   }
 
@@ -59,12 +61,22 @@ const ObjectivePage = () => {
     }
   }
 
-  const handleAddNewActivity = () => {
+  const handleAddNewActivity = async () => {
     if (selectedActivity !== null && selectedObjectiveIndex !== null) {
+      console.log('Valor identificador de objective ', objectives[selectedObjectiveIndex].identificador)
+      createActivity({
+        nombre: selectedActivity.nombre,
+        descripcion: selectedActivity.descripcion,
+        fechaInici: selectedActivity.fechaInici,
+        fechaFin: selectedActivity.fechaFin,
+        identificadorUsua: 1,
+        identificadorObjet: objectives[selectedObjectiveIndex].identificador,
+      })
+
       const updatedObjectives = [...objectives]
       updatedObjectives[selectedObjectiveIndex].activities.push({
         ...selectedActivity,
-        nroActividad: updatedObjectives[selectedObjectiveIndex].activities.length + 1,
+        identificador: updatedObjectives[selectedObjectiveIndex].activities.length + 1,
       })
       setObjectives(updatedObjectives)
       handleDialogClose()
@@ -72,6 +84,20 @@ const ObjectivePage = () => {
   }
 
   // Utilizados por el ObjectiveAccordion
+  const handleDeleteActivityClick = (objectiveIndex: number, activityIndex: number) => {
+    setObjectives((prevObjectives) => {
+      const updatedObjectives = [...prevObjectives]
+      // console.log(updatedObjectives[objectiveIndex].activities[activityIndex].identificador)
+      deleteActivity(updatedObjectives[objectiveIndex].activities[activityIndex].identificador)
+
+      // console.log(objectiveIndex, activityIndex)
+      updatedObjectives[objectiveIndex].activities = updatedObjectives[objectiveIndex].activities.filter(
+        (_, index) => index !== activityIndex
+      )
+      return updatedObjectives
+    })
+  }
+
   const handleActivityClick = (activity: ActivityProps, objectiveIndex: number) => {
     setSelectedActivity(activity)
     setSelectedObjectiveIndex(objectiveIndex)
@@ -81,9 +107,9 @@ const ObjectivePage = () => {
 
   const handleAddActivityClick = (objectiveIndex: number) => {
     setSelectedActivity({
-      nroActividad: 0,
-      nombreActividad: '',
-      fechaInicio: new Date(),
+      identificador: 0,
+      nombre: '',
+      fechaInici: new Date(),
       fechaFin: new Date(),
       descripcion: '',
       responsable: null,
@@ -111,7 +137,8 @@ const ObjectivePage = () => {
       try {
         const response = await getObjectives()
         console.log(response)
-        const objetivos = response.data.map((obj: any) => ({
+        const objetivos = response.data.map((obj: ObjectiveData) => ({
+          identificador: obj.identificador,
           iniDate: obj.fechaInici,
           finDate: obj.fechaFin,
           objective: obj.nombre,
@@ -143,6 +170,7 @@ const ObjectivePage = () => {
                 activities={obj.activities}
                 handleActivityClick={(activity) => handleActivityClick(activity, index)}
                 handleAddActivityClick={() => handleAddActivityClick(index)}
+                handleDeleteActivityClick={(activityIndex) => handleDeleteActivityClick(index, activityIndex)}
               />
             </>
           ))}
