@@ -1,7 +1,0 @@
-# .husky/pre-push
-branch_name=$(git rev-parse --abbrev-ref HEAD)
-
-if [ "$branch_name" = "main" ]; then
-  echo "Push directo a la rama 'main' está prohibido. Usa 'develop' o crea un Pull Request."
-  exit 1
-fi
