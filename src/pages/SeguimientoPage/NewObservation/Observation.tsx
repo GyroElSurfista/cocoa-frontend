@@ -1,11 +1,10 @@
-import * as React from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Theme, useTheme } from '@mui/material/styles'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
-import { useState } from 'react'
-import Dots from './../../../assets/dots.svg'
+import Trash from '../../../assets/trash.svg'
 
 interface Activity {
   id: number
@@ -14,8 +13,11 @@ interface Activity {
 
 interface ObservationProps {
   observation: string
+  observationId: number
   activities: Activity[]
+  selectedActivities: Activity[] // Recibe las actividades seleccionadas
   onSave: (observation: string, activities: Activity[]) => void
+  onDelete: (id: number) => void
 }
 
 const ITEM_HEIGHT = 48
@@ -35,10 +37,9 @@ function getStyles(name: string, selectedActivities: readonly string[], theme: T
   }
 }
 
-// Componente MultipleSelectPlaceholder actualizado para recibir props
 const MultipleSelectPlaceholder: React.FC<{
   selectedActivities: Activity[]
-  setSelectedActivities: React.Dispatch<React.SetStateAction<Activity[] | null>>
+  setSelectedActivities: React.Dispatch<React.SetStateAction<Activity[]>>
   activities: Activity[]
 }> = ({ selectedActivities, setSelectedActivities, activities }) => {
   const theme = useTheme()
@@ -47,14 +48,40 @@ const MultipleSelectPlaceholder: React.FC<{
     const {
       target: { value },
     } = event
-    // Filtrar actividades a partir del valor seleccionado
     const selected = typeof value === 'string' ? value.split(',') : value
+
+    // Log for debugging
+    console.log('handleChange called, selected values:', selected)
+
     const updatedActivities = activities.filter((activity) => selected.includes(activity.name))
-    setSelectedActivities(updatedActivities)
+
+    // Log the activities before updating state
+    console.log('Updated activities:', updatedActivities)
+    console.log('Current selected activities:', selectedActivities)
+
+    // Evitamos un ciclo infinito verificando si el nuevo conjunto de actividades seleccionadas es diferente
+    if (
+      updatedActivities.length !== selectedActivities.length ||
+      updatedActivities.some((a, index) => a.id !== selectedActivities[index]?.id)
+    ) {
+      console.log('Updating selected activities state')
+      setSelectedActivities(updatedActivities)
+    }
   }
 
   return (
-    <FormControl sx={{ m: 1, width: 300, mt: 3 }}>
+    <FormControl
+      sx={{
+        m: 0,
+        width: {
+          xs: '150px', // Small screens
+          sm: '200px', // Medium screens
+          md: '250px', // Large screens
+        },
+        my: 1,
+        padding: 0,
+      }}
+    >
       <Select
         multiple
         displayEmpty
@@ -70,9 +97,13 @@ const MultipleSelectPlaceholder: React.FC<{
         }}
         MenuProps={MenuProps}
         inputProps={{ 'aria-label': 'Without label' }}
+        sx={{
+          fontSize: '12px', // Reduced font size in Select
+          padding: 0, // Remove padding in Select
+        }}
       >
-        <MenuItem disabled value="">
-          <em>Seleccionar Actividad</em>
+        <MenuItem disabled value="" sx={{ padding: 0 }}>
+          <em style={{ fontSize: '12px' }}>Seleccionar Actividad</em>
         </MenuItem>
         {activities.map((activity) => (
           <MenuItem
@@ -83,6 +114,10 @@ const MultipleSelectPlaceholder: React.FC<{
               selectedActivities.map((a) => a.name),
               theme
             )}
+            sx={{
+              fontSize: '12px', // Reduced font size in MenuItem
+              paddingTop: 0, // Remove padding in MenuItem
+            }}
           >
             {activity.name}
           </MenuItem>
@@ -92,73 +127,150 @@ const MultipleSelectPlaceholder: React.FC<{
   )
 }
 
-// Componente Observation actualizado con MultipleSelectPlaceholder
-export const Observation: React.FC<ObservationProps> = ({ observation, activities, onSave }) => {
-  const [selectedActivities, setSelectedActivities] = useState<Activity[] | null>(null)
+export const Observation: React.FC<ObservationProps> = ({
+  observation,
+  activities,
+  selectedActivities,
+  observationId,
+  onSave,
+  onDelete,
+}) => {
   const [editableObservation, setEditableObservation] = useState<string>(observation)
+  const [currentSelectedActivities, setCurrentSelectedActivities] = useState<Activity[]>(selectedActivities)
   const [error, setError] = useState<string>('')
 
-  // Manejar los cambios en el textarea y validar longitud
+  const textAreaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (textAreaRef.current) {
+      textAreaRef.current.focus()
+    }
+    console.log('useEffect: Component mounted, textarea focused')
+  }, [])
+
   const handleObservationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value
+    console.log('Observation change:', newValue)
+
     if (newValue.length <= 256) {
       setEditableObservation(newValue)
-      setError('') // Limpiar error si la longitud es válida
+      setError('')
     } else {
       setError('La observación no puede exceder los 256 caracteres.')
     }
   }
 
-  // Verificar y validar antes de guardar
-  const validateAndSave = () => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      console.log('Enter key pressed')
+      validateAndSave()
+    }
+  }
+
+  const handleBlur = () => {
+    console.log('Textarea blur event')
+    if (editableObservation !== observation || currentSelectedActivities !== selectedActivities) {
+      validateAndSave()
+    }
+  }
+
+  const validateAndSave = async () => {
+    console.log('Validating and saving observation')
+
     if (!editableObservation.trim()) {
       setError('La observación no puede estar vacía.')
       return
     }
 
-    if (!selectedActivities || selectedActivities.length === 0) {
+    if (!currentSelectedActivities || currentSelectedActivities.length === 0) {
       setError('Debe seleccionar al menos una actividad.')
       return
     }
 
-    // Si pasa la validación, ejecutamos la función onSave
-    onSave(editableObservation, selectedActivities)
-    setError('') // Limpiar errores después de guardar
-  }
+    if (editableObservation !== observation || currentSelectedActivities !== selectedActivities) {
+      console.log('Changes detected, saving...')
 
-  // Manejar el evento de presionar la tecla Enter
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault() // Evitar salto de línea en el textarea
-      validateAndSave() // Guardar al presionar Enter
+      try {
+        const response = await fetch('https://cocoabackend.onrender.com/api/crear-observacion', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            descripcion: editableObservation,
+            fecha: new Date().toISOString().split('T')[0], // Fecha actual
+            identificadorPlaniSegui: 2, // Cambia esto si lo necesitas dinámico
+            identificadorActiv: currentSelectedActivities[0].id, // Usa el primer ID de actividad seleccionada
+          }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          console.log('Observation saved successfully:', data)
+          onSave(editableObservation, currentSelectedActivities)
+        } else {
+          const errorMessage = await response.text()
+          console.error('Failed to save observation:', errorMessage)
+          setError('Error al guardar la observación. Inténtalo de nuevo.')
+        }
+      } catch (error) {
+        console.error('Error in fetch:', error)
+        setError('Error en la conexión al servidor.')
+      }
     }
   }
 
-  // Manejar el evento onBlur (cuando el textarea pierde el foco)
-  const handleBlur = () => {
-    validateAndSave() // Guardar al perder el foco
+  // Nueva funcionalidad para eliminar la observación
+  const handleDelete = async () => {
+    console.log('Deleting observation with ID:', observationId)
+
+    try {
+      const response = await fetch(`https://cocoabackend.onrender.com/api/observaciones/${observationId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        console.log('Observation deleted successfully')
+        onDelete(observationId) // Llama a la función de eliminación para actualizar el estado en el componente padre
+      } else {
+        const errorMessage = await response.text()
+        console.error('Failed to delete observation:', errorMessage)
+        setError('Error al eliminar la observación. Inténtalo de nuevo.')
+      }
+    } catch (error) {
+      console.error('Error in fetch:', error)
+      setError('Error en la conexión al servidor.')
+    }
   }
 
   return (
-    <div>
-      <div className="flex border border-black rounded-lg w-5/6 h-[80px] my-5 mx-auto">
+    <div className="bg-white rounded-lg shadow-md w-full">
+      <div className="flex items-center borde rounded-lg w-full">
         <textarea
-          className="flex justify-end text-left mx-2 my-2 w-full resize-none h-4/5 border-none rounded-lg focus:margin focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          ref={textAreaRef}
+          className="text-left mx-2 w-full resize-none border-none rounded-lg focus:margin focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           value={editableObservation}
           onChange={handleObservationChange}
-          onKeyDown={handleKeyPress} // Guardar al presionar Enter
-          onBlur={handleBlur} // Guardar al perder el foco
+          onKeyPress={handleKeyPress} // Handle enter key
+          onBlur={handleBlur} // Handle when textarea loses focus
         />
-        <div className="ml-auto flex items-center my-[2.1%] mx-4">
+        <div className="ml-4 flex">
           <MultipleSelectPlaceholder
-            selectedActivities={selectedActivities || []}
-            setSelectedActivities={setSelectedActivities}
+            selectedActivities={currentSelectedActivities}
+            setSelectedActivities={setCurrentSelectedActivities}
             activities={activities}
           />
-          <img className="m-2 ml-8" src={Dots} alt="Dots icon" />
+          {/* Botón de eliminación */}
+          <img
+            className="mx-4 cursor-pointer"
+            src={Trash}
+            alt="Trash icon"
+            onClick={handleDelete} // Deletes the component
+          />
         </div>
       </div>
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-red-500 text-sm">{error}</p>}
     </div>
   )
 }

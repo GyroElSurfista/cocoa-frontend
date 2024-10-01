@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Observation } from './Observation.tsx'
 
 interface Activity {
@@ -7,82 +7,135 @@ interface Activity {
 }
 
 interface ObservationData {
-  observacion: string
-  actividades: Activity[]
+  identificador: number
+  descripcion: string
+  fecha: string
+  identificadorPlaniSegui: number
+  identificadorActiv: number
+  activities: Activity[]
+  selectedActivities: Activity[] // Nuevo campo para almacenar las actividades seleccionadas
 }
 
 export const AddObservation: React.FC = () => {
-  const [observations, setObservations] = useState<ObservationData[]>([]) // Almacena todas las observaciones obtenidas
-  const [currentEndpointIndex, setCurrentEndpointIndex] = useState<number>(0) // Controla el índice del endpoint actual
-  const [newObservationData, setNewObservationData] = useState<ObservationData | null>(null) // Datos de la nueva observación
+  const [observations, setObservations] = useState<ObservationData[]>([])
+  const [isAddingObservation, setIsAddingObservation] = useState(false) // To control the add form visibility
+  const [newObservationData, setNewObservationData] = useState<ObservationData | null>(null)
 
-  // Función para obtener los datos de observación y actividades desde el endpoint actual
-  const fetchMockData = async (index: number): Promise<ObservationData> => {
+  const fetchObservations = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/${index}`)
+      const response = await fetch('https://cocoabackend.onrender.com/api/observaciones')
       if (!response.ok) {
         throw new Error('Error al cargar los datos del servidor')
       }
       const data = await response.json()
+      const mappedObservations = data.map((obs: any) => {
+        const activities = [{ id: obs.identificadorActiv, name: `Actividad ${obs.identificadorActiv}` }]
 
-      return {
-        observacion: data.observacion.observacion,
-        actividades: data.actividades,
-      }
+        // Filtra y selecciona la actividad correcta basada en identificadorActiv
+        const selectedActivities = activities.filter((activity) => activity.id === obs.identificadorActiv)
+
+        return {
+          identificador: obs.identificador,
+          descripcion: obs.descripcion,
+          fecha: obs.fecha,
+          identificadorPlaniSegui: obs.identificadorPlaniSegui,
+          identificadorActiv: obs.identificadorActiv,
+          activities,
+          selectedActivities, // Almacena la actividad seleccionada
+        }
+      })
+      setObservations(mappedObservations)
     } catch (error) {
       console.error('Error en la carga de datos:', error)
-      throw error
     }
   }
 
-  // Maneja la acción de agregar una nueva observación
-  const handleAddObjetive = async () => {
-    try {
-      // Cargar nuevos datos de observación
-      const newData = await fetchMockData(currentEndpointIndex)
-      setNewObservationData(newData)
-      setCurrentEndpointIndex((prevIndex) => prevIndex + 1)
-    } catch (error) {
-      console.error('Error al agregar objetivo:', error)
-    }
+  const handleAddObjective = () => {
+    setNewObservationData({
+      identificador: Date.now(),
+      descripcion: '',
+      fecha: new Date().toISOString().split('T')[0],
+      identificadorPlaniSegui: 1,
+      identificadorActiv: 1,
+      activities: [{ id: 1, name: 'Actividad 1' }],
+      selectedActivities: [{ id: 1, name: 'Actividad 1' }], // La actividad predeterminada seleccionada
+    })
+    setIsAddingObservation(true) // Show the observation form
   }
 
-  // Maneja la acción de guardar la nueva observación
-  const handleSaveObservation = (observation?: string, activities?: Activity[]) => {
-    if (newObservationData && !observation && !activities) {
-      // Agrega los datos actuales si no se pasan nuevos datos
+  const handleSaveObservation = (observation?: string, activities: Activity[] = []) => {
+    if (newObservationData && !observation && activities.length === 0) {
       setObservations([...observations, newObservationData])
-      setNewObservationData(null) // Limpiar los datos de la nueva observación
-    } else if (observation && activities) {
-      // Agrega los datos enviados desde la validación
-      setObservations([...observations, { observacion: observation, actividades: activities }])
       setNewObservationData(null)
+      setIsAddingObservation(false) // Hide the form after saving
+    } else if (observation && activities) {
+      setObservations([
+        ...observations,
+        {
+          identificador: Date.now(),
+          descripcion: observation,
+          fecha: new Date().toISOString().split('T')[0],
+          identificadorPlaniSegui: 1,
+          identificadorActiv: activities[0].id,
+          activities,
+          selectedActivities: activities, // Actualiza las actividades seleccionadas
+        },
+      ])
+      setNewObservationData(null)
+      setIsAddingObservation(false) // Hide the form after saving
     }
   }
+
+  const handleDeleteObservation = (observationId: number) => {
+    setObservations(observations.filter((obs) => obs.identificador !== observationId))
+    setNewObservationData(null)
+    setIsAddingObservation(false) // Hide the form if user cancels
+  }
+
+  useEffect(() => {
+    fetchObservations()
+  }, [])
 
   return (
-    <div>
-      {observations.map((objetiveData, index) => (
-        <Observation
-          key={index}
-          observation={objetiveData.observacion}
-          activities={objetiveData.actividades}
-          onSave={handleSaveObservation}
-        />
-      ))}
-      {newObservationData && (
-        <Observation
-          observation={newObservationData.observacion}
-          activities={newObservationData.actividades}
-          onSave={handleSaveObservation}
-        />
-      )}
-      <div className="w-[calc(100%-3rem)] py-[29px] bg-[#eef0ff] flex justify-center">
-        <div className="pl-[5px] pr-2.5 py-[4.50px] bg-[#251b4d] rounded-lg shadow justify-center items-center inline-flex">
-          <button onClick={handleAddObjetive} className="button-primary w-auto px-4 py-2">
-            + Nueva Observacion
-          </button>
+    <div className="bg-[#EEF0FF] p-7 w-11/12">
+      <div className="rounded-lg mx-auto">
+        <div className="flex flex-wrap justify-center gap-4">
+          {/* Existing observations */}
+          {observations.map((observationData) => (
+            <Observation
+              key={observationData.identificador}
+              observationId={observationData.identificador} // Pasamos el identificador
+              observation={observationData.descripcion}
+              activities={observationData.activities}
+              selectedActivities={observationData.selectedActivities} // Pasa las actividades seleccionadas
+              onSave={handleSaveObservation}
+              onDelete={() => handleDeleteObservation(observationData.identificador)} // Pasamos el identificador a la función de eliminación
+            />
+          ))}
+
+          {/* Render new observation form if the user clicked "+ Nueva Observación" */}
+          {isAddingObservation && newObservationData && (
+            <Observation
+              observationId={newObservationData.identificador} // Pasamos el identificador de la nueva observación
+              observation={newObservationData.descripcion}
+              activities={newObservationData.activities}
+              selectedActivities={newObservationData.selectedActivities} // Pasa las actividades seleccionadas
+              onSave={handleSaveObservation}
+              onDelete={() => handleDeleteObservation(newObservationData.identificador)} // Pasamos el identificador a la función de eliminación
+            />
+          )}
         </div>
+
+        {/* Button for adding a new observation */}
+        {!isAddingObservation && (
+          <div className="w-[calc(100%-3rem)] bg-[#eef0ff] flex justify-center mt-4">
+            <div className="pl-[5px] pr-2.5 bg-[#251b4d] rounded-lg shadow justify-center items-center inline-flex">
+              <button onClick={handleAddObjective} className="button-primary w-auto">
+                + Nueva Observación
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
