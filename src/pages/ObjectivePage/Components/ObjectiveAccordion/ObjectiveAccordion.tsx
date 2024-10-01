@@ -26,7 +26,7 @@ interface ObjectiveAccordionProps {
 
 const formatDate = (dateString: string) => {
   const [year, month, day] = dateString.split('-')
-  return `${day}/${month}`
+  return `${year}/${day}/${month}`
 }
 
 const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({
