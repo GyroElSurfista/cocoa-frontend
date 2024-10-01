@@ -54,7 +54,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       setApiError(null)
 
       // Se pasa el nuevo objetivo al componente padre
-      onCreate(data)
+      onCreate(createdObjective)
 
       // Reset form and close modal
       reset()
@@ -80,6 +80,12 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
           setError('finDate', {
             type: 'manual',
             message: errorData.errors.fechaFin.join(', '),
+          })
+        }
+        if(errorData.errors.nombre){
+          setError('objective', {
+            type: 'manual',
+            message: errorData.errors.nombre.join(', ')
           })
         }
       }

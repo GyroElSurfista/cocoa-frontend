@@ -2,7 +2,7 @@ import axios from 'axios'
 import { ActivityData } from './activity.service'
 
 export interface ObjectiveData {
-  identificador: number
+  identificador?: number
   identificadorPlani: number
   nombre: string
   fechaInici: string
