@@ -55,7 +55,7 @@ const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({
             <span className="bg-indigo-200 rounded-xl text-sm p-1 ml-1 text-gray-600 font-normal">{formatDate(objective.finDate)}</span>
           </div>
           <div className="w-auto pl-3 flex justify-items-end border-l-2 border-[#c6caff]">
-            <NavLink to="/entregables" state={{ numeroObjetivo: indexObj }}>
+            <NavLink to="/entregables" state={{ identificadorObjet: indexObj }}>
               <button className="button-primary">Ver entregable</button>
             </NavLink>
           </div>

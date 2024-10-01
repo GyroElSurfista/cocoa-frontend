@@ -12,7 +12,7 @@ interface Entregable {
 
 const EntregablePage = () => {
   const location = useLocation()
-  const { numeroObjetivo } = location.state || {}
+  const { identificadorObjet } = location.state || {}
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [entregables, setEntregables] = useState<Entregable[]>([])
@@ -20,9 +20,13 @@ const EntregablePage = () => {
   useEffect(() => {
     // Fetch entregables from the API
     const fetchEntregables = async () => {
-      const response = await fetch('https://cocoabackend.onrender.com/api/entregables')
-      const data = await response.json()
-      setEntregables(data)
+      try {
+        const response = await fetch('https://cocoabackend.onrender.com/api/entregables')
+        const data = await response.json()
+        setEntregables(data)
+      } catch (error) {
+        console.error('Error al cargar los entregables:', error)
+      }
     }
     fetchEntregables()
   }, [])
@@ -37,33 +41,19 @@ const EntregablePage = () => {
   return (
     <div className="px-2 mx-6">
       <h2 className="text-lg font-semibold">
-        <NavLink
-          to="/objetivos"
-          className="text-2xl font-bold transition duration-300 ease-in-out px-2 py-1 rounded-[10px]"
-          style={{
-            display: 'inline-block',
-            transition: 'background-color 0.3s ease-in-out',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-          }}
-        >
+        <NavLink to="/objetivos" className="text-2xl font-bold transition duration-300 ease-in-out px-2 py-1 rounded-[10px]">
           Objetivos
         </NavLink>{' '}
         {'>'}
-        {numeroObjetivo && (
+        {identificadorObjet && (
           <>
-            <span className="text-base font-bold ml-2">Objetivo {numeroObjetivo}</span> {'>'}
+            <span className="text-base font-bold ml-2">Objetivo {identificadorObjet}</span> {'>'}
           </>
         )}
         <span className="text-base font-bold ml-2">Entregables</span>
       </h2>
       <hr className="border-[1.5px] border-[#c6caff] my-3" />
 
-      {/* Mostrar los entregables en formato acordeón */}
       <div className="mt-4">
         {entregables.map((entregable, index) => (
           <EntregableAccordion key={entregable.identificador} entregable={entregable} indexEntregable={index + 1} />
@@ -76,7 +66,12 @@ const EntregablePage = () => {
         </button>
       </div>
 
-      <NewEntregableModal isOpen={isModalOpen} onClose={closeModal} onCreate={handleCreateEntregable} />
+      <NewEntregableModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onCreate={handleCreateEntregable}
+        identificadorObjet={identificadorObjet}
+      />
     </div>
   )
 }

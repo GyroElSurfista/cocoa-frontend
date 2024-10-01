@@ -5,6 +5,7 @@ interface NewEntregableModalProps {
   isOpen: boolean
   onClose: () => void
   onCreate: (newEntregable: Entregable) => void
+  identificadorObjet: number // Nueva propiedad para recibir el identificador del objetivo
 }
 
 interface Entregable {
@@ -14,16 +15,17 @@ interface Entregable {
   identificadorObjet: number
 }
 
-const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose, onCreate }) => {
+const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose, onCreate, identificadorObjet }) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<Entregable>()
+  } = useForm<Omit<Entregable, 'identificador' | 'identificadorObjet' | 'descripcion'>>() // Excluimos los campos calculados
+
   const [apiError, setApiError] = useState<string | null>(null)
 
-  const onSubmit: SubmitHandler<Entregable> = async (data) => {
+  const onSubmit: SubmitHandler<Omit<Entregable, 'identificador' | 'identificadorObjet' | 'descripcion'>> = async (data) => {
     setApiError(null) // Reseteamos cualquier error previo
 
     // Creación del objeto entregable basado en el formulario
@@ -31,7 +33,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
       ...data,
       identificador: Date.now(), // Usamos un timestamp como identificador simulado
       descripcion: 'Este es un entregable interesante', // Descripción predeterminada
-      identificadorObjet: 2, // Suponemos que es para un objetivo con ID 2
+      identificadorObjet, // Utilizamos el identificador del objetivo pasado como propiedad
     }
 
     try {
@@ -77,6 +79,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
             placeholder="¿Cuál será el entregable?"
           />
           {errors.nombre && <p className="text-red-500 text-sm">{errors.nombre.message}</p>}
+
           {apiError && <p className="text-red-500 text-sm mt-4">{apiError}</p>}
           <div className="mt-6 flex justify-end gap-2">
             <button type="button" onClick={onClose} className="button-secondary_outlined">
