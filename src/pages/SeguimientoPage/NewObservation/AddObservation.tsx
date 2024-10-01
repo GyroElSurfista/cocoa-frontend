@@ -12,7 +12,8 @@ interface ObservationData {
   fecha: string
   identificadorPlaniSegui: number
   identificadorActiv: number
-  actividades: Activity[]
+  activities: Activity[]
+  selectedActivities: Activity[] // Nuevo campo para almacenar las actividades seleccionadas
 }
 
 export const AddObservation: React.FC = () => {
@@ -27,14 +28,22 @@ export const AddObservation: React.FC = () => {
         throw new Error('Error al cargar los datos del servidor')
       }
       const data = await response.json()
-      const mappedObservations = data.map((obs: any) => ({
-        identificador: obs.identificador,
-        descripcion: obs.descripcion,
-        fecha: obs.fecha,
-        identificadorPlaniSegui: obs.identificadorPlaniSegui,
-        identificadorActiv: obs.identificadorActiv,
-        actividades: [{ id: obs.identificadorActiv, name: `Actividad ${obs.identificadorActiv}` }],
-      }))
+      const mappedObservations = data.map((obs: any) => {
+        const activities = [{ id: obs.identificadorActiv, name: `Actividad ${obs.identificadorActiv}` }]
+
+        // Filtra y selecciona la actividad correcta basada en identificadorActiv
+        const selectedActivities = activities.filter((activity) => activity.id === obs.identificadorActiv)
+
+        return {
+          identificador: obs.identificador,
+          descripcion: obs.descripcion,
+          fecha: obs.fecha,
+          identificadorPlaniSegui: obs.identificadorPlaniSegui,
+          identificadorActiv: obs.identificadorActiv,
+          activities,
+          selectedActivities, // Almacena la actividad seleccionada
+        }
+      })
       setObservations(mappedObservations)
     } catch (error) {
       console.error('Error en la carga de datos:', error)
@@ -44,11 +53,12 @@ export const AddObservation: React.FC = () => {
   const handleAddObjective = () => {
     setNewObservationData({
       identificador: Date.now(),
-      descripcion: 'Nueva observación agregada',
+      descripcion: '',
       fecha: new Date().toISOString().split('T')[0],
       identificadorPlaniSegui: 1,
       identificadorActiv: 1,
-      actividades: [{ id: 1, name: 'Actividad 1' }],
+      activities: [{ id: 1, name: 'Actividad 1' }],
+      selectedActivities: [{ id: 1, name: 'Actividad 1' }], // La actividad predeterminada seleccionada
     })
     setIsAddingObservation(true) // Show the observation form
   }
@@ -66,8 +76,9 @@ export const AddObservation: React.FC = () => {
           descripcion: observation,
           fecha: new Date().toISOString().split('T')[0],
           identificadorPlaniSegui: 1,
-          identificadorActiv: 1,
-          actividades,
+          identificadorActiv: activities[0].id,
+          activities,
+          selectedActivities: activities, // Actualiza las actividades seleccionadas
         },
       ])
       setNewObservationData(null)
@@ -75,7 +86,8 @@ export const AddObservation: React.FC = () => {
     }
   }
 
-  const handleDeleteObservation = () => {
+  const handleDeleteObservation = (observationId: number) => {
+    setObservations(observations.filter((obs) => obs.identificador !== observationId))
     setNewObservationData(null)
     setIsAddingObservation(false) // Hide the form if user cancels
   }
@@ -87,25 +99,29 @@ export const AddObservation: React.FC = () => {
   return (
     <div className="bg-[#EEF0FF] p-7 w-11/12">
       <div className="rounded-lg mx-auto">
-        <div className="flex flex-wrap justify-center gap-6">
+        <div className="flex flex-wrap justify-center gap-4">
           {/* Existing observations */}
           {observations.map((observationData) => (
             <Observation
               key={observationData.identificador}
+              observationId={observationData.identificador} // Pasamos el identificador
               observation={observationData.descripcion}
-              activities={observationData.actividades}
+              activities={observationData.activities}
+              selectedActivities={observationData.selectedActivities} // Pasa las actividades seleccionadas
               onSave={handleSaveObservation}
-              onDelete={handleDeleteObservation} // Pass the delete function
+              onDelete={() => handleDeleteObservation(observationData.identificador)} // Pasamos el identificador a la función de eliminación
             />
           ))}
 
           {/* Render new observation form if the user clicked "+ Nueva Observación" */}
           {isAddingObservation && newObservationData && (
             <Observation
+              observationId={newObservationData.identificador} // Pasamos el identificador de la nueva observación
               observation={newObservationData.descripcion}
-              activities={newObservationData.actividades}
+              activities={newObservationData.activities}
+              selectedActivities={newObservationData.selectedActivities} // Pasa las actividades seleccionadas
               onSave={handleSaveObservation}
-              onDelete={handleDeleteObservation} // Pass the delete function
+              onDelete={() => handleDeleteObservation(newObservationData.identificador)} // Pasamos el identificador a la función de eliminación
             />
           )}
         </div>
