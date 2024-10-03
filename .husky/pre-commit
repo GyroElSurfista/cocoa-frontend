@@ -1,4 +1,3 @@
-
 # Ejecuta Prettier para formatear el código y escribir los cambios
 npx prettier . --write
 
