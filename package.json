@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "serve dist -s -n -L -p $PORT",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",

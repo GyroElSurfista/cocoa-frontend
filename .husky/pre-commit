@@ -1,0 +1,11 @@
+
+# Ejecuta Prettier para formatear el código y escribir los cambios
+npx prettier . --write
+
+# Agrega los archivos formateados a la preparación del commit
+git add .
+
+# Ejecuta ESLint para validar el código después del formateo
+npm run lint
+
+# Si ESLint encuentra errores, el commit será detenido automáticamente
