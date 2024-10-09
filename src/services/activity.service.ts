@@ -1,14 +1,5 @@
 import axios from 'axios'
-
-export interface ActivityData {
-  identificador?: number
-  nombre: string
-  descripcion: string
-  fechaInici: Date
-  fechaFin: Date
-  identificadorUsua: number
-  identificadorObjet: number
-}
+import { ActivityData } from '../interfaces/activity.interface'
 
 export const createActivity = async (activityData: ActivityData) => {
   try {

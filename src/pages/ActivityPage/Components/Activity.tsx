@@ -1,4 +1,4 @@
-import { AccountCircle, Delete } from '@mui/icons-material'
+import { AccountCircle } from '@mui/icons-material'
 import Divider from '@mui/material/Divider'
 
 type ActivityProps = {
@@ -10,34 +10,33 @@ type ActivityProps = {
   responsable: string | null
   resultado: string
   orden?: number // Agrega orden si es necesario
-  onDelete?: () => void // Agrega onDelete si es necesario
   onClick: () => void
+  isDialogOpen?: boolean
 }
 
-const Activity: React.FC<ActivityProps> = ({ orden, nombre, responsable, onClick, onDelete }) => {
+const Activity: React.FC<ActivityProps> = ({ orden, nombre, responsable, onClick, fechaInici, fechaFin, isDialogOpen }) => {
   return (
-    <div onClick={onClick} className="flex text-sm bg-[#EEF0FF] my-2 py-2 items-center cursor-pointer justify-between">
-      <div className="flex items-center">
-        <div className="flex flex-shrink-0 items-center">
-          <p className="text-center mx-2">Actividad {orden}</p>
-          <Divider orientation="vertical" flexItem variant="fullWidth" color="black" />
-        </div>
-        <p className="truncate mx-2">{nombre}</p>
+    <div
+      onClick={onClick}
+      className="flex justify-between items-center h-12 my-2 py-2 bg-[#eef0ff] cursor-pointer text-sm text-[#1c1c1c] overflow-hidden"
+    >
+      <div className="flex items-center flex-shrink-0">
+        <p className="mx-2.5 whitespace-nowrap">Actividad {orden}</p>
+        <Divider orientation="vertical" flexItem className="border-l border-[#1c1c1c]" />
+        <p className={`mx-2 text-[#5d5d5d] truncate ${isDialogOpen ? 'md:w-14 lg:w-32 xl:w-80' : 'md:w-80 lg:w-[28rem] xl:w-[45rem]'}`}>
+          {nombre}
+        </p>
       </div>
 
-      <div className="flex items-center sm:opacity-0 lg:opacity-100">
+      <div className="flex items-center opacity-0 w-0 md:opacity-100 md:w-auto">
+        <div className="flex items-center mx-2.5">
+          <span className="p-1 bg-[#ffc3cc] rounded-lg text-xs">{fechaInici.toLocaleDateString()}</span>
+          <hr className="mx-1 w-2.5 border-[#1c1c1c]" />
+          <span className="p-1 bg-[#c6caff] rounded-lg text-xs">{fechaFin.toLocaleDateString()}</span>
+        </div>
+
         <AccountCircle fontSize="large" />
-        <p className="mx-2">{responsable === null || responsable === undefined ? 'No asignado' : responsable}</p>
-        <Delete
-          fontSize="large"
-          className="mx-2 hover:fill-red-600"
-          onClick={(event) => {
-            event.stopPropagation()
-            if (onDelete) {
-              onDelete()
-            }
-          }}
-        />
+        <span className="mx-2 whitespace-nowrap">{responsable || 'No asignado'}</span>
       </div>
     </div>
   )

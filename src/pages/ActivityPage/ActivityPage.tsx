@@ -1,26 +1,19 @@
-import { useState } from 'react'
-import Button from '@mui/material/Button'
+import { useEffect, useState } from 'react'
 import Activity from './Components/Activity'
 import DialogActivity from './Components/DialogActivity'
 import { Dayjs } from 'dayjs'
 
-export type ActivityProps = {
-  identificador: number
-  nombre: string
-  fechaInici: Date
-  fechaFin: Date
-  descripcion: string
-  responsable: string | null
-  resultado: string
-}
-
 type SelectedActivityState = ActivityProps | null
 
-function ActivityPage() {
+import React from 'react'
+import { ActivityProps } from '../../interfaces/activity.interface'
+
+const ActivityPage = () => {
   const [activities, setActivities] = useState<ActivityProps[]>([
     {
       identificador: 1,
-      nombre: 'Entrevista a nuestro tutor TIS',
+      nombre:
+        'Observar procedimiento de evaluaciones TIS, Observar procedimiento de evaluaciones TIS, Observar procedimiento de evaluaciones TIS',
       fechaInici: new Date(),
       fechaFin: new Date(),
       descripcion: 'Descripcion 1 - Elicitación de requerimientos para obtener el Product Backlog.',
@@ -29,7 +22,7 @@ function ActivityPage() {
     },
     {
       identificador: 2,
-      nombre: 'Observar procedimiento de evaluaciones TIS',
+      nombre: 'Observar procedimiento de evaluaciones TIS, Observar procedimiento de evaluaciones TIS',
       fechaInici: new Date(),
       fechaFin: new Date(),
       descripcion:
@@ -47,12 +40,14 @@ function ActivityPage() {
       resultado: 'Prototipo base para programar en el frontend.',
     },
   ])
-
   const [selectedActivity, setSelectedActivity] = useState<SelectedActivityState>(null)
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
+  const [responsables, setResponsables] = useState<Array<string>>([])
 
-  const responsables = ['Jairo Maida', 'Mariana Vallejos', 'Emily Callejas', 'Nahuel Torrez', 'Winsor Orellana', 'Walter Sanabria']
+  useEffect(() => {
+    setResponsables(['Jairo Maida', 'Mariana Vallejos', 'Emily Callejas', 'Nahuel Torrez', 'Winsor Orellana', 'Walter Sanabria'])
+  }, [responsables])
 
   const handleActivityClick = (activity: ActivityProps) => {
     setSelectedActivity(activity)
@@ -104,14 +99,11 @@ function ActivityPage() {
     setIsDialogOpen(true)
   }
 
-  const handleDeleteActivity = (id: number) => {
-    setActivities((prevActivities) => prevActivities.filter((activity) => activity.identificador !== id))
-  }
-
   return (
     <>
-      <div className={`flex p-4 overflow-x-hidden`}>
-        <div className={` ${isDialogOpen ? 'w-[65%] flex-shrink mr-4' : 'w-full'}`}>
+      <hr className="border-[1.5px] border-[#c6caff]" />
+      <div className={'flex overflow-x-hidden'}>
+        <div className={`flex flex-col ${isDialogOpen ? 'w-[65%] mr-4' : 'w-full'}`}>
           {activities.map((activity, index) => (
             <Activity
               key={activity.identificador}
@@ -123,13 +115,16 @@ function ActivityPage() {
               responsable={activity.responsable}
               resultado={activity.resultado}
               orden={index + 1} // Añade el orden si es necesario
-              onDelete={() => handleDeleteActivity(activity.identificador)} // Añade la función onDelete si es necesario
               onClick={() => handleActivityClick(activity)}
+              isDialogOpen={isDialogOpen}
             />
           ))}
-          <Button variant="contained" onClick={handleAddActivityClick}>
-            Agregar actividad
-          </Button>
+          <hr className="border-[1.5px] border-[#c6caff]" />
+          <div className="flex justify-center mt-4">
+            <button onClick={handleAddActivityClick} className="button-primary">
+              + Nueva Actividad
+            </button>
+          </div>
         </div>
 
         <DialogActivity
