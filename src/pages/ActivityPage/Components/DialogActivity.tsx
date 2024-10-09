@@ -19,6 +19,27 @@ const DialogActivity = ({
   responsables,
   objetivos,
 }: DialogActivityProps) => {
+  const handleAddResult = () => {
+    onChange({
+      target: {
+        name: 'resultado',
+        value: [...(activity?.resultado ?? []), ''],
+      },
+    })
+  }
+
+  const handleResultChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number) => {
+    const newResults = [...(activity?.resultado ?? [])]
+    newResults[index] = e.target.value
+
+    onChange({
+      target: {
+        name: 'resultado',
+        value: newResults,
+      },
+    })
+  }
+
   return (
     <FormControl
       className={`shadow-lg h-fit mb-6 transform transition-transform ${isVisible ? 'translate-x-0 w-[35%] p-4' : 'translate-x-full w-[0%]'}`}
@@ -144,7 +165,7 @@ const DialogActivity = ({
               <TextField
                 name="resultado"
                 value={resultado}
-                onChange={onChange}
+                onChange={(e) => handleResultChange(e, index)}
                 placeholder="Describe el resultado"
                 variant="outlined"
                 disabled={!isEditMode}
@@ -153,18 +174,20 @@ const DialogActivity = ({
                 multiline={!isEditMode}
               />
 
-              {isEditMode ? (
+              {/* {isEditMode ? (
                 <Button className="ml-2" color="secondary">
                   X
                 </Button>
-              ) : null}
+              ) : null} */}
             </div>
           ))}
 
           {isEditMode && (
             <>
               <div className="flex justify-center">
-                <button className="button-primary mt-2 mb-6">+ Resultado</button>
+                <button onClick={handleAddResult} className="button-primary mt-2 mb-6">
+                  + Resultado
+                </button>
               </div>
 
               <div className="flex justify-end">

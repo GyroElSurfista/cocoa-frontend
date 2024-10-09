@@ -70,7 +70,7 @@ const ActivityPage = () => {
     setSelectedActivity(null)
   }
 
-  const handleNewActivityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNewActivityChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setSelectedActivity((prevState) => (prevState ? { ...prevState, [name]: value } : null))
   }
@@ -108,7 +108,7 @@ const ActivityPage = () => {
       fechaFin: new Date(),
       descripcion: '',
       responsable: null,
-      resultado: [],
+      resultado: [''],
       objetivo: '',
     })
     setIsEditMode(true)
