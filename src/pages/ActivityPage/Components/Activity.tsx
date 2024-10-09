@@ -8,7 +8,7 @@ type ActivityProps = {
   fechaFin: Date
   descripcion: string
   responsable: string | null
-  resultado: string
+  resultado: string[]
   orden?: number // Agrega orden si es necesario
   onClick: () => void
   isDialogOpen?: boolean

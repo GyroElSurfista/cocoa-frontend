@@ -1,7 +1,7 @@
-import axios from 'axios'
+import axios, { AxiosPromise } from 'axios'
 import { ActivityData } from '../interfaces/activity.interface'
 
-export const createActivity = async (activityData: ActivityData) => {
+export const createActivity = async (activityData: ActivityData): AxiosPromise<ActivityData> => {
   try {
     const response = await axios.post('https://cocoabackend.onrender.com/api/crear-actividades', activityData)
     return response.data
@@ -11,10 +11,10 @@ export const createActivity = async (activityData: ActivityData) => {
   }
 }
 
-export const getActivities = async () => {
+export const getActivities = async (): AxiosPromise<ActivityData> => {
   return await axios.get('https://cocoabackend.onrender.com/api/actividades')
 }
 
-export const deleteActivity = async (identificador: number) => {
+export const deleteActivity = async (identificador: number): AxiosPromise<ActivityData> => {
   return await axios.delete('https://cocoabackend.onrender.com/api/actividades/' + identificador)
 }

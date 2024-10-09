@@ -7,6 +7,7 @@ type SelectedActivityState = ActivityProps | null
 
 import React from 'react'
 import { ActivityProps } from '../../interfaces/activity.interface'
+import { SelectChangeEvent } from '@mui/material/Select'
 
 const ActivityPage = () => {
   const [activities, setActivities] = useState<ActivityProps[]>([
@@ -18,7 +19,8 @@ const ActivityPage = () => {
       fechaFin: new Date(),
       descripcion: 'Descripcion 1 - Elicitación de requerimientos para obtener el Product Backlog.',
       responsable: null,
-      resultado: 'Completar las historias de usuario con su estimación y priorización correspondiente',
+      resultado: ['Completar las historias de usuario con su estimación y priorización correspondiente', 'Res 2'],
+      objetivo: 'Objetivo 1: Registros iniciales',
     },
     {
       identificador: 2,
@@ -28,7 +30,8 @@ const ActivityPage = () => {
       descripcion:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam mi massa, posuere vel interdum a, posuere at mauris. Cras sem est, malesuada sed libero eget, egestas vulputate turpis. Vivamus eu placerat sem. Vestibulum lobortis velit sit amet nunc faucibus, vel viverra ex accumsan. Ut imperdiet nunc neque, nec sodales risus faucibus vitae. Mauris interdum nulla in elementum vulputate. Phasellus sollicitudin vehicula ornare. Morbi id mauris fermentum, consequat nisl nec, hendrerit neque. Maecenas pharetra mattis quam. Integer quis fringilla nibh, quis lobortis massa. Quisque non vehicula enim. Nullam non lorem in sem vulputate faucibus. Interdum et malesuada fames ac ante ipsum primis in faucibus.',
       responsable: 'Winsor Orellana',
-      resultado: 'Completar las historias de usuario con su estimación y priorización correspondiente',
+      resultado: ['Completar las historias de usuario con su estimación y priorización correspondiente', 'Resultado 2'],
+      objetivo: 'Objetivo 2: Generar planillas completas',
     },
     {
       identificador: 10,
@@ -37,17 +40,24 @@ const ActivityPage = () => {
       fechaFin: new Date(),
       descripcion: 'Prototipado del diseño para discutirlo junto al tutor TIS.',
       responsable: null,
-      resultado: 'Prototipo base para programar en el frontend.',
+      resultado: ['Prototipo base para programar en el frontend.', 'Resultado 2', 'Resultado 3'],
+      objetivo: 'Objetivo 3: Registros iniciales y generar planillas completas',
     },
   ])
   const [selectedActivity, setSelectedActivity] = useState<SelectedActivityState>(null)
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
   const [responsables, setResponsables] = useState<Array<string>>([])
+  const [objetivos, setObjetivos] = useState<Array<string>>([])
 
   useEffect(() => {
     setResponsables(['Jairo Maida', 'Mariana Vallejos', 'Emily Callejas', 'Nahuel Torrez', 'Winsor Orellana', 'Walter Sanabria'])
-  }, [responsables])
+    setObjetivos([
+      'Objetivo 1: Registros iniciales',
+      'Objetivo 2: Generar planillas completas',
+      'Objetivo 3: Registros iniciales y generar planillas completas',
+    ])
+  }, [])
 
   const handleActivityClick = (activity: ActivityProps) => {
     setSelectedActivity(activity)
@@ -61,6 +71,11 @@ const ActivityPage = () => {
   }
 
   const handleNewActivityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setSelectedActivity((prevState) => (prevState ? { ...prevState, [name]: value } : null))
+  }
+
+  const handleNewObjectiveActivityChange = (e: SelectChangeEvent<string>) => {
     const { name, value } = e.target
     setSelectedActivity((prevState) => (prevState ? { ...prevState, [name]: value } : null))
   }
@@ -93,7 +108,8 @@ const ActivityPage = () => {
       fechaFin: new Date(),
       descripcion: '',
       responsable: null,
-      resultado: '',
+      resultado: [],
+      objetivo: '',
     })
     setIsEditMode(true)
     setIsDialogOpen(true)
@@ -101,24 +117,29 @@ const ActivityPage = () => {
 
   return (
     <>
+      <h2 className="text-black text-2xl font-semibold">Actividades</h2>
       <hr className="border-[1.5px] border-[#c6caff]" />
       <div className={'flex overflow-x-hidden'}>
-        <div className={`flex flex-col ${isDialogOpen ? 'w-[65%] mr-4' : 'w-full'}`}>
-          {activities.map((activity, index) => (
-            <Activity
-              key={activity.identificador}
-              identificador={activity.identificador}
-              nombre={activity.nombre}
-              fechaInici={activity.fechaInici}
-              fechaFin={activity.fechaFin}
-              descripcion={activity.descripcion}
-              responsable={activity.responsable}
-              resultado={activity.resultado}
-              orden={index + 1} // Añade el orden si es necesario
-              onClick={() => handleActivityClick(activity)}
-              isDialogOpen={isDialogOpen}
-            />
-          ))}
+        <div className={`${isDialogOpen ? 'w-[65%] mr-4' : 'w-full'}`}>
+          {activities.length > 0 ? (
+            activities.map((activity, index) => (
+              <Activity
+                key={activity.identificador}
+                identificador={activity.identificador}
+                nombre={activity.nombre}
+                fechaInici={activity.fechaInici}
+                fechaFin={activity.fechaFin}
+                descripcion={activity.descripcion}
+                responsable={activity.responsable}
+                resultado={activity.resultado}
+                orden={index + 1}
+                onClick={() => handleActivityClick(activity)}
+                isDialogOpen={isDialogOpen}
+              />
+            ))
+          ) : (
+            <h3 className="my-2 text-center text-black text-xl font-semibold">No existen actividades registradas</h3>
+          )}
           <hr className="border-[1.5px] border-[#c6caff]" />
           <div className="flex justify-center mt-4">
             <button onClick={handleAddActivityClick} className="button-primary">
@@ -133,10 +154,12 @@ const ActivityPage = () => {
           onHide={handleDialogClose}
           onSave={handleAddNewActivity}
           onChange={handleNewActivityChange}
+          onChangeObjective={handleNewObjectiveActivityChange}
           onChangeInitialDate={handleNewInitialDateActivityChange}
           onChangeFinalDate={handleNewFinalDateActivityChange}
           isEditMode={isEditMode}
           responsables={responsables}
+          objetivos={objetivos}
         />
       </div>
     </>
