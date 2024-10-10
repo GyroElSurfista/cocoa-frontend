@@ -1,5 +1,5 @@
-import axios from 'axios'
-import { ActivityData } from './activity.service'
+import axios, { AxiosPromise } from 'axios'
+import { ActivityData } from '../interfaces/activity.interface'
 
 export interface ObjectiveData {
   identificador?: number
@@ -23,4 +23,8 @@ export const createObjective = async (objectiveData: ObjectiveData) => {
 
 export const getObjectives = async () => {
   return await axios.get('https://cocoabackend.onrender.com/api/grupo-empresa/1/objetivos/actividades')
+}
+
+export const getAllObjectives = async (): AxiosPromise<ObjectiveData[]> => {
+  return await axios.get('https://cocoabackend.onrender.com/api/objetivos')
 }

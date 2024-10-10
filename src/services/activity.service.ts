@@ -11,7 +11,7 @@ export const createActivity = async (activityData: ActivityData): AxiosPromise<A
   }
 }
 
-export const getActivities = async (): AxiosPromise<ActivityData> => {
+export const getActivities = async (): AxiosPromise<ActivityData[]> => {
   return await axios.get('https://cocoabackend.onrender.com/api/actividades')
 }
 

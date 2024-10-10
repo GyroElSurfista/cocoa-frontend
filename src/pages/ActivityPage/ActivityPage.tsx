@@ -8,6 +8,9 @@ type SelectedActivityState = ActivityProps | null
 import React from 'react'
 import { ActivityProps } from '../../interfaces/activity.interface'
 import { SelectChangeEvent } from '@mui/material/Select'
+import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
+import { UserData } from '../../interfaces/user.interface'
+import { getAllObjectives, ObjectiveData } from '../../services/objective.service'
 
 const ActivityPage = () => {
   const [activities, setActivities] = useState<ActivityProps[]>([
@@ -51,13 +54,17 @@ const ActivityPage = () => {
   const [objetivos, setObjetivos] = useState<Array<string>>([])
 
   useEffect(() => {
-    setResponsables(['Jairo Maida', 'Mariana Vallejos', 'Emily Callejas', 'Nahuel Torrez', 'Winsor Orellana', 'Walter Sanabria'])
-    setObjetivos([
-      'Objetivo 1: Registros iniciales',
-      'Objetivo 2: Generar planillas completas',
-      'Objetivo 3: Registros iniciales y generar planillas completas',
-    ])
-    console.log(activities)
+    const handleData = async () => {
+      const usuarios = (await getUsuariosGrupoEmpresa()).data
+      const nombresUsuarios = usuarios.map((usuario: UserData) => usuario.name)
+      setResponsables(nombresUsuarios)
+
+      const objetivos = (await getAllObjectives()).data
+      const nombresObjetivos = objetivos.map((objetivo: ObjectiveData) => objetivo.nombre)
+      setObjetivos(nombresObjetivos)
+    }
+
+    handleData()
   }, [activities])
 
   const handleActivityClick = (activity: ActivityProps) => {
