@@ -57,7 +57,8 @@ const ActivityPage = () => {
       'Objetivo 2: Generar planillas completas',
       'Objetivo 3: Registros iniciales y generar planillas completas',
     ])
-  }, [])
+    console.log(activities)
+  }, [activities])
 
   const handleActivityClick = (activity: ActivityProps) => {
     setSelectedActivity(activity)

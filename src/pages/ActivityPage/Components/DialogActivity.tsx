@@ -49,7 +49,7 @@ const DialogActivity = ({
           <div className="flex justify-between items-start">
             {isEditMode ? (
               <TextField
-                name="nombreActividad"
+                name="nombre"
                 onChange={onChange}
                 placeholder="Nombre de la Actividad"
                 sx={{
