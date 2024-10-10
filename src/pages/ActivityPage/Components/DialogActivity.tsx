@@ -22,19 +22,19 @@ const DialogActivity = ({
   const handleAddResult = () => {
     onChange({
       target: {
-        name: 'resultado',
-        value: [...(activity?.resultado ?? []), ''],
+        name: 'resultados',
+        value: [...(activity?.resultados ?? []), ''],
       },
     })
   }
 
   const handleResultChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number) => {
-    const newResults = [...(activity?.resultado ?? [])]
+    const newResults = [...(activity?.resultados ?? [])]
     newResults[index] = e.target.value
 
     onChange({
       target: {
-        name: 'resultado',
+        name: 'resultados',
         value: newResults,
       },
     })
@@ -160,13 +160,13 @@ const DialogActivity = ({
           </TextField>
 
           <h3 className="text-lg font-semibold mb-2">Resultado</h3>
-          {activity.resultado.map((resultado: string, index: number) => (
+          {activity.resultados.map((resultados: string, index: number) => (
             <div key={index} className="flex items-center mb-2">
               <TextField
-                name="resultado"
-                value={resultado}
+                name="resultados"
+                value={resultados}
                 onChange={(e) => handleResultChange(e, index)}
-                placeholder="Describe el resultado"
+                placeholder="Describe el resultados"
                 variant="outlined"
                 disabled={!isEditMode}
                 size="small"

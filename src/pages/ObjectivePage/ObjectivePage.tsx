@@ -15,7 +15,7 @@ export type ActivityProps = {
   fechaFin: Date
   descripcion: string
   responsable: string | null
-  resultado: string
+  resultados: string
 }
 
 type SelectedActivityState = ActivityProps | null
@@ -113,7 +113,7 @@ const ObjectivePage = () => {
       fechaFin: new Date(),
       descripcion: '',
       responsable: null,
-      resultado: '',
+      resultados: '',
     })
     setSelectedObjectiveIndex(objectiveIndex)
     setIsEditMode(true)

@@ -5,11 +5,11 @@ import { Dayjs } from 'dayjs'
 export type ActivityProps = {
   identificador: number
   nombre: string
+  descripcion: string
   fechaInici: Date
   fechaFin: Date
-  descripcion: string
   responsable: string | null
-  resultado: string[]
+  resultados: string[]
   objetivo: string
 }
 
@@ -21,6 +21,7 @@ export interface ActivityData {
   fechaFin: Date
   identificadorUsua: number
   identificadorObjet: number
+  resultados: string[]
 }
 
 export type DialogActivityProps = {

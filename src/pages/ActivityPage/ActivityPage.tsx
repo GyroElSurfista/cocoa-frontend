@@ -10,43 +10,11 @@ import { ActivityProps } from '../../interfaces/activity.interface'
 import { SelectChangeEvent } from '@mui/material/Select'
 import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
 import { UserData } from '../../interfaces/user.interface'
-import { getAllObjectives, ObjectiveData } from '../../services/objective.service'
+import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
+import { createActivity, getActivities } from '../../services/activity.service'
 
 const ActivityPage = () => {
-  const [activities, setActivities] = useState<ActivityProps[]>([
-    {
-      identificador: 1,
-      nombre:
-        'Observar procedimiento de evaluaciones TIS, Observar procedimiento de evaluaciones TIS, Observar procedimiento de evaluaciones TIS',
-      fechaInici: new Date(),
-      fechaFin: new Date(),
-      descripcion: 'Descripcion 1 - Elicitación de requerimientos para obtener el Product Backlog.',
-      responsable: null,
-      resultado: ['Completar las historias de usuario con su estimación y priorización correspondiente', 'Res 2'],
-      objetivo: 'Objetivo 1: Registros iniciales',
-    },
-    {
-      identificador: 2,
-      nombre: 'Observar procedimiento de evaluaciones TIS, Observar procedimiento de evaluaciones TIS',
-      fechaInici: new Date(),
-      fechaFin: new Date(),
-      descripcion:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam mi massa, posuere vel interdum a, posuere at mauris. Cras sem est, malesuada sed libero eget, egestas vulputate turpis. Vivamus eu placerat sem. Vestibulum lobortis velit sit amet nunc faucibus, vel viverra ex accumsan. Ut imperdiet nunc neque, nec sodales risus faucibus vitae. Mauris interdum nulla in elementum vulputate. Phasellus sollicitudin vehicula ornare. Morbi id mauris fermentum, consequat nisl nec, hendrerit neque. Maecenas pharetra mattis quam. Integer quis fringilla nibh, quis lobortis massa. Quisque non vehicula enim. Nullam non lorem in sem vulputate faucibus. Interdum et malesuada fames ac ante ipsum primis in faucibus.',
-      responsable: 'Winsor Orellana',
-      resultado: ['Completar las historias de usuario con su estimación y priorización correspondiente', 'Resultado 2'],
-      objetivo: 'Objetivo 2: Generar planillas completas',
-    },
-    {
-      identificador: 10,
-      nombre: 'Prototipado del diseño',
-      fechaInici: new Date(),
-      fechaFin: new Date(),
-      descripcion: 'Prototipado del diseño para discutirlo junto al tutor TIS.',
-      responsable: null,
-      resultado: ['Prototipo base para programar en el frontend.', 'Resultado 2', 'Resultado 3'],
-      objetivo: 'Objetivo 3: Registros iniciales y generar planillas completas',
-    },
-  ])
+  const [activities, setActivities] = useState<ActivityProps[]>([])
   const [selectedActivity, setSelectedActivity] = useState<SelectedActivityState>(null)
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
@@ -55,17 +23,25 @@ const ActivityPage = () => {
 
   useEffect(() => {
     const handleData = async () => {
+      const actividades = (await getActivities()).data
+      const actividadesConResultados = actividades.map((actividad: ActivityProps) => ({
+        ...actividad,
+        fechaInici: new Date(actividad.fechaInici),
+        fechaFin: new Date(actividad.fechaFin),
+      }))
+      setActivities(actividadesConResultados)
+
       const usuarios = (await getUsuariosGrupoEmpresa()).data
       const nombresUsuarios = usuarios.map((usuario: UserData) => usuario.name)
       setResponsables(nombresUsuarios)
 
-      const objetivos = (await getAllObjectives()).data
+      const objetivos = (await getObjectivesFromPlanification()).data
       const nombresObjetivos = objetivos.map((objetivo: ObjectiveData) => objetivo.nombre)
       setObjetivos(nombresObjetivos)
     }
 
     handleData()
-  }, [activities])
+  }, [responsables, objetivos])
 
   const handleActivityClick = (activity: ActivityProps) => {
     setSelectedActivity(activity)
@@ -103,6 +79,7 @@ const ActivityPage = () => {
   const handleAddNewActivity = () => {
     if (selectedActivity) {
       setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
+      createActivity({ ...selectedActivity, identificadorUsua: 1, identificadorObjet: 1 })
       setIsDialogOpen(false)
       setSelectedActivity(null)
     }
@@ -116,7 +93,7 @@ const ActivityPage = () => {
       fechaFin: new Date(),
       descripcion: '',
       responsable: null,
-      resultado: [''],
+      resultados: [''],
       objetivo: '',
     })
     setIsEditMode(true)
@@ -139,7 +116,7 @@ const ActivityPage = () => {
                 fechaFin={activity.fechaFin}
                 descripcion={activity.descripcion}
                 responsable={activity.responsable}
-                resultado={activity.resultado}
+                resultados={activity.resultados}
                 orden={index + 1}
                 onClick={() => handleActivityClick(activity)}
                 isDialogOpen={isDialogOpen}

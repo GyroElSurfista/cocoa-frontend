@@ -25,6 +25,6 @@ export const getObjectives = async () => {
   return await axios.get('https://cocoabackend.onrender.com/api/grupo-empresa/1/objetivos/actividades')
 }
 
-export const getAllObjectives = async (): AxiosPromise<ObjectiveData[]> => {
-  return await axios.get('https://cocoabackend.onrender.com/api/objetivos')
+export const getObjectivesFromPlanification = async (): AxiosPromise<ObjectiveData[]> => {
+  return await axios.get('https://cocoabackend.onrender.com/api/planificaciones/1/objetivos')
 }
