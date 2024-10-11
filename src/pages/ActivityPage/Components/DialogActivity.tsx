@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
 import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
 import { useState } from 'react'
+import { ObjectiveData } from '../../../services/objective.service'
 
 const DialogActivity = ({
   activity,
@@ -202,8 +203,8 @@ const DialogActivity = ({
             disabled={!isEditMode}
             error={Boolean(errors.objetivo)}
           >
-            {objetivos.map((objetivo) => {
-              return <MenuItem value={objetivo}>{objetivo}</MenuItem>
+            {objetivos.map((objetivo: ObjectiveData) => {
+              return <MenuItem value={`${isEditMode ? objetivo.identificador : objetivo.nombre}`}>{objetivo.nombre}</MenuItem>
             })}
           </Select>
           {errors.objetivo && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo}</p>}

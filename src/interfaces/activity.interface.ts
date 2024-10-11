@@ -1,6 +1,7 @@
 import { SelectChangeEvent } from '@mui/material/Select'
 import { DateValidationError, PickerChangeHandlerContext } from '@mui/x-date-pickers'
 import { Dayjs } from 'dayjs'
+import { ObjectiveData } from '../services/objective.service'
 
 export type ActivityProps = {
   identificador: number
@@ -9,6 +10,8 @@ export type ActivityProps = {
   fechaInici: Date
   fechaFin: Date
   responsable: string | null
+  identificadorUsua: number
+  identificadorObjet: number
   resultados: string[]
   objetivo: string
 }
@@ -35,7 +38,7 @@ export type DialogActivityProps = {
   onChangeFinalDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   isEditMode: boolean
   responsables: string[]
-  objetivos: string[]
+  objetivos: ObjectiveData[]
 }
 
 export interface ActivityErrors {

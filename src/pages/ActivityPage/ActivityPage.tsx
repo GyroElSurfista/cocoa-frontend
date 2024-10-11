@@ -15,14 +15,14 @@ const ActivityPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
   const [responsables, setResponsables] = useState<string[]>([])
-  const [objetivos, setObjetivos] = useState<string[]>([])
+  const [objetivos, setObjetivos] = useState<ObjectiveData[]>([])
 
   // Cargar actividades, responsables y objetivos solo una vez al montar el componente
   useEffect(() => {
     const loadData = async () => {
       try {
         // Obtener actividades y convertir fechas a Date
-        const actividades = (await getActivities()).data.map((actividad: ActivityProps) => ({
+        const actividades = (await getActivities(1)).data.map((actividad: ActivityProps) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
@@ -36,8 +36,7 @@ const ActivityPage = () => {
 
         // Obtener objetivos
         const objetivosData = (await getObjectivesFromPlanification()).data
-        const nombresObjetivos = objetivosData.map((objetivo: ObjectiveData) => objetivo.nombre)
-        setObjetivos(nombresObjetivos)
+        setObjetivos(objetivosData)
       } catch (error) {
         console.error('Error al cargar los datos', error)
       }
@@ -65,7 +64,15 @@ const ActivityPage = () => {
 
   const handleNewObjectiveActivityChange = useCallback((e: SelectChangeEvent<string>) => {
     const { name, value } = e.target
-    setSelectedActivity((prev) => (prev ? { ...prev, [name]: value } : null))
+    setSelectedActivity((prev) =>
+      prev
+        ? {
+            ...prev,
+            [name]: value,
+            identificadorObjet: Number(value),
+          }
+        : null
+    )
   }, [])
 
   const handleNewInitialDateActivityChange = useCallback((value: Dayjs | null) => {
@@ -83,7 +90,7 @@ const ActivityPage = () => {
   const handleAddNewActivity = useCallback(() => {
     if (selectedActivity) {
       setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
-      createActivity({ ...selectedActivity, identificadorUsua: 1, identificadorObjet: 1 })
+      createActivity({ ...selectedActivity })
       setIsDialogOpen(false)
       setSelectedActivity(null)
     }
@@ -99,6 +106,8 @@ const ActivityPage = () => {
       responsable: null,
       resultados: [''],
       objetivo: '',
+      identificadorUsua: 1,
+      identificadorObjet: 0,
     })
     setIsEditMode(true)
     setIsDialogOpen(true)

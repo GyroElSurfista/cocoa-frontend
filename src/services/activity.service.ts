@@ -11,8 +11,8 @@ export const createActivity = (activityData: ActivityData): AxiosPromise<Activit
   }
 }
 
-export const getActivities = (): AxiosPromise<ActivityProps[]> => {
-  return axiosInstance.get('/planificacion/1/actividades-resultados')
+export const getActivities = (idObjetivo: number): AxiosPromise<ActivityProps[]> => {
+  return axiosInstance.get(`/planificacion/${idObjetivo}/actividades-resultados`)
 }
 
 export const deleteActivity = (identificador: number): AxiosPromise<ActivityData> => {
