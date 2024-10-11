@@ -67,7 +67,8 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
 
   const handleCancel = () => {
     setActiveStep(0)
-    //setCompleted({})
+    reset()
+    onClose()
   }
 
   const renderStepContent = (step: number) => {
