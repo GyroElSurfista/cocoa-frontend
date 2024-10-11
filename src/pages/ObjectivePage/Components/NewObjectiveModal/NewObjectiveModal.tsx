@@ -4,7 +4,7 @@ import { ActivityProps } from '../../ObjectivePage'
 import ObjectiveStepper from '../ObjectiveStepper/ObjectiveStepper'
 import { Autocomplete, TextField } from '@mui/material'
 import { getPlannings } from '../../../../services/objective.service'
-//import { createObjective } from '../../../../services/objective.service'
+import { createObjective } from '../../../../services/objective.service'
 
 interface Objective {
   identificador: number
@@ -45,19 +45,22 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   const [planningCost, setPlanningCost] = useState<number>(0)
   const [projects, setProjects] = useState<Array<Planning>>([])
   const [selectedProject, setSelectedProject] = useState<Planning | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string>('') // State for the error message
 
   const valueP = watch('valueP') // Observa el valor porcentual
 
   const [activeStep, setActiveStep] = useState(0)
 
-  const handleNext = () => {
-    if (isStepValid(activeStep)) {
+  const handleNext = handleSubmit((data) => {
+    if (activeStep === steps.length - 1) {
+      onSubmit(data) // Llama a onSubmit cuando se está en el último paso
+    } else if (isStepValid(activeStep)) {
+      setErrorMessage('') // Limpia el mensaje de error
       setActiveStep((prevStep) => prevStep + 1)
     } else {
-      // Muestra un mensaje de error o alguna retroalimentación visual
-      alert('Por favor, completa todos los campos requeridos.')
+      setErrorMessage('Por favor, completa todos los campos requeridos.') // Establece el mensaje de error
     }
-  }
+  })
 
   const handleBack = () => {
     if (activeStep > 0) {
@@ -69,6 +72,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     setActiveStep(0)
     reset()
     onClose()
+    setErrorMessage('') // Clear the error message when canceling
   }
 
   const renderStepContent = (step: number) => {
@@ -193,21 +197,25 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
 
   const onSubmit: SubmitHandler<Objective> = async (data) => {
     try {
-      console.log(data)
-
-      // const createdObjective = await createObjective({
-      //   identificadorPlani: 1,
-      //   nombre: data.objective,
-      //   fechaInici: data.iniDate,
-      //   fechaFin: data.finDate,
-      //   valorPorce: parseFloat(data.valueP),
-      // })
+      // Verifica si selectedProject existe y tiene un identificador válido
+      if (!selectedProject || !selectedProject.identificador) {
+        setApiError('Debe seleccionar un proyecto antes de continuar.')
+        return
+      }
+      const createdObjective = await createObjective({
+        identificadorPlani: selectedProject.identificador,
+        nombre: data.objective,
+        fechaInici: data.iniDate,
+        fechaFin: data.finDate,
+        valorPorce: parseFloat(data.valueP),
+      })
+      console.log(createdObjective)
 
       // Clear any previous errors
       setApiError(null)
 
       // Se pasa el nuevo objetivo al componente padre
-      //onCreate(createdObjective)
+      onCreate(createdObjective.objetivo)
 
       // Reset form and close modal
       reset()
@@ -255,6 +263,9 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   }
 
   useEffect(() => {
+    fetchProjects()
+  }, [])
+  useEffect(() => {
     if (valueP) {
       const value = parseFloat(valueP)
       if (!isNaN(value)) {
@@ -265,18 +276,19 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     } else {
       setEquivalence(0)
     }
-
-    fetchProjects()
-  }, [valueP])
+  }, [valueP, planningCost])
 
   const isStepValid = (step: number) => {
-    if (step === 1) {
-      return !errors.iniDate && !errors.finDate && !errors.objective // Add other validation as needed
+    switch (step) {
+      case 0:
+        return selectedProject !== null
+      case 1:
+        return watch('iniDate') && watch('finDate') && watch('objective')
+      case 2:
+        return watch('valueP')
+      default:
+        return false
     }
-    if (step === 2) {
-      return !errors.valueP // Add other validation as needed
-    }
-    return true
   }
 
   if (!isOpen) return null
@@ -289,7 +301,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         </div>
         <hr className="border-[1.5px] mb-4" />
         <ObjectiveStepper activeStep={activeStep} renderStepContent={renderStepContent} />
-
+        {errorMessage && <p className="text-red-500 text-sm mt-4">{errorMessage}</p>} {/* Muestra el mensaje de error aquí */}
         <div className="mt-6 flex justify-between gap-2">
           <button onClick={handleBack} className="button-secondary_outlined" disabled={activeStep === 0}>
             Atrás

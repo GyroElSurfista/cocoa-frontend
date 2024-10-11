@@ -1,6 +1,5 @@
 import './ObjectiveAccordion.css'
 
-import { ActivityProps } from '../../ObjectivePage'
 interface Objective {
   iniDate: string
   finDate: string
@@ -11,11 +10,6 @@ interface Objective {
 interface ObjectiveAccordionProps {
   objective: Objective
   indexObj: number
-
-  activities: ActivityProps[]
-  handleActivityClick: (activity: ActivityProps) => void
-  handleAddActivityClick: () => void
-  handleDeleteActivityClick: (activityIndex: number) => void
 }
 
 const formatDate = (dateString: string) => {
