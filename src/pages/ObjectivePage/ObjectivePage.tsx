@@ -4,6 +4,7 @@ import NewObjectiveModal from './Components/NewObjectiveModal/NewObjectiveModal'
 
 // Propio de ActivityPage
 import { getObjectives, ObjectiveData } from '../../services/objective.service'
+import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
 
 export type ActivityProps = {
   identificador: number
@@ -25,14 +26,13 @@ interface Objective {
 }
 
 const ObjectivePage = () => {
-  // Propio de ActivityPage
   const [objectives, setObjectives] = useState<Objective[]>([]) // Estado para almacenar los objetivos
 
-  // Utilizados por el ObjectiveAccordion
-
-  // Propio de ObjectivePage
-
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarColor, setSnackbarColor] = useState('')
 
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
@@ -48,6 +48,16 @@ const ObjectivePage = () => {
       activities: [], // Set this as an empty array initially
     }
     setObjectives([...objectives, transformedObjective])
+    setSnackbarMessage('Objetivo creado exitosamente')
+    setSnackbarColor('#D3FFD2')
+    setOpenSnackbar(true)
+  }
+
+  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
   }
 
   useEffect(() => {
@@ -74,7 +84,7 @@ const ObjectivePage = () => {
   }, [])
 
   return (
-    <div className="px-2 mx-6">
+    <div className="px-2 pb-4 mx-6">
       <h2 className="text-2xl font-bold">Objetivos</h2>
       <hr className="border-[1.5px] border-[#c6caff] my-3" />
       <div className="">
@@ -94,6 +104,28 @@ const ObjectivePage = () => {
       </div>
 
       <NewObjectiveModal isOpen={isModalOpen} onClose={closeModal} onCreate={handleCreateObjective} />
+
+      <Snackbar
+        open={openSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+      >
+        <SnackbarContent
+          style={{
+            display: 'flex',
+            width: '325px',
+            padding: '15px 20px',
+            justifyContent: 'start',
+            alignItems: 'center',
+            gap: '10px',
+            borderRadius: '10px',
+            background: snackbarColor,
+            color: snackbarColor === '#D3FFD2' ? '#00A407' : '#A40000', // Cambia el color del texto basado en el tipo de mensaje
+          }}
+          message={snackbarMessage}
+        />
+      </Snackbar>
     </div>
   )
 }
