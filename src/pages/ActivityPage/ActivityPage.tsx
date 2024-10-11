@@ -1,11 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Activity from './Components/Activity'
 import DialogActivity from './Components/DialogActivity'
 import { Dayjs } from 'dayjs'
-
-type SelectedActivityState = ActivityProps | null
-
-import React from 'react'
 import { ActivityProps } from '../../interfaces/activity.interface'
 import { SelectChangeEvent } from '@mui/material/Select'
 import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
@@ -15,75 +11,83 @@ import { createActivity, getActivities } from '../../services/activity.service'
 
 const ActivityPage = () => {
   const [activities, setActivities] = useState<ActivityProps[]>([])
-  const [selectedActivity, setSelectedActivity] = useState<SelectedActivityState>(null)
+  const [selectedActivity, setSelectedActivity] = useState<ActivityProps | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
-  const [responsables, setResponsables] = useState<Array<string>>([])
-  const [objetivos, setObjetivos] = useState<Array<string>>([])
+  const [responsables, setResponsables] = useState<string[]>([])
+  const [objetivos, setObjetivos] = useState<string[]>([])
 
+  // Cargar actividades, responsables y objetivos solo una vez al montar el componente
   useEffect(() => {
-    const handleData = async () => {
-      const actividades = (await getActivities()).data
-      const actividadesConResultados = actividades.map((actividad: ActivityProps) => ({
-        ...actividad,
-        fechaInici: new Date(actividad.fechaInici),
-        fechaFin: new Date(actividad.fechaFin),
-      }))
-      setActivities(actividadesConResultados)
+    const loadData = async () => {
+      try {
+        // Obtener actividades y convertir fechas a Date
+        const actividades = (await getActivities()).data.map((actividad: ActivityProps) => ({
+          ...actividad,
+          fechaInici: new Date(actividad.fechaInici),
+          fechaFin: new Date(actividad.fechaFin),
+        }))
+        setActivities(actividades)
 
-      const usuarios = (await getUsuariosGrupoEmpresa()).data
-      const nombresUsuarios = usuarios.map((usuario: UserData) => usuario.name)
-      setResponsables(nombresUsuarios)
+        // Obtener responsables
+        const usuarios = (await getUsuariosGrupoEmpresa()).data
+        const nombresUsuarios = usuarios.map((usuario: UserData) => usuario.name)
+        setResponsables(nombresUsuarios)
 
-      const objetivos = (await getObjectivesFromPlanification()).data
-      const nombresObjetivos = objetivos.map((objetivo: ObjectiveData) => objetivo.nombre)
-      setObjetivos(nombresObjetivos)
+        // Obtener objetivos
+        const objetivosData = (await getObjectivesFromPlanification()).data
+        const nombresObjetivos = objetivosData.map((objetivo: ObjectiveData) => objetivo.nombre)
+        setObjetivos(nombresObjetivos)
+      } catch (error) {
+        console.error('Error al cargar los datos', error)
+      }
     }
 
-    handleData()
-  }, [responsables, objetivos])
+    loadData()
+  }, []) // Se ejecuta solo una vez al montar el componente
 
-  const handleActivityClick = (activity: ActivityProps) => {
+  // Manejo de eventos
+  const handleActivityClick = useCallback((activity: ActivityProps) => {
     setSelectedActivity(activity)
     setIsEditMode(false)
     setIsDialogOpen(true)
-  }
+  }, [])
 
-  const handleDialogClose = () => {
+  const handleDialogClose = useCallback(() => {
     setIsDialogOpen(false)
     setSelectedActivity(null)
-  }
+  }, [])
 
-  const handleNewActivityChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleNewActivityChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setSelectedActivity((prevState) => (prevState ? { ...prevState, [name]: value } : null))
-  }
+    setSelectedActivity((prev) => (prev ? { ...prev, [name]: value } : null))
+  }, [])
 
-  const handleNewObjectiveActivityChange = (e: SelectChangeEvent<string>) => {
+  const handleNewObjectiveActivityChange = useCallback((e: SelectChangeEvent<string>) => {
     const { name, value } = e.target
-    setSelectedActivity((prevState) => (prevState ? { ...prevState, [name]: value } : null))
-  }
+    setSelectedActivity((prev) => (prev ? { ...prev, [name]: value } : null))
+  }, [])
 
-  const handleNewInitialDateActivityChange = (value: Dayjs | null) => {
+  const handleNewInitialDateActivityChange = useCallback((value: Dayjs | null) => {
     if (value) {
-      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaInici: value.toDate() } : null))
+      setSelectedActivity((prev) => (prev ? { ...prev, fechaInici: value.toDate() } : null))
     }
-  }
+  }, [])
 
-  const handleNewFinalDateActivityChange = (value: Dayjs | null) => {
+  const handleNewFinalDateActivityChange = useCallback((value: Dayjs | null) => {
     if (value) {
-      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaFin: value.toDate() } : null))
+      setSelectedActivity((prev) => (prev ? { ...prev, fechaFin: value.toDate() } : null))
     }
-  }
+  }, [])
 
-  const handleAddNewActivity = () => {
+  const handleAddNewActivity = useCallback(() => {
     if (selectedActivity) {
       setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
       createActivity({ ...selectedActivity, identificadorUsua: 1, identificadorObjet: 1 })
       setIsDialogOpen(false)
       setSelectedActivity(null)
     }
-  }
+  }, [selectedActivity, activities.length])
 
   const handleAddActivityClick = () => {
     setSelectedActivity({
@@ -104,19 +108,13 @@ const ActivityPage = () => {
     <>
       <h2 className="text-black text-2xl font-semibold">Actividades</h2>
       <hr className="border-[1.5px] border-[#c6caff]" />
-      <div className={'flex overflow-x-hidden'}>
+      <div className="flex overflow-x-hidden">
         <div className={`${isDialogOpen ? 'w-[65%] mr-4' : 'w-full'}`}>
           {activities.length > 0 ? (
             activities.map((activity, index) => (
               <Activity
                 key={activity.identificador}
-                identificador={activity.identificador}
-                nombre={activity.nombre}
-                fechaInici={activity.fechaInici}
-                fechaFin={activity.fechaFin}
-                descripcion={activity.descripcion}
-                responsable={activity.responsable}
-                resultados={activity.resultados}
+                {...activity}
                 orden={index + 1}
                 onClick={() => handleActivityClick(activity)}
                 isDialogOpen={isDialogOpen}
