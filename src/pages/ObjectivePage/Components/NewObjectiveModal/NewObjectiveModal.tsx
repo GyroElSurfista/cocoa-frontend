@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { ActivityProps } from '../../ObjectivePage'
 import ObjectiveStepper from '../ObjectiveStepper/ObjectiveStepper'
@@ -23,6 +24,7 @@ interface NewObjectiveModalProps {
 
 interface Planning {
   identificador: number
+  nombre: string
   fechaInici: string
   fechaFin: string
   costo: number
@@ -80,13 +82,13 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       case 0:
         return (
           <>
-            <p>Selecciona la planificación para la cual deseas registrar el objetivo.</p>
-            <label className="">
+            <p className="pb-2">Selecciona la planificación para la cual deseas registrar el objetivo.</p>
+            <div className="pb-2 font-medium">
               Proyecto <span className="text-red-500">*</span>
-            </label>
+            </div>
             <Autocomplete
               options={projects}
-              getOptionLabel={(option) => `ID: ${option.identificador} - Fecha Inicio: ${option.fechaInici}`}
+              getOptionLabel={(option) => `ID: ${option.identificador} - ${option.nombre}`}
               onChange={(_, value) => {
                 setSelectedProject(value)
                 setPlanningCost(value?.costo || 0) // Establecer el costo del proyecto seleccionado
@@ -109,7 +111,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
           <>
             <div className="grid grid-cols-2 gap-4">
               <div className="">
-                <label htmlFor="iniDate" className="block mb-1 text-sm font-medium text-gray-900 dark:text-white">
+                <label htmlFor="iniDate" className="block mb-1 text-md font-medium text-gray-900 dark:text-white">
                   Fecha de inicio
                   <span className="text-[#f60c2e] text-base font-normal">*</span>
                 </label>
@@ -122,7 +124,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 {errors.iniDate && <p className="text-red-500 text-sm">{errors.iniDate.message}</p>}
               </div>
               <div className="col-2">
-                <label htmlFor="finDate" className="block mb-1 text-sm font-medium text-gray-900 dark:text-white">
+                <label htmlFor="finDate" className="block mb-1 text-md font-medium text-gray-900 dark:text-white">
                   Fecha de fin
                   <span className="text-[#f60c2e] text-base font-normal">*</span>
                 </label>
@@ -136,8 +138,8 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               </div>
             </div>
             <div className="pt-4">
-              <label htmlFor="objective" className="block mb-1 text-sm font-medium text-gray-900 dark:text-white">
-                Objetivo
+              <label htmlFor="objective" className="block mb-1 text-md font-medium text-gray-900 dark:text-white">
+                Nombre del objetivo
                 <span className="text-[#f60c2e] text-base font-normal">*</span>
               </label>
               <input
@@ -155,10 +157,10 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         return (
           <>
             <div className="pt-4">
-              <p>Agrega un valor porcentual a los entregables de este objetivo.</p>
+              <p className="pb-2">Agrega un valor porcentual a los entregables de este objetivo.</p>
               <div className="grid grid-cols-5 gap-4">
                 <div className="col-span-3">
-                  <label htmlFor="valueP" className="block mb-1 text-base font-normal text-[#1c1c1c] dark:text-white">
+                  <label htmlFor="valueP" className="block mb-1 text-base font-medium text-[#1c1c1c] dark:text-white">
                     Valor porcentual
                     <span className="text-[#f60c2e] text-base font-normal">*</span>
                   </label>
@@ -220,35 +222,48 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       // Reset form and close modal
       reset()
       onClose()
+      setActiveStep(0)
     } catch (error: any) {
       // Set API error if the request fails
       console.log(error)
       const errorData = error.response?.data
 
-      // General error message
-      //setApiError(errorData?.message || 'Error creating the objective')
+      // Set general error message
+      //setApiError('No se pudo crear el objetivo porque hay errores. Por favor, revisa los campos.')
 
       // Field-specific errors
       if (errorData?.errors) {
         // Map the backend errors to the respective fields
         if (errorData.errors.fechaInici) {
+          setActiveStep(1)
           setError('iniDate', {
             type: 'manual',
             message: errorData.errors.fechaInici.join('. '), // Combine error messages for this field
           })
         }
         if (errorData.errors.fechaFin) {
+          setActiveStep(1)
           setError('finDate', {
             type: 'manual',
             message: errorData.errors.fechaFin.join(', '),
           })
         }
         if (errorData.errors.nombre) {
+          setActiveStep(1)
           setError('objective', {
             type: 'manual',
             message: errorData.errors.nombre.join(', '),
           })
         }
+        if (errorData.errors.valorPorce) {
+          setError('valueP', {
+            type: 'manual',
+            message: errorData.errors.valorPorce.join('. '),
+          })
+        }
+      } else {
+        // Mensaje de error general si no hay errores específicos
+        setApiError(errorData?.message || 'Error creating the objective')
       }
     }
   }
@@ -303,15 +318,21 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         <ObjectiveStepper activeStep={activeStep} renderStepContent={renderStepContent} />
         {errorMessage && <p className="text-red-500 text-sm mt-4">{errorMessage}</p>} {/* Muestra el mensaje de error aquí */}
         <div className="mt-6 flex justify-between gap-2">
-          <button onClick={handleBack} className="button-secondary_outlined" disabled={activeStep === 0}>
-            Atrás
+          <button
+            onClick={handleBack}
+            className="text-gray-600 hover:border-gray-200 hover:border-2 p-2 hover:rounded"
+            disabled={activeStep === 0}
+          >
+            <ArrowBackIcon /> Atrás
           </button>
-          <button onClick={handleCancel} className="button-secondary_outlined">
-            Cancelar
-          </button>
-          <button onClick={handleNext} className="button-primary">
-            {activeStep === steps.length - 1 ? 'Crear' : 'Siguiente'}
-          </button>
+          <div>
+            <button onClick={handleCancel} className="button-secondary_outlined mr-2">
+              Cancelar
+            </button>
+            <button onClick={handleNext} className="button-primary">
+              {activeStep === steps.length - 1 ? 'Crear' : 'Siguiente'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
