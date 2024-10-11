@@ -4,7 +4,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
-import { DialogActivityProps } from '../../../interfaces/activity.interface'
+import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
+import { useState } from 'react'
 
 const DialogActivity = ({
   activity,
@@ -19,6 +20,81 @@ const DialogActivity = ({
   responsables,
   objetivos,
 }: DialogActivityProps) => {
+  const [errors, setErrors] = useState<ActivityErrors>({
+    nombre: '',
+    descripcion: '',
+    responsable: '',
+    fechaInici: '',
+    fechaFin: '',
+    objetivo: '',
+    resultados: [],
+  })
+
+  const validateFields = () => {
+    const newErrors: ActivityErrors = {
+      nombre: '',
+      descripcion: '',
+      responsable: '',
+      fechaInici: '',
+      fechaFin: '',
+      objetivo: '',
+      resultados: Array(activity?.resultados?.length).fill(''),
+    }
+
+    if (!activity?.nombre || activity?.nombre.length === 0) {
+      newErrors.nombre = 'El título es obligatorio'
+    } else if (activity?.nombre.length > 50) {
+      newErrors.nombre = 'El título no puede exceder 50 caracteres'
+    }
+
+    if (!activity?.descripcion || activity?.descripcion.length === 0) {
+      newErrors.descripcion = 'La descripción es obligatoria'
+    } else if (activity?.descripcion.length > 255) {
+      newErrors.descripcion = 'La descripción no puede exceder 255 caracteres'
+    }
+
+    if (!activity?.responsable || activity?.responsable.length === 0) {
+      newErrors.responsable = 'El responsable es obligatorio'
+    }
+
+    if (!activity?.fechaInici) {
+      newErrors.fechaInici = 'La fecha de inicio es obligatoria'
+    }
+
+    if (!activity?.fechaFin) {
+      newErrors.fechaFin = 'La fecha de fin es obligatoria'
+    }
+
+    // Validación: fechaInici no puede ser mayor o igual a fechaFin
+    if (activity?.fechaInici && activity?.fechaFin) {
+      const fechaInici = dayjs(activity?.fechaInici)
+      const fechaFin = dayjs(activity?.fechaFin)
+      if (fechaInici.toDate() >= fechaFin.toDate()) {
+        newErrors.fechaInici = 'La fecha de inicio no puede ser mayor o igual a la fecha de fin'
+      }
+    }
+
+    if (!activity?.objetivo || activity?.objetivo.length === 0) {
+      newErrors.objetivo = 'El objetivo es obligatorio'
+    }
+
+    activity?.resultados?.forEach((resultado, index) => {
+      if (!resultado || resultado.length === 0) {
+        newErrors.resultados[index] = 'El resultado es obligatorio'
+      } else if (resultado.length > 255) {
+        newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).every((key) => {
+      if (key === 'resultados') {
+        return newErrors.resultados.every((err) => !err)
+      }
+      return !newErrors[key as keyof ActivityErrors]
+    })
+  }
+
   const handleAddResult = () => {
     onChange({
       target: {
@@ -38,6 +114,12 @@ const DialogActivity = ({
         value: newResults,
       },
     })
+  }
+
+  const handleSave = () => {
+    if (validateFields()) {
+      onSave()
+    }
   }
 
   return (
@@ -68,7 +150,9 @@ const DialogActivity = ({
                     fontSize: '1.25rem', // Aumentar tamaño del placeholder
                   },
                 }}
-              ></TextField>
+                error={Boolean(errors.nombre)}
+                helperText={errors.nombre}
+              />
             ) : (
               <h2 className="text-xl">{activity?.nombre}</h2>
             )}
@@ -81,15 +165,18 @@ const DialogActivity = ({
           <h3 className="text-lg font-semibold my-4">Duración</h3>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
-              name="fechaInicio"
+              name="fechaInici"
               value={dayjs(activity.fechaInici)}
               onChange={onChangeInitialDate}
               label="Fecha de Inicio"
-              className="mb-2 w-36"
+              className={`${errors.fechaInici ? '' : 'mb-2'} w-36`}
               format="DD/MM/YYYY"
               disabled={!isEditMode}
+              slotProps={{ textField: { required: true } }}
             />
           </LocalizationProvider>
+          {errors.fechaInici && <p className="text-red-600 text-xs mb-4 pl-3">{errors.fechaInici}</p>}
+
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               name="fechaFin"
@@ -99,23 +186,27 @@ const DialogActivity = ({
               className="my-2 w-36"
               format="DD/MM/YYYY"
               disabled={!isEditMode}
+              slotProps={{ textField: { required: true } }}
             />
           </LocalizationProvider>
+          {errors.fechaFin && <p className="text-red-600 text-xs mb-2 pl-3">{errors.fechaFin}</p>}
 
-          <h3 className="text-lg font-semibold mb-2">Objetivo asociado</h3>
+          <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
           <Select
             name="objetivo"
             value={activity.objetivo}
             onChange={onChangeObjective}
             size="small"
             className="w-48"
-            label="Objetivo"
+            required
             disabled={!isEditMode}
+            error={Boolean(errors.objetivo)}
           >
             {objetivos.map((objetivo) => {
               return <MenuItem value={objetivo}>{objetivo}</MenuItem>
             })}
           </Select>
+          {errors.objetivo && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo}</p>}
 
           <h3 className="text-lg font-semibold mb-2">Descripción</h3>
           <TextField
@@ -123,11 +214,14 @@ const DialogActivity = ({
             placeholder="Descripción"
             value={activity.descripcion}
             onChange={onChange}
+            required
             variant="outlined"
             className="mb-4"
             disabled={!isEditMode}
             multiline
             size="small"
+            error={Boolean(errors.descripcion)}
+            helperText={errors.descripcion}
           />
 
           <h3 className="text-lg font-semibold mb-2">Responsable</h3>
@@ -138,9 +232,12 @@ const DialogActivity = ({
             label="Nombre del responsable"
             select
             fullWidth
+            required
             className="mb-2"
             disabled={!isEditMode}
             size="small"
+            error={Boolean(errors.responsable)}
+            helperText={errors.responsable}
             slotProps={{
               input: {
                 startAdornment: (
@@ -166,12 +263,15 @@ const DialogActivity = ({
                 name="resultados"
                 value={resultados}
                 onChange={(e) => handleResultChange(e, index)}
-                placeholder="Describe el resultados"
+                placeholder="Describe el resultado"
+                required
                 variant="outlined"
                 disabled={!isEditMode}
                 size="small"
                 className="w-full"
                 multiline={!isEditMode}
+                error={Boolean(errors.resultados[index])}
+                helperText={errors.resultados[index] || ''}
               />
 
               {/* {isEditMode ? (
@@ -194,7 +294,7 @@ const DialogActivity = ({
                 <button onClick={onHide} className="button-secondary_outlined mx-1">
                   Cancelar
                 </button>
-                <button onClick={onSave} className="button-primary mx-1">
+                <button onClick={handleSave} className="button-primary mx-1">
                   Guardar
                 </button>
               </div>
