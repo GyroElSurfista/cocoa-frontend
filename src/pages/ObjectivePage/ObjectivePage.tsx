@@ -13,7 +13,7 @@ export type ActivityProps = {
   fechaFin: Date
   descripcion: string
   responsable: string | null
-  resultado: string
+  resultados: string
 }
 
 interface Objective {

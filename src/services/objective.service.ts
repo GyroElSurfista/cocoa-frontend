@@ -1,5 +1,6 @@
-import axios from 'axios'
-import { ActivityData } from './activity.service'
+import { AxiosPromise } from 'axios'
+import { ActivityData } from '../interfaces/activity.interface'
+import { axiosInstance } from '../api/axios'
 
 export interface ObjectiveData {
   identificador?: number
@@ -13,7 +14,7 @@ export interface ObjectiveData {
 
 export const createObjective = async (objectiveData: ObjectiveData) => {
   try {
-    const response = await axios.post('https://cocoabackend.onrender.com/api/objetivos', objectiveData)
+    const response = await axiosInstance.post('/objetivos', objectiveData)
     return response.data
   } catch (error) {
     console.error('Error creando el objetivo:', error)
@@ -22,9 +23,13 @@ export const createObjective = async (objectiveData: ObjectiveData) => {
 }
 
 export const getObjectives = async () => {
-  return await axios.get('https://cocoabackend.onrender.com/api/objetivos/')
+  return await axiosInstance.get('/objetivos')
 }
 
 export const getPlannings = async () => {
-  return await axios.get('https://cocoabackend.onrender.com/api/grupo-empresa/1/planificaciones')
+  return await axiosInstance.get('/grupo-empresa/1/planificaciones')
+}
+
+export const getObjectivesFromPlanification = async (): AxiosPromise<ObjectiveData[]> => {
+  return await axiosInstance.get('/planificaciones/1/objetivos')
 }
