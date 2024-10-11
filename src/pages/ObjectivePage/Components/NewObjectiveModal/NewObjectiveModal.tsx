@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { ActivityProps } from '../../ObjectivePage'
+import ObjectiveStepper from '../ObjectiveStepper/ObjectiveStepper'
+import { Autocomplete, TextField } from '@mui/material'
+import { getPlannings } from '../../../../services/objective.service'
 //import { createObjective } from '../../../../services/objective.service'
-import { Box, Stepper, Step, StepLabel, Button, Typography } from '@mui/material'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector'
-import { styled } from '@mui/material/styles'
 
 interface Objective {
   identificador: number
@@ -22,48 +21,15 @@ interface NewObjectiveModalProps {
   onCreate: (newObjective: Objective) => void
 }
 
-const steps = ['Seleccionar un proyecto', 'Datos del objetivo', 'Valor porcentual del objetivo']
-
-const CustomConnector = styled(StepConnector)(() => ({
-  '&.MuiStepConnector-root': {
-    top: 12,
-    left: 'calc(-50% + 12px)',
-    right: 'calc(50% + 12px)',
-  },
-  '& .MuiStepConnector-line': {
-    borderColor: '#E0E0E0', // Color inicial de la línea (gris)
-    borderTopWidth: 4, // Grosor de la línea
-  },
-  '&.Mui-active .MuiStepConnector-line': {
-    borderColor: '#01D016', // Verde cuando el paso está activo
-  },
-  '&.Mui-completed .MuiStepConnector-line': {
-    borderColor: '#01D016', // Verde cuando el paso está completado
-  },
-}))
-
-const CustomStepIconRoot = styled('div')<{
-  ownerState: { active?: boolean; completed?: boolean }
-}>(({ theme, ownerState }) => ({
-  backgroundColor: ownerState.completed ? '#01D016' : theme.palette.grey[300],
-  zIndex: 1,
-  color: '#fff',
-  width: 24,
-  height: 24,
-  display: 'flex',
-  borderRadius: '50%',
-  justifyContent: 'center',
-  alignItems: 'center',
-  ...(ownerState.active && {
-    backgroundColor: '#01D016',
-  }),
-}))
-
-const CustomStepIcon = (props: { icon: React.ReactNode; active?: boolean; completed?: boolean }) => {
-  const { icon, active, completed } = props
-
-  return <CustomStepIconRoot ownerState={{ completed, active }}>{icon}</CustomStepIconRoot>
+interface Planning {
+  identificador: number
+  fechaInici: string
+  fechaFin: string
+  costo: number
+  identificadorGrupoEmpre: number
+  diaRevis: string
 }
+const steps = ['Seleccionar un proyecto', 'Datos del objetivo', 'Valor porcentual del objetivo']
 
 const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, onCreate }) => {
   const {
@@ -76,37 +42,63 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   } = useForm<Objective>()
   const [apiError, setApiError] = useState<string | null>(null) // State to hold API error
   const [equivalence, setEquivalence] = useState<number>(0)
-  const planningCost = 140000 // Costo de la planificación constante
+  const [planningCost, setPlanningCost] = useState<number>(0)
+  const [projects, setProjects] = useState<Array<Planning>>([])
+  const [selectedProject, setSelectedProject] = useState<Planning | null>(null)
 
   const valueP = watch('valueP') // Observa el valor porcentual
 
   const [activeStep, setActiveStep] = useState(0)
-  const [completed, setCompleted] = useState<{ [key: number]: boolean }>({})
 
   const handleNext = () => {
-    const newCompleted = { ...completed }
-    newCompleted[activeStep] = true
-    setCompleted(newCompleted)
-    setActiveStep((prev) => prev + 1)
+    if (isStepValid(activeStep)) {
+      setActiveStep((prevStep) => prevStep + 1)
+    } else {
+      // Muestra un mensaje de error o alguna retroalimentación visual
+      alert('Por favor, completa todos los campos requeridos.')
+    }
   }
 
   const handleBack = () => {
-    setActiveStep((prev) => prev - 1)
+    if (activeStep > 0) {
+      setActiveStep((prev) => prev - 1)
+    }
   }
 
-  const handleReset = () => {
+  const handleCancel = () => {
     setActiveStep(0)
-    setCompleted({})
-  }
-
-  const isStepCompleted = (step: number) => {
-    return completed[step]
+    //setCompleted({})
   }
 
   const renderStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return <>pasito 1</>
+        return (
+          <>
+            <p>Selecciona la planificación para la cual deseas registrar el objetivo.</p>
+            <label className="">
+              Proyecto <span className="text-red-500">*</span>
+            </label>
+            <Autocomplete
+              options={projects}
+              getOptionLabel={(option) => `ID: ${option.identificador} - Fecha Inicio: ${option.fechaInici}`}
+              onChange={(_, value) => {
+                setSelectedProject(value)
+                setPlanningCost(value?.costo || 0) // Establecer el costo del proyecto seleccionado
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Selecciona un proyecto"
+                  variant="outlined"
+                  error={!!errors.identificador}
+                  helperText={errors.identificador?.message}
+                />
+              )}
+              value={selectedProject}
+            />
+          </>
+        )
       case 1:
         return (
           <>
@@ -197,10 +189,6 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         return null
     }
   }
-  const onCloseHandler = () => {
-    reset() // Reinicia el formulario al cerrar el modal
-    onClose() // Llama a la función para cerrar el modal
-  }
 
   const onSubmit: SubmitHandler<Objective> = async (data) => {
     try {
@@ -256,6 +244,15 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     }
   }
 
+  const fetchProjects = async () => {
+    try {
+      const response = await getPlannings()
+      setProjects(response.data)
+    } catch (error) {
+      console.error('Error fetching projects', error)
+    }
+  }
+
   useEffect(() => {
     if (valueP) {
       const value = parseFloat(valueP)
@@ -267,7 +264,19 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     } else {
       setEquivalence(0)
     }
+
+    fetchProjects()
   }, [valueP])
+
+  const isStepValid = (step: number) => {
+    if (step === 1) {
+      return !errors.iniDate && !errors.finDate && !errors.objective // Add other validation as needed
+    }
+    if (step === 2) {
+      return !errors.valueP // Add other validation as needed
+    }
+    return true
+  }
 
   if (!isOpen) return null
 
@@ -278,48 +287,19 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
           <h5 className="text-xl font-semibold">Añadir un nuevo Objetivo</h5>
         </div>
         <hr className="border-[1.5px] mb-4" />
+        <ObjectiveStepper activeStep={activeStep} renderStepContent={renderStepContent} />
 
-        <Box sx={{ width: '100%' }}>
-          <Stepper activeStep={activeStep} alternativeLabel connector={<CustomConnector />}>
-            {steps.map((label, index) => (
-              <Step key={label}>
-                <StepLabel
-                  StepIconComponent={(props) => <CustomStepIcon icon={index + 1} active={props.active} completed={props.completed} />}
-                ></StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          <Box sx={{ mt: 2, mb: 2 }}>
-            {activeStep === steps.length ? (
-              <>
-                <Typography variant="h6">¡Todos los pasos completados!</Typography>
-                <Button onClick={handleReset}>Resetear</Button>
-              </>
-            ) : (
-              <>
-                {renderStepContent(activeStep)}
-                <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                  <Button color="inherit" disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
-                    Atrás
-                  </Button>
-                  <Button variant="contained" onClick={handleNext}>
-                    {activeStep === steps.length - 1 ? 'Finalizar' : 'Siguiente'}
-                  </Button>
-                </Box>
-              </>
-            )}
-          </Box>
-        </Box>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mt-6 flex justify-end gap-2">
-            <button onClick={onCloseHandler} className="button-secondary_outlined">
-              Cancelar
-            </button>
-            <button type="submit" className="button-primary">
-              Crear
-            </button>
-          </div>
-        </form>
+        <div className="mt-6 flex justify-between gap-2">
+          <button onClick={handleBack} className="button-secondary_outlined" disabled={activeStep === 0}>
+            Atrás
+          </button>
+          <button onClick={handleCancel} className="button-secondary_outlined">
+            Cancelar
+          </button>
+          <button onClick={handleNext} className="button-primary">
+            {activeStep === steps.length - 1 ? 'Crear' : 'Siguiente'}
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -24,3 +24,7 @@ export const createObjective = async (objectiveData: ObjectiveData) => {
 export const getObjectives = async () => {
   return await axios.get('https://cocoabackend.onrender.com/api/grupo-empresa/1/objetivos/actividades')
 }
+
+export const getPlannings = async () => {
+  return await axios.get('https://cocoabackend.onrender.com/api/grupo-empresa/1/planificaciones')
+}
