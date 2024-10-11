@@ -1,7 +1,7 @@
 import axios from 'axios'
-const BASE_URL = process.env.API_URL
+const BASE_URL = 'https://cocoabackend.onrender.com/api'
 
-export default axios.create({
+export const axiosInstance = axios.create({
   baseURL: BASE_URL,
 })
 
