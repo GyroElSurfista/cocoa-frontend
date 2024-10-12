@@ -1,94 +1,100 @@
-import { useState } from 'react'
-import Button from '@mui/material/Button'
+import { useEffect, useState, useCallback } from 'react'
 import Activity from './Components/Activity'
 import DialogActivity from './Components/DialogActivity'
 import { Dayjs } from 'dayjs'
+import { ActivityProps } from '../../interfaces/activity.interface'
+import { SelectChangeEvent } from '@mui/material/Select'
+import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
+import { UserData } from '../../interfaces/user.interface'
+import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
+import { createActivity, getActivities } from '../../services/activity.service'
 
-export type ActivityProps = {
-  identificador: number
-  nombre: string
-  fechaInici: Date
-  fechaFin: Date
-  descripcion: string
-  responsable: string | null
-  resultado: string
-}
-
-type SelectedActivityState = ActivityProps | null
-
-function ActivityPage() {
-  const [activities, setActivities] = useState<ActivityProps[]>([
-    {
-      identificador: 1,
-      nombre: 'Entrevista a nuestro tutor TIS',
-      fechaInici: new Date(),
-      fechaFin: new Date(),
-      descripcion: 'Descripcion 1 - Elicitación de requerimientos para obtener el Product Backlog.',
-      responsable: null,
-      resultado: 'Completar las historias de usuario con su estimación y priorización correspondiente',
-    },
-    {
-      identificador: 2,
-      nombre: 'Observar procedimiento de evaluaciones TIS',
-      fechaInici: new Date(),
-      fechaFin: new Date(),
-      descripcion:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam mi massa, posuere vel interdum a, posuere at mauris. Cras sem est, malesuada sed libero eget, egestas vulputate turpis. Vivamus eu placerat sem. Vestibulum lobortis velit sit amet nunc faucibus, vel viverra ex accumsan. Ut imperdiet nunc neque, nec sodales risus faucibus vitae. Mauris interdum nulla in elementum vulputate. Phasellus sollicitudin vehicula ornare. Morbi id mauris fermentum, consequat nisl nec, hendrerit neque. Maecenas pharetra mattis quam. Integer quis fringilla nibh, quis lobortis massa. Quisque non vehicula enim. Nullam non lorem in sem vulputate faucibus. Interdum et malesuada fames ac ante ipsum primis in faucibus.',
-      responsable: 'Winsor Orellana',
-      resultado: 'Completar las historias de usuario con su estimación y priorización correspondiente',
-    },
-    {
-      identificador: 10,
-      nombre: 'Prototipado del diseño',
-      fechaInici: new Date(),
-      fechaFin: new Date(),
-      descripcion: 'Prototipado del diseño para discutirlo junto al tutor TIS.',
-      responsable: null,
-      resultado: 'Prototipo base para programar en el frontend.',
-    },
-  ])
-
-  const [selectedActivity, setSelectedActivity] = useState<SelectedActivityState>(null)
+const ActivityPage = () => {
+  const [activities, setActivities] = useState<ActivityProps[]>([])
+  const [selectedActivity, setSelectedActivity] = useState<ActivityProps | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
+  const [responsables, setResponsables] = useState<string[]>([])
+  const [objetivos, setObjetivos] = useState<ObjectiveData[]>([])
 
-  const responsables = ['Jairo Maida', 'Mariana Vallejos', 'Emily Callejas', 'Nahuel Torrez', 'Winsor Orellana', 'Walter Sanabria']
+  // Cargar actividades, responsables y objetivos solo una vez al montar el componente
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Obtener actividades y convertir fechas a Date
+        const actividades = (await getActivities(1)).data.map((actividad: ActivityProps) => ({
+          ...actividad,
+          fechaInici: new Date(actividad.fechaInici),
+          fechaFin: new Date(actividad.fechaFin),
+        }))
+        setActivities(actividades)
 
-  const handleActivityClick = (activity: ActivityProps) => {
+        // Obtener responsables
+        const usuarios = (await getUsuariosGrupoEmpresa()).data
+        const nombresUsuarios = usuarios.map((usuario: UserData) => usuario.name)
+        setResponsables(nombresUsuarios)
+
+        // Obtener objetivos
+        const objetivosData = (await getObjectivesFromPlanification()).data
+        setObjetivos(objetivosData)
+      } catch (error) {
+        console.error('Error al cargar los datos', error)
+      }
+    }
+
+    loadData()
+  }, []) // Se ejecuta solo una vez al montar el componente
+
+  // Manejo de eventos
+  const handleActivityClick = useCallback((activity: ActivityProps) => {
     setSelectedActivity(activity)
     setIsEditMode(false)
     setIsDialogOpen(true)
-  }
+  }, [])
 
-  const handleDialogClose = () => {
+  const handleDialogClose = useCallback(() => {
     setIsDialogOpen(false)
     setSelectedActivity(null)
-  }
+  }, [])
 
-  const handleNewActivityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNewActivityChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setSelectedActivity((prevState) => (prevState ? { ...prevState, [name]: value } : null))
-  }
+    setSelectedActivity((prev) => (prev ? { ...prev, [name]: value } : null))
+  }, [])
 
-  const handleNewInitialDateActivityChange = (value: Dayjs | null) => {
+  const handleNewObjectiveActivityChange = useCallback((e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target
+    setSelectedActivity((prev) =>
+      prev
+        ? {
+            ...prev,
+            [name]: value,
+            identificadorObjet: Number(value),
+          }
+        : null
+    )
+  }, [])
+
+  const handleNewInitialDateActivityChange = useCallback((value: Dayjs | null) => {
     if (value) {
-      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaInici: value.toDate() } : null))
+      setSelectedActivity((prev) => (prev ? { ...prev, fechaInici: value.toDate() } : null))
     }
-  }
+  }, [])
 
-  const handleNewFinalDateActivityChange = (value: Dayjs | null) => {
+  const handleNewFinalDateActivityChange = useCallback((value: Dayjs | null) => {
     if (value) {
-      setSelectedActivity((prevState) => (prevState ? { ...prevState, fechaFin: value.toDate() } : null))
+      setSelectedActivity((prev) => (prev ? { ...prev, fechaFin: value.toDate() } : null))
     }
-  }
+  }, [])
 
-  const handleAddNewActivity = () => {
+  const handleAddNewActivity = useCallback(() => {
     if (selectedActivity) {
       setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
+      createActivity({ ...selectedActivity })
       setIsDialogOpen(false)
       setSelectedActivity(null)
     }
-  }
+  }, [selectedActivity, activities.length])
 
   const handleAddActivityClick = () => {
     setSelectedActivity({
@@ -98,38 +104,40 @@ function ActivityPage() {
       fechaFin: new Date(),
       descripcion: '',
       responsable: null,
-      resultado: '',
+      resultados: [''],
+      objetivo: '',
+      identificadorUsua: 1,
+      identificadorObjet: 0,
     })
     setIsEditMode(true)
     setIsDialogOpen(true)
   }
 
-  const handleDeleteActivity = (id: number) => {
-    setActivities((prevActivities) => prevActivities.filter((activity) => activity.identificador !== id))
-  }
-
   return (
     <>
-      <div className={`flex p-4 overflow-x-hidden`}>
-        <div className={` ${isDialogOpen ? 'w-[65%] flex-shrink mr-4' : 'w-full'}`}>
-          {activities.map((activity, index) => (
-            <Activity
-              key={activity.identificador}
-              identificador={activity.identificador}
-              nombre={activity.nombre}
-              fechaInici={activity.fechaInici}
-              fechaFin={activity.fechaFin}
-              descripcion={activity.descripcion}
-              responsable={activity.responsable}
-              resultado={activity.resultado}
-              orden={index + 1} // Añade el orden si es necesario
-              onDelete={() => handleDeleteActivity(activity.identificador)} // Añade la función onDelete si es necesario
-              onClick={() => handleActivityClick(activity)}
-            />
-          ))}
-          <Button variant="contained" onClick={handleAddActivityClick}>
-            Agregar actividad
-          </Button>
+      <h2 className="text-black text-2xl font-semibold">Actividades</h2>
+      <hr className="border-[1.5px] border-[#c6caff]" />
+      <div className="flex overflow-x-hidden">
+        <div className={`${isDialogOpen ? 'w-[65%] mr-4' : 'w-full'}`}>
+          {activities.length > 0 ? (
+            activities.map((activity, index) => (
+              <Activity
+                key={activity.identificador}
+                {...activity}
+                orden={index + 1}
+                onClick={() => handleActivityClick(activity)}
+                isDialogOpen={isDialogOpen}
+              />
+            ))
+          ) : (
+            <h3 className="my-2 text-center text-black text-xl font-semibold">No existen actividades registradas</h3>
+          )}
+          <hr className="border-[1.5px] border-[#c6caff]" />
+          <div className="flex justify-center mt-4">
+            <button onClick={handleAddActivityClick} className="button-primary">
+              + Nueva Actividad
+            </button>
+          </div>
         </div>
 
         <DialogActivity
@@ -138,10 +146,12 @@ function ActivityPage() {
           onHide={handleDialogClose}
           onSave={handleAddNewActivity}
           onChange={handleNewActivityChange}
+          onChangeObjective={handleNewObjectiveActivityChange}
           onChangeInitialDate={handleNewInitialDateActivityChange}
           onChangeFinalDate={handleNewFinalDateActivityChange}
           isEditMode={isEditMode}
           responsables={responsables}
+          objetivos={objetivos}
         />
       </div>
     </>

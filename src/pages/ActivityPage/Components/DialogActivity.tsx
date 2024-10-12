@@ -1,23 +1,12 @@
-import { MenuItem, Button, TextField, FormControl, InputAdornment } from '@mui/material'
+import { MenuItem, Button, TextField, FormControl, InputAdornment, Select } from '@mui/material'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import dayjs, { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
-import { DateValidationError, PickerChangeHandlerContext } from '@mui/x-date-pickers'
-import { ActivityProps } from '../ActivityPage'
-
-type DialogActivityProps = {
-  activity: ActivityProps | null
-  isVisible: boolean
-  onHide: () => void
-  onSave: () => void
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onChangeInitialDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
-  onChangeFinalDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
-  isEditMode: boolean
-  responsables: string[]
-}
+import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
+import { useState } from 'react'
+import { ObjectiveData } from '../../../services/objective.service'
 
 const DialogActivity = ({
   activity,
@@ -25,21 +14,125 @@ const DialogActivity = ({
   onHide,
   onSave,
   onChange,
+  onChangeObjective,
   onChangeInitialDate,
   onChangeFinalDate,
   isEditMode,
   responsables,
+  objetivos,
 }: DialogActivityProps) => {
+  const [errors, setErrors] = useState<ActivityErrors>({
+    nombre: '',
+    descripcion: '',
+    responsable: '',
+    fechaInici: '',
+    fechaFin: '',
+    objetivo: '',
+    resultados: [],
+  })
+
+  const validateFields = () => {
+    const newErrors: ActivityErrors = {
+      nombre: '',
+      descripcion: '',
+      responsable: '',
+      fechaInici: '',
+      fechaFin: '',
+      objetivo: '',
+      resultados: Array(activity?.resultados?.length).fill(''),
+    }
+
+    if (!activity?.nombre || activity?.nombre.length === 0) {
+      newErrors.nombre = 'El título es obligatorio'
+    } else if (activity?.nombre.length > 50) {
+      newErrors.nombre = 'El título no puede exceder 50 caracteres'
+    }
+
+    if (!activity?.descripcion || activity?.descripcion.length === 0) {
+      newErrors.descripcion = 'La descripción es obligatoria'
+    } else if (activity?.descripcion.length > 255) {
+      newErrors.descripcion = 'La descripción no puede exceder 255 caracteres'
+    }
+
+    if (!activity?.responsable || activity?.responsable.length === 0) {
+      newErrors.responsable = 'El responsable es obligatorio'
+    }
+
+    if (!activity?.fechaInici) {
+      newErrors.fechaInici = 'La fecha de inicio es obligatoria'
+    }
+
+    if (!activity?.fechaFin) {
+      newErrors.fechaFin = 'La fecha de fin es obligatoria'
+    }
+
+    // Validación: fechaInici no puede ser mayor o igual a fechaFin
+    if (activity?.fechaInici && activity?.fechaFin) {
+      const fechaInici = dayjs(activity?.fechaInici)
+      const fechaFin = dayjs(activity?.fechaFin)
+      if (fechaInici.toDate() >= fechaFin.toDate()) {
+        newErrors.fechaInici = 'La fecha de inicio no puede ser mayor o igual a la fecha de fin'
+      }
+    }
+
+    if (!activity?.objetivo || activity?.objetivo.length === 0) {
+      newErrors.objetivo = 'El objetivo es obligatorio'
+    }
+
+    activity?.resultados?.forEach((resultado, index) => {
+      if (!resultado || resultado.length === 0) {
+        newErrors.resultados[index] = 'El resultado es obligatorio'
+      } else if (resultado.length > 255) {
+        newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).every((key) => {
+      if (key === 'resultados') {
+        return newErrors.resultados.every((err) => !err)
+      }
+      return !newErrors[key as keyof ActivityErrors]
+    })
+  }
+
+  const handleAddResult = () => {
+    onChange({
+      target: {
+        name: 'resultados',
+        value: [...(activity?.resultados ?? []), ''],
+      },
+    })
+  }
+
+  const handleResultChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number) => {
+    const newResults = [...(activity?.resultados ?? [])]
+    newResults[index] = e.target.value
+
+    onChange({
+      target: {
+        name: 'resultados',
+        value: newResults,
+      },
+    })
+  }
+
+  const handleSave = () => {
+    if (validateFields()) {
+      onSave()
+    }
+  }
+
   return (
     <FormControl
       className={`shadow-lg h-fit mb-6 transform transition-transform ${isVisible ? 'translate-x-0 w-[35%] p-4' : 'translate-x-full w-[0%]'}`}
     >
       {activity && (
         <>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start">
             {isEditMode ? (
               <TextField
-                name="nombreActividad"
+                name="nombre"
                 onChange={onChange}
                 placeholder="Nombre de la Actividad"
                 sx={{
@@ -58,103 +151,155 @@ const DialogActivity = ({
                     fontSize: '1.25rem', // Aumentar tamaño del placeholder
                   },
                 }}
-              ></TextField>
+                error={Boolean(errors.nombre)}
+                helperText={errors.nombre}
+              />
             ) : (
               <h2 className="text-xl">{activity?.nombre}</h2>
             )}
-            <Button onClick={onHide} className="text-black">
+            <Button onClick={onHide} className="text-[#1c1c1c] font-semibold mb-1">
               X
             </Button>
           </div>
           <hr className="border-[1.5px] border-[#c6caff]" />
 
-          <h3 className="text-lg font-bold my-4">Duración</h3>
+          <h3 className="text-lg font-semibold my-4">Duración</h3>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
-              name="fechaInicio"
+              name="fechaInici"
               value={dayjs(activity.fechaInici)}
               onChange={onChangeInitialDate}
               label="Fecha de Inicio"
-              className="mb-2 w-2/5"
+              className={`${errors.fechaInici ? '' : 'mb-2'} w-36`}
               format="DD/MM/YYYY"
               disabled={!isEditMode}
+              slotProps={{ textField: { required: true } }}
             />
           </LocalizationProvider>
+          {errors.fechaInici && <p className="text-red-600 text-xs mb-4 pl-3">{errors.fechaInici}</p>}
+
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               name="fechaFin"
               value={dayjs(activity.fechaFin)}
               onChange={onChangeFinalDate}
               label="Fecha de Fin"
-              className="my-2 w-2/5"
+              className="my-2 w-36"
               format="DD/MM/YYYY"
               disabled={!isEditMode}
+              slotProps={{ textField: { required: true } }}
             />
           </LocalizationProvider>
+          {errors.fechaFin && <p className="text-red-600 text-xs mb-2 pl-3">{errors.fechaFin}</p>}
 
-          <h3 className="text-lg font-bold mb-2">Descripción</h3>
+          <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
+          <Select
+            name="objetivo"
+            value={activity.objetivo}
+            onChange={onChangeObjective}
+            size="small"
+            className="w-48"
+            required
+            disabled={!isEditMode}
+            error={Boolean(errors.objetivo)}
+          >
+            {objetivos.map((objetivo: ObjectiveData) => {
+              return <MenuItem value={`${isEditMode ? objetivo.identificador : objetivo.nombre}`}>{objetivo.nombre}</MenuItem>
+            })}
+          </Select>
+          {errors.objetivo && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo}</p>}
+
+          <h3 className="text-lg font-semibold mb-2">Descripción</h3>
           <TextField
             name="descripcion"
+            placeholder="Descripción"
             value={activity.descripcion}
             onChange={onChange}
+            required
             variant="outlined"
             className="mb-4"
             disabled={!isEditMode}
             multiline
+            size="small"
+            error={Boolean(errors.descripcion)}
+            helperText={errors.descripcion}
           />
 
-          <h3 className="text-lg font-bold mb-2">Responsable</h3>
-          <div className="flex justify-between ">
-            <p className="text-sm w-full">Persona asignada</p>
-            {
-              <TextField
-                name="responsable"
-                value={activity.responsable}
-                onChange={onChange}
-                label="Nombre del responsable"
-                select
-                fullWidth
-                disabled={!isEditMode}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <AccountCircle />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-                variant="standard"
-              >
-                {responsables.map((responsable, index) => (
-                  <MenuItem key={index} value={responsable}>
-                    {responsable}
-                  </MenuItem>
-                ))}
-              </TextField>
-            }
-          </div>
-
-          <h3 className="text-lg font-bold mb-2">Resultado</h3>
+          <h3 className="text-lg font-semibold mb-2">Responsable</h3>
           <TextField
-            name="resultado"
-            value={activity.resultado}
+            name="responsable"
+            value={activity.responsable}
             onChange={onChange}
-            variant="outlined"
-            className="mb-4"
+            label="Nombre del responsable"
+            select
+            fullWidth
+            required
+            className="mb-2"
             disabled={!isEditMode}
-            multiline
-          />
+            size="small"
+            error={Boolean(errors.responsable)}
+            helperText={errors.responsable}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <AccountCircle />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            variant="standard"
+          >
+            {responsables.map((responsable, index) => (
+              <MenuItem key={index} value={responsable}>
+                {responsable}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <h3 className="text-lg font-semibold mb-2">Resultado</h3>
+          {activity.resultados.map((resultados: string, index: number) => (
+            <div key={index} className="flex items-center mb-2">
+              <TextField
+                name="resultados"
+                value={resultados}
+                onChange={(e) => handleResultChange(e, index)}
+                placeholder="Describe el resultado"
+                required
+                variant="outlined"
+                disabled={!isEditMode}
+                size="small"
+                className="w-full"
+                multiline={!isEditMode}
+                error={Boolean(errors.resultados[index])}
+                helperText={errors.resultados[index] || ''}
+              />
+
+              {/* {isEditMode ? (
+                <Button className="ml-2" color="secondary">
+                  X
+                </Button>
+              ) : null} */}
+            </div>
+          ))}
 
           {isEditMode && (
-            <div className="flex justify-end">
-              <button onClick={onHide} className="button-secondary_outlined mx-1">
-                Cancelar
-              </button>
-              <button onClick={onSave} className="button-primary mx-1">
-                Guardar
-              </button>
-            </div>
+            <>
+              <div className="flex justify-center">
+                <button onClick={handleAddResult} className="button-primary mt-2 mb-6">
+                  + Resultado
+                </button>
+              </div>
+
+              <div className="flex justify-end">
+                <button onClick={onHide} className="button-secondary_outlined mx-1">
+                  Cancelar
+                </button>
+                <button onClick={handleSave} className="button-primary mx-1">
+                  Guardar
+                </button>
+              </div>
+            </>
           )}
         </>
       )}

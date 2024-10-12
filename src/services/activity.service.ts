@@ -1,29 +1,20 @@
-import axios from 'axios'
+import { AxiosPromise } from 'axios'
+import { ActivityData, ActivityProps } from '../interfaces/activity.interface'
+import { axiosInstance } from '../api/axios'
 
-export interface ActivityData {
-  identificador?: number
-  nombre: string
-  descripcion: string
-  fechaInici: Date
-  fechaFin: Date
-  identificadorUsua: number
-  identificadorObjet: number
-}
-
-export const createActivity = async (activityData: ActivityData) => {
+export const createActivity = (activityData: ActivityData): AxiosPromise<ActivityData> => {
   try {
-    const response = await axios.post('https://cocoabackend.onrender.com/api/crear-actividades', activityData)
-    return response.data
+    return axiosInstance.post('/actividad', activityData)
   } catch (error) {
     console.error('Error creando la actividad:', error)
     throw error
   }
 }
 
-export const getActivities = async () => {
-  return await axios.get('https://cocoabackend.onrender.com/api/actividades')
+export const getActivities = (idObjetivo: number): AxiosPromise<ActivityProps[]> => {
+  return axiosInstance.get(`/planificacion/${idObjetivo}/actividades-resultados`)
 }
 
-export const deleteActivity = async (identificador: number) => {
-  return await axios.delete('https://cocoabackend.onrender.com/api/actividades/' + identificador)
+export const deleteActivity = (identificador: number): AxiosPromise<ActivityData> => {
+  return axiosInstance.delete('/actividades/' + identificador)
 }

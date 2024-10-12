@@ -75,7 +75,7 @@ const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({
               fechaFin={activity.fechaFin}
               descripcion={activity.descripcion}
               responsable={activity.responsable}
-              resultado={activity.resultado}
+              resultados={activity.resultados}
               onClick={() => handleActivityClick(activity)}
               onDelete={() => handleDeleteActivityClick(index)}
             />
