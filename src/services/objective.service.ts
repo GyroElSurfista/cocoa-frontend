@@ -1,4 +1,4 @@
-import axios, { AxiosPromise } from 'axios'
+import { AxiosPromise } from 'axios'
 import { ActivityData } from '../interfaces/activity.interface'
 import { axiosInstance } from '../api/axios'
 
@@ -23,7 +23,11 @@ export const createObjective = async (objectiveData: ObjectiveData) => {
 }
 
 export const getObjectives = async () => {
-  return await axiosInstance.get('/grupo-empresa/1/objetivos/actividades')
+  return await axiosInstance.get('/objetivos')
+}
+
+export const getPlannings = async () => {
+  return await axiosInstance.get('/grupo-empresa/1/planificaciones')
 }
 
 export const getObjectivesFromPlanification = async (): AxiosPromise<ObjectiveData[]> => {
