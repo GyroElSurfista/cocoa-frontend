@@ -10,15 +10,21 @@ interface Entregable {
   identificadorObjet: number
 }
 
+interface Objetivo {
+  id: number
+  name: string
+}
+
 const EntregablePage = () => {
   const location = useLocation()
   const { identificadorObjet } = location.state || {}
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [entregables, setEntregables] = useState<Entregable[]>([])
+  const [availableObjetivos, setAvailableObjetivos] = useState<Objetivo[]>([])
 
+  // Fetch entregables
   useEffect(() => {
-    // Fetch entregables from the API
     const fetchEntregables = async () => {
       try {
         const response = await fetch('https://cocoabackend.onrender.com/api/entregables')
@@ -31,11 +37,27 @@ const EntregablePage = () => {
     fetchEntregables()
   }, [])
 
+  // Fetch objetivos
+  useEffect(() => {
+    const fetchObjetivos = async () => {
+      try {
+        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
+        const data = await response.json()
+        setAvailableObjetivos(data)
+      } catch (error) {
+        console.error('Error al cargar los objetivos:', error)
+      }
+    }
+    fetchObjetivos()
+  }, [])
+
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
 
-  const handleCreateEntregable = (newEntregable: Entregable) => {
-    setEntregables([...entregables, newEntregable])
+  // Cambia la función para aceptar un array de entregables
+  const handleCreateEntregable = (newEntregables: Entregable[]) => {
+    // Añade los nuevos entregables al estado existente
+    setEntregables([...entregables, ...newEntregables])
   }
 
   return (
@@ -69,8 +91,9 @@ const EntregablePage = () => {
       <NewEntregableModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        onCreate={handleCreateEntregable}
+        onCreate={handleCreateEntregable} // Pasa la función corregida
         identificadorObjet={identificadorObjet}
+        availableObjetivos={availableObjetivos} // Pasar la lista de objetivos
       />
     </div>
   )
