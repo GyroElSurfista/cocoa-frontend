@@ -4,15 +4,20 @@ import NewEntregableModal from './Components/NewEntregableModal'
 import EntregableAccordion from './Components/EntregableAccordion'
 
 interface Entregable {
-  identificador: number
+  identificador?: number // Hacer identificador opcional aquí también
   nombre: string
   descripcion: string
   identificadorObjet: number
 }
 
 interface Objetivo {
-  id: number
-  name: string
+  identificador: number
+  nombre: string
+  fechaInici: string
+  fechaFin: string
+  valorPorce: string
+  planillasGener: boolean
+  identificadorPlani: number
 }
 
 const EntregablePage = () => {
@@ -54,9 +59,7 @@ const EntregablePage = () => {
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
 
-  // Cambia la función para aceptar un array de entregables
   const handleCreateEntregable = (newEntregables: Entregable[]) => {
-    // Añade los nuevos entregables al estado existente
     setEntregables([...entregables, ...newEntregables])
   }
 
@@ -77,10 +80,17 @@ const EntregablePage = () => {
       <hr className="border-[1.5px] border-[#c6caff] my-3" />
 
       <div className="mt-4">
-        {entregables.map((entregable, index) => (
-          <EntregableAccordion key={entregable.identificador} entregable={entregable} indexEntregable={index + 1} />
-        ))}
+        {entregables.length > 0 ? (
+          entregables
+            .filter((entregable) => entregable.identificador !== undefined)
+            .map((entregable, index) => (
+              <EntregableAccordion key={entregable.identificador} entregable={entregable} indexEntregable={index + 1} />
+            ))
+        ) : (
+          <p className="text-sm text-center text-gray-500">No existen entregables registrados</p>
+        )}
       </div>
+
       <hr className="border-[1.5px] border-[#c6caff] mt-4" />
       <div className="flex justify-center pt-3">
         <button onClick={openModal} className="button-primary">
@@ -88,13 +98,7 @@ const EntregablePage = () => {
         </button>
       </div>
 
-      <NewEntregableModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onCreate={handleCreateEntregable} // Pasa la función corregida
-        identificadorObjet={identificadorObjet}
-        availableObjetivos={availableObjetivos} // Pasar la lista de objetivos
-      />
+      <NewEntregableModal isOpen={isModalOpen} onClose={closeModal} onCreate={handleCreateEntregable} />
     </div>
   )
 }
