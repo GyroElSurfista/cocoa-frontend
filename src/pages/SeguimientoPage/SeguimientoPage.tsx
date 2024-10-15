@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { generateWeeklyTracking } from '../../services/planillaSeguimiento.service'
 import { getObjectives } from '../../services/objective.service'
+import GenerateTrackerModal from './GenerateTrackerModal/GenerateTrackerModal'
 
 interface Objective {
   id: number
@@ -19,9 +20,16 @@ const SeguimientoPage = () => {
 
   const location = useLocation()
 
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
+
+  const openModal = () => setIsModalOpen(true)
+  const closeModal = () => setIsModalOpen(false)
+
+  const handleGenerateTracker = () => {}
 
   // Función para generar la planilla de un objetivo específico
   const handleClick = async (id: number) => {
@@ -93,7 +101,13 @@ const SeguimientoPage = () => {
               </div>
             </div>
           ))}
+          <div className="flex justify-center pt-3">
+            <button onClick={openModal} className="button-primary">
+              Generar Planillas
+            </button>
+          </div>
 
+          <GenerateTrackerModal isOpen={isModalOpen} onClose={closeModal} onGenerate={handleGenerateTracker} />
           {/* Snackbar para mostrar los mensajes de éxito o error */}
           <Snackbar
             open={openSnackbar}
