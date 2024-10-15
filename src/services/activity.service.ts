@@ -1,5 +1,5 @@
 import { AxiosPromise } from 'axios'
-import { ActivityData, ActivityProps } from '../interfaces/activity.interface'
+import { ActivityData, ActivityProps, ActivityRowProps } from '../interfaces/activity.interface'
 import { axiosInstance } from '../api/axios'
 
 export const createActivity = (activityData: ActivityData): AxiosPromise<ActivityData> => {
@@ -11,8 +11,12 @@ export const createActivity = (activityData: ActivityData): AxiosPromise<Activit
   }
 }
 
-export const getActivities = (idObjetivo: number): AxiosPromise<ActivityProps[]> => {
-  return axiosInstance.get(`/planificacion/${idObjetivo}/actividades-resultados`)
+export const getActivities = (idPlanificacion: number): AxiosPromise<ActivityProps[]> => {
+  return axiosInstance.get(`/planificacion/${idPlanificacion}/actividades-resultados`)
+}
+
+export const searchActivities = (nameActivity: string, idObjetivo: number, idPlanificacion: number): AxiosPromise<ActivityRowProps[]> => {
+  return axiosInstance.get(`/actividad/buscar?nombre=${nameActivity}&objetivoId=${idObjetivo}&planificacionId=${idPlanificacion}`)
 }
 
 export const deleteActivity = (identificador: number): AxiosPromise<ActivityData> => {

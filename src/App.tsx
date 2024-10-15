@@ -6,6 +6,7 @@ import SeguimientoPage from './pages/SeguimientoPage/SeguimientoPage'
 import EntregablePage from './pages/EntregablePage/EntregablePage'
 import TrackingSheet from './pages/SeguimientoPage/TrackingSheet/TrackingSheet'
 import ActivityPage from './pages/ActivityPage/ActivityPage'
+import DeleteActivityPage from './pages/ActivityPage/DeleteActivityPage'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
             <Route path="objetivo/:idObjetivo" element={<TrackingSheet />} />
           </Route>
           <Route path="crear-actividad" element={<ActivityPage />}></Route>
+          <Route path="eliminar-actividad" element={<DeleteActivityPage />}></Route>
         </Route>
       </Routes>
     </>
