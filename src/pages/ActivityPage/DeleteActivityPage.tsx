@@ -4,7 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import SearchIcon from '@mui/icons-material/Search'
 import ReplayIcon from '@mui/icons-material/Replay'
 import { useEffect, useState } from 'react'
-import { deleteManyActivities, getActivities, searchActivities } from '../../services/activity.service'
+import { deleteManyActivities, getActivities, searchActivitiesWithoutObjective } from '../../services/activity.service'
 import { ActivityRowProps } from '../../interfaces/activity.interface'
 
 const DeleteActivityPage = (): JSX.Element => {
@@ -23,7 +23,7 @@ const DeleteActivityPage = (): JSX.Element => {
           fechaFin: new Date(actividad.fechaFin),
         }))
       } else {
-        actividades = (await searchActivities(e.target.value, 1, 1)).data.map((actividad: ActivityRowProps) => ({
+        actividades = (await searchActivitiesWithoutObjective(e.target.value, 1)).data.map((actividad: ActivityRowProps) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),

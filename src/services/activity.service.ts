@@ -15,7 +15,19 @@ export const getActivities = (idPlanificacion: number): AxiosPromise<ActivityPro
   return axiosInstance.get(`/planificacion/${idPlanificacion}/actividades-resultados`)
 }
 
-export const searchActivities = (nameActivity: string, idObjetivo: number, idPlanificacion: number): AxiosPromise<ActivityRowProps[]> => {
+export const getActivitiesByObjective = (idPlanificacion: number): AxiosPromise<ActivityProps[]> => {
+  return axiosInstance.get(`/planificacion/${idPlanificacion}/actividades-resultados`)
+}
+
+export const searchActivitiesWithoutObjective = (nameActivity: string, idPlanificacion: number): AxiosPromise<ActivityRowProps[]> => {
+  return axiosInstance.get(`/actividad/buscar-actividad?nombre=${nameActivity}&planificacionId=${idPlanificacion}`)
+}
+
+export const searchActivitiesWithObjective = (
+  nameActivity: string,
+  idObjetivo: number,
+  idPlanificacion: number
+): AxiosPromise<ActivityRowProps[]> => {
   return axiosInstance.get(`/actividad/buscar?nombre=${nameActivity}&objetivoId=${idObjetivo}&planificacionId=${idPlanificacion}`)
 }
 
