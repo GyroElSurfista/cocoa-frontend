@@ -20,8 +20,8 @@ export type ActivityRowProps = {
   identificador: number
   index: number
   nombre: string
-  fechaInici: Date | string
-  fechaFin: Date | string
+  fechaInici: Date
+  fechaFin: Date
   responsable: string | null
 }
 

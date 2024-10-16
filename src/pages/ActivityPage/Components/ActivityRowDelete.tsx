@@ -2,7 +2,19 @@ import { AccountCircle } from '@mui/icons-material'
 import { Checkbox, Divider } from '@mui/material'
 import { ActivityRowProps } from '../../../interfaces/activity.interface'
 
-const ActivityRowDelete = ({ fechaFin, fechaInici, index, nombre, responsable }: ActivityRowProps) => {
+interface ActivityRowDeleteProps extends ActivityRowProps {
+  onCheckboxChange: (id: number) => void
+}
+
+const ActivityRowDelete = ({
+  fechaFin,
+  fechaInici,
+  index,
+  nombre,
+  responsable,
+  identificador,
+  onCheckboxChange,
+}: ActivityRowDeleteProps) => {
   return (
     <div className="flex justify-between items-center h-12 my-2 py-2 bg-[#eef0ff] text-sm text-[#1c1c1c] overflow-hidden">
       <div className="flex items-center flex-shrink-0">
@@ -27,6 +39,7 @@ const ActivityRowDelete = ({ fechaFin, fechaInici, index, nombre, responsable }:
               color: 'black',
             },
           }}
+          onChange={() => onCheckboxChange(identificador)}
         />
       </div>
     </div>

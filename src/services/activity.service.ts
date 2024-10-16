@@ -22,3 +22,11 @@ export const searchActivities = (nameActivity: string, idObjetivo: number, idPla
 export const deleteActivity = (identificador: number): AxiosPromise<ActivityData> => {
   return axiosInstance.delete('/actividades/' + identificador)
 }
+
+export const deleteManyActivities = (identificadores: number[]): AxiosPromise => {
+  return axiosInstance.delete('/actividades', {
+    data: {
+      ids: identificadores,
+    },
+  })
+}

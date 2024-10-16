@@ -4,11 +4,12 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import SearchIcon from '@mui/icons-material/Search'
 import ReplayIcon from '@mui/icons-material/Replay'
 import { useEffect, useState } from 'react'
-import { getActivities, searchActivities } from '../../services/activity.service'
+import { deleteManyActivities, getActivities, searchActivities } from '../../services/activity.service'
 import { ActivityRowProps } from '../../interfaces/activity.interface'
 
 const DeleteActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityRowProps[]>([])
+  const [selectedActivities, setSelectedActivities] = useState<number[]>([])
   const [searchNotFound, setSearchNotFound] = useState<boolean>(false)
 
   const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,6 +35,17 @@ const DeleteActivityPage = (): JSX.Element => {
       console.error('Error al buscar actividades', error)
       setSearchNotFound(true)
     }
+  }
+
+  const handleCheckboxChange = (id: number) => {
+    setSelectedActivities((prevSelected) =>
+      prevSelected.includes(id) ? prevSelected.filter((selectedId) => selectedId !== id) : [...prevSelected, id]
+    )
+  }
+
+  const handleDeleteClick = () => {
+    // console.log('Actividades a eliminar:', selectedActivities)
+    deleteManyActivities(selectedActivities)
   }
 
   useEffect(() => {
@@ -84,7 +96,7 @@ const DeleteActivityPage = (): JSX.Element => {
       <hr className="border-[1.5px] border-[#c6caff]" />
       <div className="flex justify-end items-center">
         <label>Eliminar</label>
-        <DeleteIcon fontSize="medium" />
+        <DeleteIcon fontSize="medium" onClick={handleDeleteClick} />
         <Checkbox
           sx={{
             color: 'black',
@@ -108,6 +120,7 @@ const DeleteActivityPage = (): JSX.Element => {
             nombre={actividad.nombre}
             responsable={actividad.responsable}
             identificador={actividad.identificador}
+            onCheckboxChange={handleCheckboxChange}
           />
         ))
       )}
