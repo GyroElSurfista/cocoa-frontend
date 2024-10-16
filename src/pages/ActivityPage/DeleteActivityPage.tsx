@@ -4,14 +4,22 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import SearchIcon from '@mui/icons-material/Search'
 import ReplayIcon from '@mui/icons-material/Replay'
 import { useEffect, useState } from 'react'
-import { deleteManyActivities, getActivities, searchActivitiesWithoutObjective } from '../../services/activity.service'
+import {
+  deleteManyActivities,
+  getActivities,
+  getActivitiesByObjective,
+  searchActivitiesWithoutObjective,
+} from '../../services/activity.service'
 import { ActivityRowProps } from '../../interfaces/activity.interface'
+import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 
 const DeleteActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityRowProps[]>([])
+  const [objectives, setObjectives] = useState<ObjectiveData[]>([])
   const [selectedActivities, setSelectedActivities] = useState<number[]>([])
   const [searchNotFound, setSearchNotFound] = useState<boolean>(false)
 
+  // Función para manejar la búsqueda
   const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       let actividades
@@ -37,17 +45,43 @@ const DeleteActivityPage = (): JSX.Element => {
     }
   }
 
+  // Manejar el cambio en el Checkbox
   const handleCheckboxChange = (id: number) => {
     setSelectedActivities((prevSelected) =>
       prevSelected.includes(id) ? prevSelected.filter((selectedId) => selectedId !== id) : [...prevSelected, id]
     )
   }
 
+  // Función para eliminar las actividades seleccionadas
   const handleDeleteClick = () => {
-    // console.log('Actividades a eliminar:', selectedActivities)
     deleteManyActivities(selectedActivities)
   }
 
+  // Función para manejar la selección de un objetivo
+  const handleObjectiveSelect = async (selectedObjective: ObjectiveData | null) => {
+    if (selectedObjective) {
+      try {
+        const actividades = (await getActivitiesByObjective(selectedObjective.identificador)).data.map((actividad) => ({
+          ...actividad,
+          fechaInici: new Date(actividad.fechaInici),
+          fechaFin: new Date(actividad.fechaFin),
+        }))
+        setActivities(actividades)
+      } catch (error) {
+        console.error('Error al filtrar actividades por objetivo', error)
+        setSearchNotFound(true)
+      }
+    } else {
+      const actividades = (await getActivities(1)).data.map((actividad) => ({
+        ...actividad,
+        fechaInici: new Date(actividad.fechaInici),
+        fechaFin: new Date(actividad.fechaFin),
+      }))
+      setActivities(actividades)
+    }
+  }
+
+  // Cargar actividades y objetivos al cargar la página
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -57,6 +91,8 @@ const DeleteActivityPage = (): JSX.Element => {
           fechaFin: new Date(actividad.fechaFin),
         }))
         setActivities(actividades)
+        const objetivos = (await getObjectivesFromPlanification()).data
+        setObjectives(objetivos)
       } catch (error) {
         console.error('Error al cargar los datos', error)
       }
@@ -70,7 +106,7 @@ const DeleteActivityPage = (): JSX.Element => {
       <div className="flex justify-between items-end mb-2">
         <h2 className="text-black text-2xl font-semibold">Eliminar actividades</h2>
         <div className="flex items-center">
-          <SearchIcon className="mx-2 cursor-pointer" fontSize="small" />
+          <SearchIcon className="mx-2 cursor-pointer" fontSize="small" onClick={handleSearch} />
           <div className="rounded-[10px] border border-[#888888] p-0.5">
             <form>
               <input
@@ -84,7 +120,9 @@ const DeleteActivityPage = (): JSX.Element => {
           <label className="mx-2">Filtrar:</label>
           <Autocomplete
             disablePortal
-            options={['hola', 'adios', 'algomas']}
+            options={objectives}
+            getOptionLabel={(option) => option.nombre}
+            onChange={handleObjectiveSelect}
             renderInput={(params) => <TextField {...params} label="Objetivo" />}
             className="w-48"
             size="small"
