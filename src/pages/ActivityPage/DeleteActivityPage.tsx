@@ -3,11 +3,12 @@ import ActivityRowDelete from './Components/ActivityRowDelete'
 import DeleteIcon from '@mui/icons-material/Delete'
 import SearchIcon from '@mui/icons-material/Search'
 import ReplayIcon from '@mui/icons-material/Replay'
-import { useEffect, useState } from 'react'
+import { SyntheticEvent, useEffect, useState } from 'react'
 import {
   deleteManyActivities,
   getActivities,
   getActivitiesByObjective,
+  searchActivitiesWithObjective,
   searchActivitiesWithoutObjective,
 } from '../../services/activity.service'
 import { ActivityRowProps } from '../../interfaces/activity.interface'
@@ -16,27 +17,50 @@ import { getObjectivesFromPlanification, ObjectiveData } from '../../services/ob
 const DeleteActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityRowProps[]>([])
   const [objectives, setObjectives] = useState<ObjectiveData[]>([])
+  const [selectedObjective, setSelectedObjective] = useState<ObjectiveData | null>(null) // Almacenar el objetivo seleccionado
   const [selectedActivities, setSelectedActivities] = useState<number[]>([])
   const [searchNotFound, setSearchNotFound] = useState<boolean>(false)
+  const [searchTerm, setSearchTerm] = useState<string>('') // Almacenar el término de búsqueda
 
   // Función para manejar la búsqueda
-  const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = async () => {
     try {
       let actividades
-
-      if (e.target.value === '') {
-        actividades = (await getActivities(1)).data.map((actividad) => ({
-          ...actividad,
-          fechaInici: new Date(actividad.fechaInici),
-          fechaFin: new Date(actividad.fechaFin),
-        }))
+      if (searchTerm === '' || searchTerm === undefined) {
+        // Si no hay término de búsqueda
+        if (selectedObjective) {
+          // Si solo hay un objetivo seleccionado
+          actividades = (await getActivitiesByObjective(selectedObjective.identificador)).data.map((actividad) => ({
+            ...actividad,
+            fechaInici: new Date(actividad.fechaInici),
+            fechaFin: new Date(actividad.fechaFin),
+          }))
+        } else {
+          // Si no hay búsqueda ni objetivo, obtener todas las actividades
+          actividades = (await getActivities(1)).data.map((actividad) => ({
+            ...actividad,
+            fechaInici: new Date(actividad.fechaInici),
+            fechaFin: new Date(actividad.fechaFin),
+          }))
+        }
+      } else if (selectedObjective) {
+        // Si hay un objetivo y también una búsqueda
+        actividades = (await searchActivitiesWithObjective(searchTerm, selectedObjective.identificador, 1)).data.map(
+          (actividad: ActivityRowProps) => ({
+            ...actividad,
+            fechaInici: new Date(actividad.fechaInici),
+            fechaFin: new Date(actividad.fechaFin),
+          })
+        )
       } else {
-        actividades = (await searchActivitiesWithoutObjective(e.target.value, 1)).data.map((actividad: ActivityRowProps) => ({
+        // Si solo hay búsqueda pero no hay objetivo
+        actividades = (await searchActivitiesWithoutObjective(searchTerm, 1)).data.map((actividad: ActivityRowProps) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
         }))
       }
+
       setSearchNotFound(false)
       setActivities(actividades)
     } catch (error) {
@@ -58,27 +82,8 @@ const DeleteActivityPage = (): JSX.Element => {
   }
 
   // Función para manejar la selección de un objetivo
-  const handleObjectiveSelect = async (selectedObjective: ObjectiveData | null) => {
-    if (selectedObjective) {
-      try {
-        const actividades = (await getActivitiesByObjective(selectedObjective.identificador)).data.map((actividad) => ({
-          ...actividad,
-          fechaInici: new Date(actividad.fechaInici),
-          fechaFin: new Date(actividad.fechaFin),
-        }))
-        setActivities(actividades)
-      } catch (error) {
-        console.error('Error al filtrar actividades por objetivo', error)
-        setSearchNotFound(true)
-      }
-    } else {
-      const actividades = (await getActivities(1)).data.map((actividad) => ({
-        ...actividad,
-        fechaInici: new Date(actividad.fechaInici),
-        fechaFin: new Date(actividad.fechaFin),
-      }))
-      setActivities(actividades)
-    }
+  const handleObjectiveSelect = async (event: SyntheticEvent<Element, Event>, value: ObjectiveData | null) => {
+    setSelectedObjective(value)
   }
 
   // Cargar actividades y objetivos al cargar la página
@@ -112,7 +117,9 @@ const DeleteActivityPage = (): JSX.Element => {
               <input
                 className="border border-transparent focus:outline-none focus:ring-2 focus:ring-transparent placeholder-gray-500 rounded-[5px] p-2"
                 placeholder="Buscar actividad"
-                onChange={handleSearch}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setSearchTerm(e.target.value)
+                }}
               />
             </form>
           </div>
