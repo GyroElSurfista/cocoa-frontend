@@ -4,6 +4,7 @@ import { ActivityRowProps } from '../../../interfaces/activity.interface'
 
 interface ActivityRowDeleteProps extends ActivityRowProps {
   onCheckboxChange: (id: number) => void
+  checked: boolean
 }
 
 const ActivityRowDelete = ({
@@ -14,7 +15,8 @@ const ActivityRowDelete = ({
   responsable,
   identificador,
   onCheckboxChange,
-}: ActivityRowDeleteProps) => {
+  checked,
+}: ActivityRowDeleteProps): JSX.Element => {
   return (
     <div className="flex justify-between items-center h-12 my-2 py-2 bg-[#eef0ff] text-sm text-[#1c1c1c] overflow-hidden">
       <div className="flex items-center flex-shrink-0">
@@ -39,7 +41,8 @@ const ActivityRowDelete = ({
               color: 'black',
             },
           }}
-          onChange={() => onCheckboxChange(identificador)}
+          checked={checked} // Reflejar el estado del checkbox
+          onChange={() => onCheckboxChange(identificador)} // Notificar al padre sobre el cambio
         />
       </div>
     </div>

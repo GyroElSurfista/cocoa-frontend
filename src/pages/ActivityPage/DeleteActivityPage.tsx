@@ -19,6 +19,7 @@ const DeleteActivityPage = (): JSX.Element => {
   const [objectives, setObjectives] = useState<ObjectiveData[]>([])
   const [selectedObjective, setSelectedObjective] = useState<ObjectiveData | null>(null) // Almacenar el objetivo seleccionado
   const [selectedActivities, setSelectedActivities] = useState<number[]>([])
+  const [checkedAll, setCheckedAll] = useState<boolean>(false) // Controlar si todos están seleccionados
   const [searchNotFound, setSearchNotFound] = useState<boolean>(false)
   const [searchTerm, setSearchTerm] = useState<string>('') // Almacenar el término de búsqueda
   const [resetKey, setResetKey] = useState<number>(0)
@@ -75,6 +76,16 @@ const DeleteActivityPage = (): JSX.Element => {
     setSelectedActivities((prevSelected) =>
       prevSelected.includes(id) ? prevSelected.filter((selectedId) => selectedId !== id) : [...prevSelected, id]
     )
+  }
+
+  const handleToggleAllCheckboxes = () => {
+    if (checkedAll) {
+      setSelectedActivities([]) // Desmarcar todos
+    } else {
+      const allActivityIds = activities.map((activity) => activity.identificador)
+      setSelectedActivities(allActivityIds) // Marcar todos
+    }
+    setCheckedAll(!checkedAll) // Cambiar el estado
   }
 
   // Función para eliminar las actividades seleccionadas
@@ -166,6 +177,8 @@ const DeleteActivityPage = (): JSX.Element => {
               color: 'black',
             },
           }}
+          checked={checkedAll} // Controlar si está marcado
+          onChange={handleToggleAllCheckboxes}
         />
       </div>
       <hr className="border-[1.5px] border-[#c6caff]" />
@@ -183,6 +196,7 @@ const DeleteActivityPage = (): JSX.Element => {
             responsable={actividad.responsable}
             identificador={actividad.identificador}
             onCheckboxChange={handleCheckboxChange}
+            checked={selectedActivities.includes(actividad.identificador)}
           />
         ))
       )}
