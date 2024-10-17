@@ -15,7 +15,7 @@ interface ObservationProps {
   observation: string
   observationId: number
   activities: Activity[]
-  selectedActivities: Activity[] // Recibe las actividades seleccionadas
+  selectedActivities: Activity[]
   onSave: (observation: string, activities: Activity[]) => void
   onDelete: (id: number) => void
 }
@@ -31,41 +31,19 @@ const MenuProps = {
   },
 }
 
-function getStyles(name: string, selectedActivities: readonly string[], theme: Theme) {
-  return {
-    fontWeight: selectedActivities.includes(name) ? theme.typography.fontWeightMedium : theme.typography.fontWeightRegular,
-  }
-}
-
 const MultipleSelectPlaceholder: React.FC<{
-  selectedActivities: Activity[]
-  setSelectedActivities: React.Dispatch<React.SetStateAction<Activity[]>>
+  selectedActivity: Activity | null
+  setSelectedActivity: React.Dispatch<React.SetStateAction<Activity | null>>
   activities: Activity[]
-}> = ({ selectedActivities, setSelectedActivities, activities }) => {
+}> = ({ selectedActivity, setSelectedActivity, activities }) => {
   const theme = useTheme()
 
-  const handleChange = (event: SelectChangeEvent<string[]>) => {
-    const {
-      target: { value },
-    } = event
-    const selected = typeof value === 'string' ? value.split(',') : value
+  const handleChange = (event: SelectChangeEvent<string>) => {
+    const selectedName = event.target.value
+    const selected = activities.find((activity) => `Actividad ${activity.id}` === selectedName)
 
-    // Log for debugging
-    console.log('handleChange called, selected values:', selected)
-
-    const updatedActivities = activities.filter((activity) => selected.includes(activity.name))
-
-    // Log the activities before updating state
-    console.log('Updated activities:', updatedActivities)
-    console.log('Current selected activities:', selectedActivities)
-
-    // Evitamos un ciclo infinito verificando si el nuevo conjunto de actividades seleccionadas es diferente
-    if (
-      updatedActivities.length !== selectedActivities.length ||
-      updatedActivities.some((a, index) => a.id !== selectedActivities[index]?.id)
-    ) {
-      console.log('Updating selected activities state')
-      setSelectedActivities(updatedActivities)
+    if (selected && (!selectedActivity || selected.id !== selectedActivity.id)) {
+      setSelectedActivity(selected)
     }
   }
 
@@ -74,32 +52,30 @@ const MultipleSelectPlaceholder: React.FC<{
       sx={{
         m: 0,
         width: {
-          xs: '150px', // Small screens
-          sm: '200px', // Medium screens
-          md: '250px', // Large screens
+          xs: '150px',
+          sm: '200px',
+          md: '250px',
         },
         my: 1,
         padding: 0,
       }}
     >
       <Select
-        multiple
         displayEmpty
-        value={selectedActivities.map((activity) => activity.name)}
+        value={selectedActivity ? `Actividad ${selectedActivity.id}` : ''}
         onChange={handleChange}
         input={<OutlinedInput />}
         renderValue={(selected) => {
-          if (selected.length === 0) {
+          if (!selected) {
             return <em>Seleccionar Actividad</em>
           }
-
-          return selected.join(', ')
+          return selected
         }}
         MenuProps={MenuProps}
         inputProps={{ 'aria-label': 'Without label' }}
         sx={{
-          fontSize: '12px', // Reduced font size in Select
-          padding: 0, // Remove padding in Select
+          fontSize: '12px',
+          padding: 0,
         }}
       >
         <MenuItem disabled value="" sx={{ padding: 0 }}>
@@ -108,18 +84,19 @@ const MultipleSelectPlaceholder: React.FC<{
         {activities.map((activity) => (
           <MenuItem
             key={activity.id}
-            value={activity.name}
-            style={getStyles(
-              activity.name,
-              selectedActivities.map((a) => a.name),
-              theme
-            )}
+            value={`Actividad ${activity.id}`}
+            style={{
+              fontWeight:
+                selectedActivity && selectedActivity.id === activity.id
+                  ? theme.typography.fontWeightMedium
+                  : theme.typography.fontWeightRegular,
+            }}
             sx={{
-              fontSize: '12px', // Reduced font size in MenuItem
-              paddingTop: 0, // Remove padding in MenuItem
+              fontSize: '12px',
+              paddingTop: 0,
             }}
           >
-            {activity.name}
+            Actividad {activity.id}
           </MenuItem>
         ))}
       </Select>
@@ -136,7 +113,8 @@ export const Observation: React.FC<ObservationProps> = ({
   onDelete,
 }) => {
   const [editableObservation, setEditableObservation] = useState<string>(observation)
-  const [currentSelectedActivities, setCurrentSelectedActivities] = useState<Activity[]>(selectedActivities)
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(selectedActivities[0] || null)
+  const [availableActivities, setAvailableActivities] = useState<Activity[]>([])
   const [error, setError] = useState<string>('')
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
@@ -145,13 +123,30 @@ export const Observation: React.FC<ObservationProps> = ({
     if (textAreaRef.current) {
       textAreaRef.current.focus()
     }
-    console.log('useEffect: Component mounted, textarea focused')
+
+    const fetchActivities = async () => {
+      try {
+        const response = await fetch('https://cocoabackend.onrender.com/api/actividades/')
+        if (response.ok) {
+          const data = await response.json()
+          const formattedActivities = data.map((item: any) => ({
+            id: item.identificador,
+            name: item.nombre,
+          }))
+          setAvailableActivities(formattedActivities)
+        } else {
+          setError('Error al cargar las actividades.')
+        }
+      } catch (error) {
+        setError('Error en la conexión al servidor.')
+      }
+    }
+
+    fetchActivities()
   }, [])
 
   const handleObservationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value
-    console.log('Observation change:', newValue)
-
     if (newValue.length <= 256) {
       setEditableObservation(newValue)
       setError('')
@@ -163,83 +158,60 @@ export const Observation: React.FC<ObservationProps> = ({
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      console.log('Enter key pressed')
-      validateAndSave()
-    }
-  }
-
-  const handleBlur = () => {
-    console.log('Textarea blur event')
-    if (editableObservation !== observation || currentSelectedActivities !== selectedActivities) {
       validateAndSave()
     }
   }
 
   const validateAndSave = async () => {
-    console.log('Validating and saving observation')
-
     if (!editableObservation.trim()) {
       setError('La observación no puede estar vacía.')
       return
     }
 
-    if (!currentSelectedActivities || currentSelectedActivities.length === 0) {
-      setError('Debe seleccionar al menos una actividad.')
+    if (!selectedActivity) {
+      setError('Debe seleccionar una actividad.')
       return
     }
 
-    if (editableObservation !== observation || currentSelectedActivities !== selectedActivities) {
-      console.log('Changes detected, saving...')
+    try {
+      const response = await fetch('https://cocoabackend.onrender.com/api/crear-observacion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          descripcion: editableObservation,
+          fecha: new Date().toISOString().split('T')[0],
+          identificadorPlaniSegui: 2, // Cambia este valor si es necesario
+          identificadorActiv: selectedActivity.id,
+        }),
+      })
 
-      try {
-        const response = await fetch('https://cocoabackend.onrender.com/api/crear-observacion', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            descripcion: editableObservation,
-            fecha: new Date().toISOString().split('T')[0], // Fecha actual
-            identificadorPlaniSegui: 2, // Cambia esto si lo necesitas dinámico
-            identificadorActiv: currentSelectedActivities[0].id, // Usa el primer ID de actividad seleccionada
-          }),
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          console.log('Observation saved successfully:', data)
-          onSave(editableObservation, currentSelectedActivities)
-        } else {
-          const errorMessage = await response.text()
-          console.error('Failed to save observation:', errorMessage)
-          setError('Error al guardar la observación. Inténtalo de nuevo.')
-        }
-      } catch (error) {
-        console.error('Error in fetch:', error)
-        setError('Error en la conexión al servidor.')
+      if (response.ok) {
+        const data = await response.json()
+        onSave(editableObservation, [selectedActivity])
+      } else {
+        const errorMessage = await response.text()
+        setError('Error al guardar la observación. Inténtalo de nuevo.')
       }
+    } catch (error) {
+      setError('Error en la conexión al servidor.')
     }
   }
 
-  // Nueva funcionalidad para eliminar la observación
   const handleDelete = async () => {
-    console.log('Deleting observation with ID:', observationId)
-
     try {
       const response = await fetch(`https://cocoabackend.onrender.com/api/observaciones/${observationId}`, {
         method: 'DELETE',
       })
 
       if (response.ok) {
-        console.log('Observation deleted successfully')
-        onDelete(observationId) // Llama a la función de eliminación para actualizar el estado en el componente padre
+        onDelete(observationId)
       } else {
         const errorMessage = await response.text()
-        console.error('Failed to delete observation:', errorMessage)
         setError('Error al eliminar la observación. Inténtalo de nuevo.')
       }
     } catch (error) {
-      console.error('Error in fetch:', error)
       setError('Error en la conexión al servidor.')
     }
   }
@@ -253,21 +225,14 @@ export const Observation: React.FC<ObservationProps> = ({
           value={editableObservation}
           onChange={handleObservationChange}
           onKeyPress={handleKeyPress} // Handle enter key
-          onBlur={handleBlur} // Handle when textarea loses focus
         />
         <div className="ml-4 flex">
           <MultipleSelectPlaceholder
-            selectedActivities={currentSelectedActivities}
-            setSelectedActivities={setCurrentSelectedActivities}
-            activities={activities}
+            selectedActivity={selectedActivity}
+            setSelectedActivity={setSelectedActivity}
+            activities={availableActivities}
           />
-          {/* Botón de eliminación */}
-          <img
-            className="mx-4 cursor-pointer"
-            src={Trash}
-            alt="Trash icon"
-            onClick={handleDelete} // Deletes the component
-          />
+          <img className="mx-4 cursor-pointer" src={Trash} alt="Trash icon" onClick={handleDelete} />
         </div>
       </div>
       {error && <p className="text-red-500 text-sm">{error}</p>}
