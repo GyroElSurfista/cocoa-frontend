@@ -1,6 +1,5 @@
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { generateWeeklyTracking } from '../../services/planillaSeguimiento.service'
 import { getObjectives } from '../../services/objective.service'
 import GenerateTrackerModal from './GenerateTrackerModal/GenerateTrackerModal'
 import ObjectiveTracker from './Components/ObjectiveTracker'
@@ -16,11 +15,8 @@ interface Objective {
 }
 
 const SeguimientoPage = () => {
-  // Lista de objetivos con su estado individual
   const [objetivos, setObjetivos] = useState<Objective[]>([])
-
   const [isModalOpen, setIsModalOpen] = useState(false)
-
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
@@ -30,7 +26,6 @@ const SeguimientoPage = () => {
 
   const handleGenerateTracker = () => {
     cargarObjetivos()
-    // Configura el Snackbar para éxito
     setSnackbarMessage('Planilla generada exitosamente')
     setSnackbarColor('#D3FFD2')
     setOpenSnackbar(true)
@@ -47,62 +42,69 @@ const SeguimientoPage = () => {
     try {
       const response = await getObjectives()
       console.log(response)
-      const objetivos = response.data.map((obj: any) => ({
-        id: obj.identificador,
-        nombre: obj.nombre,
-        iniDate: obj.fechaInici,
-        finDate: obj.fechaFin,
-        objective: obj.nombre,
-        valueP: obj.valorPorce,
-        planillasGener: obj.planillasGener,
-      }))
+      const objetivosFiltrados = response.data
+        .map((obj: any) => ({
+          id: obj.identificador,
+          nombre: obj.nombre,
+          iniDate: obj.fechaInici,
+          finDate: obj.fechaFin,
+          objective: obj.nombre,
+          valueP: obj.valorPorce,
+          planillasGener: obj.planillasGener,
+        }))
+        .filter((objetivo: Objective) => objetivo.planillasGener) // Filtrar solo los objetivos con planillasGener: true
 
-      setObjetivos(objetivos)
+      setObjetivos(objetivosFiltrados)
     } catch (error) {
       console.log(error)
     }
   }
+
   useEffect(() => {
     cargarObjetivos()
   }, [])
+
   return (
     <div>
-      <h2 className="text-black text-3xl font-semibold pl-6">Generar Planillas de Seguimiento</h2>
+      <h2 className="text-black text-3xl font-semibold">Generar Planillas de Seguimiento</h2>
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
-      <>
-        {objetivos.map((objetivo, index) => (
-          <ObjectiveTracker key={index} objective={objetivo} />
-        ))}
-        <div className="flex justify-center pt-3">
-          <button onClick={openModal} className="button-primary">
-            Generar Planillas
-          </button>
-        </div>
 
-        <GenerateTrackerModal isOpen={isModalOpen} onClose={closeModal} onGenerate={handleGenerateTracker} />
-        {/* Snackbar para mostrar los mensajes de éxito o error */}
-        <Snackbar
-          open={openSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          autoHideDuration={5000}
-          onClose={handleCloseSnackbar}
-        >
-          <SnackbarContent
-            style={{
-              display: 'flex',
-              width: '325px',
-              padding: '15px 20px',
-              justifyContent: 'start',
-              alignItems: 'center',
-              gap: '10px',
-              borderRadius: '10px',
-              background: snackbarColor,
-              color: snackbarColor === '#D3FFD2' ? '#00A407' : '#A40000', // Cambia el color del texto basado en el tipo de mensaje
-            }}
-            message={snackbarMessage}
-          />
-        </Snackbar>
-      </>
+      {objetivos.length > 0 ? (
+        objetivos.map((objetivo, index) => <ObjectiveTracker key={index} objective={objetivo} />)
+      ) : (
+        <p className="text-center text-gray-500 mt-4">Lista vacía</p>
+      )}
+
+      <hr className="border-[1.5px] border-[#c6caff] mt-4 mb-4" />
+      <div className="flex justify-center pb-3">
+        <button onClick={openModal} className="button-primary">
+          Generar Planillas
+        </button>
+      </div>
+
+      <GenerateTrackerModal isOpen={isModalOpen} onClose={closeModal} onGenerate={handleGenerateTracker} />
+
+      <Snackbar
+        open={openSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+      >
+        <SnackbarContent
+          style={{
+            display: 'flex',
+            width: '325px',
+            padding: '15px 20px',
+            justifyContent: 'start',
+            alignItems: 'center',
+            gap: '10px',
+            borderRadius: '10px',
+            background: snackbarColor,
+            color: snackbarColor === '#D3FFD2' ? '#00A407' : '#A40000',
+          }}
+          message={snackbarMessage}
+        />
+      </Snackbar>
     </div>
   )
 }

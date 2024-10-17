@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { formatDateToDMY } from '../../../utils/formatDate'
+import { getWeeklyTrackers } from '../../../services/planillaSeguimiento.service'
 
 interface Objective {
   id: number
@@ -11,15 +12,30 @@ interface Objective {
   planillasGener: boolean
 }
 
+interface rowTracker {
+  identificador: number
+  fecha: string
+  observacion: []
+  identificadorObjet: number
+}
 interface ObjectiveTrackerProps {
   objective: Objective
 }
 
 const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const [rowsTracker, setRowsTracker] = useState<Array<rowTracker>>()
 
-  const toggleAccordion = () => {
+  const toggleAccordion = async () => {
     setIsOpen(!isOpen)
+    if (!isOpen) {
+      try {
+        const response = await getWeeklyTrackers(objective.id + '')
+        setRowsTracker(response.data)
+      } catch (error) {
+        console.log('error in fetch weekly trackers', error)
+      }
+    }
   }
   return (
     <div className="bg-[rgb(224,227,255)] rounded px-3 mb-3">
@@ -28,7 +44,7 @@ const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective }) => {
           <p className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {objective.id}</p>
         </div>
         <div className="w-8/12 pl-2">{objective.nombre} </div>
-        <div className="w-[90px]"></div>
+        <div className="w-[88px]"></div>
         <div className="w-auto inline-flex justify-center border-l border-[#c6caff]">
           <p className="flex items-center justify-end pl-3">
             Fechas:
@@ -52,10 +68,12 @@ const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective }) => {
       </div>
       {isOpen && (
         <div className="py-4 px-20 text-gray-600">
-          <div className="h-10 px-5 py-2.5 bg-[#eef0ff] rounded-lg justify-between items-center flex">
-            <div className="text-black text-lg font-semibold">Planilla # 1</div>
-            <div className="text-black text-base font-normal">Fecha: 02/09/24</div>
-          </div>
+          {rowsTracker?.map((row, index) => (
+            <div key={index} className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex">
+              <div className="text-black text-lg font-semibold">Planilla # {index + 1}</div>
+              <div className="text-black text-base font-normal">Fecha: {formatDateToDMY(row.fecha)}</div>
+            </div>
+          ))}
         </div>
       )}
     </div>
