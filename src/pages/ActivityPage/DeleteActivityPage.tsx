@@ -1,4 +1,4 @@
-import { Autocomplete, Checkbox, TextField } from '@mui/material'
+import { Alert, Autocomplete, Checkbox, Snackbar, SnackbarCloseReason, TextField } from '@mui/material'
 import ActivityRowDelete from './Components/ActivityRowDelete'
 import DeleteIcon from '@mui/icons-material/Delete'
 import SearchIcon from '@mui/icons-material/Search'
@@ -13,6 +13,7 @@ import {
 } from '../../services/activity.service'
 import { ActivityRowProps } from '../../interfaces/activity.interface'
 import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
+import ModalConfirmation from '../../components/ModalConfirmation'
 
 const DeleteActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityRowProps[]>([])
@@ -22,6 +23,11 @@ const DeleteActivityPage = (): JSX.Element => {
   const [searchNotFound, setSearchNotFound] = useState<boolean>(false)
   const [searchTerm, setSearchTerm] = useState<string>('') // Almacenar el término de búsqueda
   const [resetKey, setResetKey] = useState<number>(0)
+  const [open, setOpen] = useState<boolean>(false)
+  const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
+
+  const handleOpen = () => setOpen(true)
+  const handleClose = () => setOpen(false)
 
   // Función para manejar la búsqueda
   const handleSearch = async () => {
@@ -87,12 +93,21 @@ const DeleteActivityPage = (): JSX.Element => {
   }
 
   // Función para eliminar las actividades seleccionadas
-  const handleDeleteClick = () => {
-    deleteManyActivities(selectedActivities)
+  const handleDeleteClick = async () => {
+    await deleteManyActivities(selectedActivities)
+    const actividades = (await getActivities(1)).data.map((actividad) => ({
+      ...actividad,
+      fechaInici: new Date(actividad.fechaInici),
+      fechaFin: new Date(actividad.fechaFin),
+    }))
+    setActivities(actividades)
+    setSelectedActivities([])
+    setOpen(false)
+    setOpenSnackbar(true)
   }
 
   // Función para manejar la selección de un objetivo
-  const handleObjectiveSelect = async (event: SyntheticEvent<Element, Event>, value: ObjectiveData | null) => {
+  const handleObjectiveSelect = async (_event: SyntheticEvent<Element, Event>, value: ObjectiveData | null) => {
     setSelectedObjective(value)
   }
 
@@ -107,6 +122,13 @@ const DeleteActivityPage = (): JSX.Element => {
       fechaFin: new Date(actividad.fechaFin),
     }))
     setActivities(actividades)
+  }
+
+  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
   }
 
   // Cargar actividades y objetivos al cargar la página
@@ -167,7 +189,7 @@ const DeleteActivityPage = (): JSX.Element => {
       <hr className="border-[1.5px] border-[#c6caff]" />
       <div className="flex justify-end items-center">
         <label>Eliminar</label>
-        <DeleteIcon fontSize="medium" onClick={handleDeleteClick} />
+        <DeleteIcon fontSize="medium" onClick={handleOpen} />
         <Checkbox
           sx={{
             color: 'black',
@@ -175,14 +197,16 @@ const DeleteActivityPage = (): JSX.Element => {
               color: 'black',
             },
           }}
-          checked={selectedActivities.length === activities.length} // Controlar si está marcado
+          checked={selectedActivities.length === activities.length && activities.length > 0} // Controlar si está marcado
           onChange={handleToggleAllCheckboxes}
         />
       </div>
       <hr className="border-[1.5px] border-[#c6caff]" />
 
       {searchNotFound ? (
-        <h3 className="flex justify-center font-semibold mt-2">No se encuentran actividades relacionadas con la búsqueda</h3>
+        <h3 className="flex justify-center font-semibold mt-2">No existen coincidencias</h3>
+      ) : activities.length === 0 ? (
+        <h3 className="flex justify-center font-semibold mt-2">No existen actividades disponibles</h3>
       ) : (
         activities.map((actividad, index) => (
           <ActivityRowDelete
@@ -198,6 +222,22 @@ const DeleteActivityPage = (): JSX.Element => {
           />
         ))
       )}
+
+      <ModalConfirmation
+        open={open}
+        text="¿Esta seguro de eliminar la(s) actividad(es) seleccionada(s)?"
+        handleClose={handleClose}
+        handleConfirm={handleDeleteClick}
+      />
+
+      <Snackbar
+        autoHideDuration={5000}
+        open={openSnackbar}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        <Alert severity="success">Actividad(es) eliminada(s) existosamente</Alert>
+      </Snackbar>
     </>
   )
 }
