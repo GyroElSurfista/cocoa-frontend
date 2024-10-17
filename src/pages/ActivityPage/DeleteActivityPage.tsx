@@ -21,6 +21,7 @@ const DeleteActivityPage = (): JSX.Element => {
   const [selectedActivities, setSelectedActivities] = useState<number[]>([])
   const [searchNotFound, setSearchNotFound] = useState<boolean>(false)
   const [searchTerm, setSearchTerm] = useState<string>('') // Almacenar el término de búsqueda
+  const [resetKey, setResetKey] = useState<number>(0)
 
   // Función para manejar la búsqueda
   const handleSearch = async () => {
@@ -86,6 +87,19 @@ const DeleteActivityPage = (): JSX.Element => {
     setSelectedObjective(value)
   }
 
+  const handleReset = async () => {
+    setSearchTerm('')
+    setSelectedObjective(null)
+    setSearchNotFound(false)
+    setResetKey((prevKey) => prevKey + 1)
+    const actividades = (await getActivities(1)).data.map((actividad) => ({
+      ...actividad,
+      fechaInici: new Date(actividad.fechaInici),
+      fechaFin: new Date(actividad.fechaFin),
+    }))
+    setActivities(actividades)
+  }
+
   // Cargar actividades y objetivos al cargar la página
   useEffect(() => {
     const fetchData = async () => {
@@ -117,6 +131,7 @@ const DeleteActivityPage = (): JSX.Element => {
               <input
                 className="border border-transparent focus:outline-none focus:ring-2 focus:ring-transparent placeholder-gray-500 rounded-[5px] p-2"
                 placeholder="Buscar actividad"
+                value={searchTerm}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setSearchTerm(e.target.value)
                 }}
@@ -126,15 +141,17 @@ const DeleteActivityPage = (): JSX.Element => {
 
           <label className="mx-2">Filtrar:</label>
           <Autocomplete
+            key={resetKey}
             disablePortal
             options={objectives}
             getOptionLabel={(option) => option.nombre}
+            value={selectedObjective || null}
             onChange={handleObjectiveSelect}
             renderInput={(params) => <TextField {...params} label="Objetivo" />}
             className="w-48"
             size="small"
           />
-          <ReplayIcon fontSize="small" className="mx-2 cursor-pointer" />
+          <ReplayIcon fontSize="small" className="mx-2 cursor-pointer" onClick={handleReset} />
         </div>
       </div>
 
