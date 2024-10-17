@@ -68,7 +68,9 @@ const DeleteActivityPage = (): JSX.Element => {
         }))
       }
 
-      setSearchNotFound(false)
+      if (actividades.length === 0) setSearchNotFound(true)
+      else setSearchNotFound(false)
+
       setActivities(actividades)
     } catch (error) {
       console.error('Error al buscar actividades', error)
