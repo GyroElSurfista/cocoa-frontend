@@ -28,23 +28,12 @@ const SeguimientoPage = () => {
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
 
-  const handleGenerateTracker = () => {}
-
-  // Función para generar la planilla de un objetivo específico
-  const handleClick = async (id: number) => {
-    try {
-      const response = await generateWeeklyTracking(id)
-      console.log('generar planilla', response.data)
-      // Actualiza el objetivo específico en el estado
-      setObjetivos((prev) => prev.map((obj) => (obj.id === id ? { ...obj, planillasGener: true } : obj)))
-
-      // Configura el Snackbar para éxito
-      setSnackbarMessage('Planilla generada exitosamente')
-      setSnackbarColor('#D3FFD2')
-      setOpenSnackbar(true)
-    } catch (error) {
-      console.log('error al generar las planillas', error)
-    }
+  const handleGenerateTracker = () => {
+    cargarObjetivos()
+    // Configura el Snackbar para éxito
+    setSnackbarMessage('Planilla generada exitosamente')
+    setSnackbarColor('#D3FFD2')
+    setOpenSnackbar(true)
   }
 
   const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
@@ -54,27 +43,26 @@ const SeguimientoPage = () => {
     setOpenSnackbar(false)
   }
 
-  useEffect(() => {
-    const cargarObjetivos = async () => {
-      try {
-        const response = await getObjectives()
-        console.log(response)
-        const objetivos = response.data.map((obj: any) => ({
-          id: obj.identificador,
-          nombre: obj.nombre,
-          iniDate: obj.fechaInici,
-          finDate: obj.fechaFin,
-          objective: obj.nombre,
-          valueP: obj.valorPorce,
-          planillasGener: obj.planillasGener,
-        }))
+  const cargarObjetivos = async () => {
+    try {
+      const response = await getObjectives()
+      console.log(response)
+      const objetivos = response.data.map((obj: any) => ({
+        id: obj.identificador,
+        nombre: obj.nombre,
+        iniDate: obj.fechaInici,
+        finDate: obj.fechaFin,
+        objective: obj.nombre,
+        valueP: obj.valorPorce,
+        planillasGener: obj.planillasGener,
+      }))
 
-        setObjetivos(objetivos)
-      } catch (error) {
-        console.log(error)
-      }
+      setObjetivos(objetivos)
+    } catch (error) {
+      console.log(error)
     }
-
+  }
+  useEffect(() => {
     cargarObjetivos()
   }, [])
   return (
