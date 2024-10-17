@@ -21,6 +21,7 @@ interface Objective {
   iniDate: string
   finDate: string
   objective: string
+  nombrePlani: string
   valueP: string
   activities: ActivityProps[] // Añadir las actividades aquí
 }
@@ -44,6 +45,7 @@ const ObjectivePage = () => {
       iniDate: newObjective.fechaInici,
       finDate: newObjective.fechaFin,
       objective: newObjective.nombre,
+      nombrePlani: newObjective.nombrePlani,
       valueP: newObjective.valorPorce.toString(),
       activities: [], // Set this as an empty array initially
     }
@@ -64,12 +66,13 @@ const ObjectivePage = () => {
     const cargarObjetivos = async () => {
       try {
         const response = await getObjectives()
-        console.log(response)
+        console.log('this', response)
         const objetivos = response.data.map((obj: ObjectiveData) => ({
           identificador: obj.identificador,
           iniDate: obj.fechaInici,
           finDate: obj.fechaFin,
           objective: obj.nombre,
+          nombrePlani: obj.nombrePlani,
           valueP: obj.valorPorce,
           activities: [], // Inicializa las actividades si es necesario
         }))

@@ -12,6 +12,7 @@ interface Objective {
   iniDate: string
   finDate: string
   objective: string
+  nombrePlani: string
   valueP: string
   activities: ActivityProps[] // Añadir las actividades aquí
 }
@@ -241,6 +242,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         nombre: data.objective,
         fechaInici: data.iniDate,
         fechaFin: data.finDate,
+        nombrePlani: data.nombrePlani,
         valorPorce: parseFloat(data.valueP),
       })
       console.log(createdObjective)

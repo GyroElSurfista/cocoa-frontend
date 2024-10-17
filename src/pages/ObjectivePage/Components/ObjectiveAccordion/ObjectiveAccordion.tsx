@@ -5,6 +5,7 @@ interface Objective {
   iniDate: string
   finDate: string
   objective: string
+  nombrePlani: string
   valueP: string
 }
 
@@ -29,12 +30,15 @@ const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({ objective }) =>
           <div className="w-8/12 text-start">
             <p>{objective.objective}</p>
           </div>
-          <div className="w-auto pl-3 flex justify-items-end border-l-2 border-[#c6caff]">
+          <div className="w-auto pl-3 pr-2 flex justify-items-end border-l-2 border-[#c6caff]">
             <p>
               Fechas:
               <span className="bg-red-200 rounded-xl text-sm ml-1 p-1 text-gray-600 font-normal">{formatDate(objective.iniDate)}</span> -
               <span className="bg-indigo-200 rounded-xl text-sm p-1 ml-1 text-gray-600 font-normal">{formatDate(objective.finDate)}</span>
             </p>
+          </div>
+          <div className="pl-2 border-l-2 border-[#c6caff]">
+            <p className="uppercase font-bold">{objective.nombrePlani}</p>
           </div>
         </div>
       </div>
