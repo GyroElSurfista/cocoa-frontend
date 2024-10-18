@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import { AddObservation } from '../NewObservation/Components/NewObservationModal'
+import { NewObservationModal } from '../NewObservation/Components/Add/NewObservationModal'
 import { getWeeklyTrackers } from '../../../services/planillaSeguimiento.service'
 
 interface Observacion {
@@ -65,7 +65,7 @@ const TrackingSheet = () => {
           </div>
           {openWeek === index && (
             <div className="flex justify-center">
-              <AddObservation />
+              <NewObservationModal />
             </div>
           )}
         </div>
