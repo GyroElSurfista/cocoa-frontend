@@ -1,7 +1,7 @@
-import { SelectChangeEvent } from '@mui/material/Select'
 import { DateValidationError, PickerChangeHandlerContext } from '@mui/x-date-pickers'
 import { Dayjs } from 'dayjs'
 import { ObjectiveData } from '../services/objective.service'
+import { SyntheticEvent } from 'react'
 
 export type ActivityProps = {
   identificador: number
@@ -42,7 +42,10 @@ export type DialogActivityProps = {
   onHide: () => void
   onSave: () => void
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onChangeObjective: (e: SelectChangeEvent<string>) => void
+  onChangeObjective: (
+    event: SyntheticEvent<Element, Event>,
+    value: { identificadorObjet: number | undefined; nombre: string } | null
+  ) => void
   onChangeInitialDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   onChangeFinalDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   isEditMode: boolean
@@ -58,4 +61,12 @@ export interface ActivityErrors {
   fechaFin: string
   objetivo: string
   resultados: string[]
+}
+
+export interface ActivityMessageErrors {
+  error: string
+  message: string
+  errors: {
+    nombre: [string]
+  }
 }
