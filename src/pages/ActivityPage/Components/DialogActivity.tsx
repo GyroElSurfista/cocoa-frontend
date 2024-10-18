@@ -42,17 +42,13 @@ const DialogActivity = ({
       resultados: Array(activity?.resultados?.length).fill(''),
     }
 
-    if (!activity?.nombre || activity?.nombre.length === 0) {
-      newErrors.nombre = 'El título es obligatorio'
-    } else if (activity?.nombre.length > 50) {
-      newErrors.nombre = 'El título no puede exceder 50 caracteres'
-    }
+    if (!activity?.nombre || activity?.nombre.length === 0) newErrors.nombre = 'El título es obligatorio'
+    else if (activity?.nombre.length < 5) newErrors.nombre = 'El título debe tener al menos 5 caracteres'
+    else if (activity?.nombre.length > 50) newErrors.nombre = 'El título no puede exceder 50 caracteres'
 
-    if (!activity?.descripcion || activity?.descripcion.length === 0) {
-      newErrors.descripcion = 'La descripción es obligatoria'
-    } else if (activity?.descripcion.length > 255) {
-      newErrors.descripcion = 'La descripción no puede exceder 255 caracteres'
-    }
+    if (!activity?.descripcion || activity?.descripcion.length === 0) newErrors.descripcion = 'La descripción es obligatoria'
+    else if (activity?.descripcion.length < 5) newErrors.descripcion = 'La descripción debe tener al menos 5 caracteres'
+    else if (activity?.descripcion.length > 255) newErrors.descripcion = 'La descripción no puede exceder 255 caracteres'
 
     if (!activity?.responsable || activity?.responsable.length === 0) {
       newErrors.responsable = 'El responsable es obligatorio'
@@ -80,11 +76,9 @@ const DialogActivity = ({
     }
 
     activity?.resultados?.forEach((resultado, index) => {
-      if (!resultado || resultado.length === 0) {
-        newErrors.resultados[index] = 'El resultado es obligatorio'
-      } else if (resultado.length > 255) {
-        newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
-      }
+      if (!resultado || resultado.length === 0) newErrors.resultados[index] = 'El resultado es obligatorio'
+      else if (resultado.length < 5) newErrors.resultados[index] = 'El resultado debe tener al menos 5 caracteres'
+      else if (resultado.length > 255) newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
     })
 
     setErrors(newErrors)
@@ -153,6 +147,7 @@ const DialogActivity = ({
                 }}
                 error={Boolean(errors.nombre)}
                 helperText={errors.nombre}
+                slotProps={{ htmlInput: { maxLength: 50 } }}
               />
             ) : (
               <h2 className="text-xl">{activity?.nombre}</h2>
@@ -221,6 +216,7 @@ const DialogActivity = ({
             size="small"
             error={Boolean(errors.descripcion)}
             helperText={errors.descripcion}
+            slotProps={{ htmlInput: { maxLength: 255 } }}
           />
 
           <h3 className="text-lg font-semibold mb-2">Responsable</h3>
@@ -271,6 +267,7 @@ const DialogActivity = ({
                 multiline={!isEditMode}
                 error={Boolean(errors.resultados[index])}
                 helperText={errors.resultados[index] || ''}
+                slotProps={{ htmlInput: { maxLength: 255 } }}
               />
 
               {/* {isEditMode ? (
