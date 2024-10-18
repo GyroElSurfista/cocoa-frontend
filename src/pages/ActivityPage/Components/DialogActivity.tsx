@@ -4,9 +4,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
-import { ActivityErrors, ActivityMessageErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
+import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
 import { useState } from 'react'
-import { AxiosError } from 'axios'
 
 const DialogActivity = ({
   activity,
@@ -116,6 +115,23 @@ const DialogActivity = ({
       const isTitleError = await onSave()
       if (isTitleError) setErrors({ ...errors, nombre: 'El nombre de la actividad ya existe' })
     }
+  }
+
+  const handleRemoveResult = (index: number) => {
+    const newResults = [...(activity?.resultados ?? [])]
+    newResults.splice(index, 1) // Elimina el resultado en el índice dado
+
+    onChange({
+      target: {
+        name: 'resultados',
+        value: newResults,
+      },
+    })
+
+    // Actualiza también los errores para asegurarte de que el error desaparezca cuando se elimina un resultado
+    const newErrors = { ...errors }
+    newErrors.resultados.splice(index, 1)
+    setErrors(newErrors)
   }
 
   return (
@@ -271,11 +287,11 @@ const DialogActivity = ({
                 slotProps={{ htmlInput: { maxLength: 255 } }}
               />
 
-              {/* {isEditMode ? (
-                <Button className="ml-2" color="secondary">
+              {isEditMode ? (
+                <Button onClick={() => handleRemoveResult(index)} className="ml-2" color="inherit">
                   X
                 </Button>
-              ) : null} */}
+              ) : null}
             </div>
           ))}
 

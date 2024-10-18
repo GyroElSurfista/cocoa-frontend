@@ -51,7 +51,6 @@ export type DialogActivityProps = {
   isEditMode: boolean
   responsables: string[]
   objetivos: ObjectiveData[]
-  esDuplicado: string
 }
 
 export interface ActivityErrors {

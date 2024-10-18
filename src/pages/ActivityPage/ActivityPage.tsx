@@ -169,7 +169,6 @@ const ActivityPage = (): JSX.Element => {
           isEditMode={isEditMode}
           responsables={responsables}
           objetivos={objetivos}
-          esDuplicado=""
         />
 
         <Snackbar
