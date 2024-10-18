@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import ObjectiveAccordion from './Components/ObjectiveAccordion/ObjectiveAccordion'
 import NewObjectiveModal from './Components/NewObjectiveModal/NewObjectiveModal'
-
-// Propio de ActivityPage
 import { getObjectives, ObjectiveData } from '../../services/objective.service'
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
+import { Objective } from './Models/objective'
 
 export type ActivityProps = {
   identificador: number
@@ -14,15 +13,6 @@ export type ActivityProps = {
   descripcion: string
   responsable: string | null
   resultados: string
-}
-
-interface Objective {
-  identificador: number
-  iniDate: string
-  finDate: string
-  objective: string
-  valueP: string
-  activities: ActivityProps[] // Añadir las actividades aquí
 }
 
 const ObjectivePage = () => {
@@ -44,8 +34,9 @@ const ObjectivePage = () => {
       iniDate: newObjective.fechaInici,
       finDate: newObjective.fechaFin,
       objective: newObjective.nombre,
+      nombrePlani: newObjective.nombrePlani,
       valueP: newObjective.valorPorce.toString(),
-      activities: [], // Set this as an empty array initially
+      planillasGener: newObjective.planillasGener,
     }
     setObjectives([...objectives, transformedObjective])
     setSnackbarMessage('Objetivo creado exitosamente')
@@ -64,12 +55,12 @@ const ObjectivePage = () => {
     const cargarObjetivos = async () => {
       try {
         const response = await getObjectives()
-        console.log(response)
         const objetivos = response.data.map((obj: ObjectiveData) => ({
           identificador: obj.identificador,
           iniDate: obj.fechaInici,
           finDate: obj.fechaFin,
           objective: obj.nombre,
+          nombrePlani: obj.nombrePlani,
           valueP: obj.valorPorce,
           activities: [], // Inicializa las actividades si es necesario
         }))
@@ -88,7 +79,7 @@ const ObjectivePage = () => {
       <h2 className="text-2xl font-bold">Objetivos</h2>
       <hr className="border-[1.5px] border-[#c6caff] my-3" />
       <div className="">
-        {objectives.length < 0 && <p className="font-semibold text-center">No existen objetivos registrados</p>}
+        {objectives.length === 0 && <p className="font-semibold text-center">No existen objetivos registrados</p>}
         {objectives.map((obj, index) => (
           <div key={index}>
             <ObjectiveAccordion objective={obj} indexObj={index + 1} key={index} />

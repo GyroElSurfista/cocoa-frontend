@@ -1,20 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import { ActivityProps } from '../../ObjectivePage'
 import ObjectiveStepper from '../ObjectiveStepper/ObjectiveStepper'
 import { Autocomplete, TextField } from '@mui/material'
 import { getPlannings } from '../../../../services/objective.service'
 import { createObjective } from '../../../../services/objective.service'
-
-interface Objective {
-  identificador: number
-  iniDate: string
-  finDate: string
-  objective: string
-  valueP: string
-  activities: ActivityProps[] // Añadir las actividades aquí
-}
+import { Objective } from '../../Models/objective'
 
 interface NewObjectiveModalProps {
   isOpen: boolean
@@ -118,7 +109,17 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 <input
                   type="date"
                   id="iniDate"
-                  {...register('iniDate', { required: 'La fecha de inicio es obligatoria' })} // Asocia el campo a React Hook Form
+                  {...register('iniDate', {
+                    required: 'La fecha de inicio es obligatoria',
+                    validate: {
+                      beforeEndDate: (value) => {
+                        const endDate = watch('finDate')
+                        return (
+                          !endDate || new Date(value) <= new Date(endDate) || 'La fecha de inicio no puede ser posterior a la fecha de fin'
+                        )
+                      },
+                    },
+                  })} // Asocia el campo a React Hook Form
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 />
                 {errors.iniDate && <p className="text-red-500 text-sm">{errors.iniDate.message}</p>}
@@ -131,7 +132,19 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 <input
                   type="date"
                   id="finDate"
-                  {...register('finDate', { required: 'La fecha de fin es obligatoria' })}
+                  {...register('finDate', {
+                    required: 'La fecha de fin es obligatoria',
+                    validate: {
+                      afterStartDate: (value) => {
+                        const startDate = watch('iniDate')
+                        return (
+                          !startDate ||
+                          new Date(value) >= new Date(startDate) ||
+                          'La fecha de fin no puede ser anterior a la fecha de inicio'
+                        )
+                      },
+                    },
+                  })}
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 />
                 {errors.finDate && <p className="text-red-500 text-sm">{errors.finDate.message}</p>}
@@ -145,7 +158,17 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               <input
                 type="text"
                 id="objective"
-                {...register('objective', { required: 'El objetivo es obligatorio' })}
+                {...register('objective', {
+                  required: 'El objetivo es obligatorio',
+                  minLength: {
+                    value: 5,
+                    message: 'El objetivo debe tener al menos 5 caracteres',
+                  },
+                  maxLength: {
+                    value: 50,
+                    message: 'El objetivo no puede tener más de 50 caracteres',
+                  },
+                })}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder="¿Cuál es el objetivo?"
               />
@@ -209,6 +232,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         nombre: data.objective,
         fechaInici: data.iniDate,
         fechaFin: data.finDate,
+        nombrePlani: data.nombrePlani,
         valorPorce: parseFloat(data.valueP),
       })
       console.log(createdObjective)
@@ -330,7 +354,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               Cancelar
             </button>
             <button onClick={handleNext} className="button-primary">
-              {activeStep === steps.length - 1 ? 'Crear' : 'Siguiente'}
+              {activeStep === steps.length - 1 ? 'Guardar' : 'Siguiente'}
             </button>
           </div>
         </div>

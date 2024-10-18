@@ -3,16 +3,7 @@ import { useEffect, useState } from 'react'
 import { getObjectives } from '../../services/objective.service'
 import GenerateTrackerModal from './GenerateTrackerModal/GenerateTrackerModal'
 import ObjectiveTracker from './Components/ObjectiveTracker'
-
-interface Objective {
-  id: number
-  nombre: string
-  iniDate: string
-  finDate: string
-  objective: string
-  valueP: string
-  planillasGener: boolean
-}
+import { Objective } from '../ObjectivePage/Models/objective'
 
 const SeguimientoPage = () => {
   const [objetivos, setObjetivos] = useState<Objective[]>([])
@@ -41,11 +32,9 @@ const SeguimientoPage = () => {
   const cargarObjetivos = async () => {
     try {
       const response = await getObjectives()
-      console.log(response)
       const objetivosFiltrados = response.data
         .map((obj: any) => ({
-          id: obj.identificador,
-          nombre: obj.nombre,
+          identificador: obj.identificador,
           iniDate: obj.fechaInici,
           finDate: obj.fechaFin,
           objective: obj.nombre,
@@ -72,7 +61,9 @@ const SeguimientoPage = () => {
       {objetivos.length > 0 ? (
         objetivos.map((objetivo, index) => <ObjectiveTracker key={index} objective={objetivo} />)
       ) : (
-        <p className="text-center text-gray-500 mt-4">Lista vacía</p>
+        <p className="text-center font-semibold mt-4">
+          No existen objetivos para los cuales se hayan generado planillas de seguimiento semanal.
+        </p>
       )}
 
       <hr className="border-[1.5px] border-[#c6caff] mt-4 mb-4" />

@@ -9,6 +9,7 @@ export interface ObjectiveData {
   fechaInici: string
   fechaFin: string
   valorPorce: number
+  nombrePlani: string
   actividad?: ActivityData[]
 }
 
