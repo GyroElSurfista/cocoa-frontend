@@ -1,13 +1,5 @@
+import { Objective } from '../../Models/objective'
 import './ObjectiveAccordion.css'
-
-interface Objective {
-  identificador: number
-  iniDate: string
-  finDate: string
-  objective: string
-  nombrePlani: string
-  valueP: string
-}
 
 interface ObjectiveAccordionProps {
   objective: Objective

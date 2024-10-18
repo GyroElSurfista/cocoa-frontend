@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import ObjectiveAccordion from './Components/ObjectiveAccordion/ObjectiveAccordion'
 import NewObjectiveModal from './Components/NewObjectiveModal/NewObjectiveModal'
-
-// Propio de ActivityPage
 import { getObjectives, ObjectiveData } from '../../services/objective.service'
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
+import { Objective } from './Models/objective'
 
 export type ActivityProps = {
   identificador: number
@@ -14,16 +13,6 @@ export type ActivityProps = {
   descripcion: string
   responsable: string | null
   resultados: string
-}
-
-interface Objective {
-  identificador: number
-  iniDate: string
-  finDate: string
-  objective: string
-  nombrePlani: string
-  valueP: string
-  activities: ActivityProps[] // Añadir las actividades aquí
 }
 
 const ObjectivePage = () => {
@@ -47,7 +36,7 @@ const ObjectivePage = () => {
       objective: newObjective.nombre,
       nombrePlani: newObjective.nombrePlani,
       valueP: newObjective.valorPorce.toString(),
-      activities: [], // Set this as an empty array initially
+      planillasGener: newObjective.planillasGener,
     }
     setObjectives([...objectives, transformedObjective])
     setSnackbarMessage('Objetivo creado exitosamente')
@@ -66,7 +55,6 @@ const ObjectivePage = () => {
     const cargarObjetivos = async () => {
       try {
         const response = await getObjectives()
-        console.log('this', response)
         const objetivos = response.data.map((obj: ObjectiveData) => ({
           identificador: obj.identificador,
           iniDate: obj.fechaInici,

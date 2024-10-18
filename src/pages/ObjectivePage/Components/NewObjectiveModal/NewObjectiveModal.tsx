@@ -1,21 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { SubmitHandler, useForm } from 'react-hook-form'
-import { ActivityProps } from '../../ObjectivePage'
 import ObjectiveStepper from '../ObjectiveStepper/ObjectiveStepper'
 import { Autocomplete, TextField } from '@mui/material'
 import { getPlannings } from '../../../../services/objective.service'
 import { createObjective } from '../../../../services/objective.service'
-
-interface Objective {
-  identificador: number
-  iniDate: string
-  finDate: string
-  objective: string
-  nombrePlani: string
-  valueP: string
-  activities: ActivityProps[] // Añadir las actividades aquí
-}
+import { Objective } from '../../Models/objective'
 
 interface NewObjectiveModalProps {
   isOpen: boolean

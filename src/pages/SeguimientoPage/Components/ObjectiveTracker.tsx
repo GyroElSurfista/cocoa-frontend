@@ -1,16 +1,7 @@
 import React, { useState } from 'react'
 import { formatDateToDMY } from '../../../utils/formatDate'
 import { getWeeklyTrackers } from '../../../services/planillaSeguimiento.service'
-
-interface Objective {
-  id: number
-  nombre: string
-  iniDate: string
-  finDate: string
-  objective: string
-  valueP: string
-  planillasGener: boolean
-}
+import { Objective } from '../../ObjectivePage/Models/objective'
 
 interface rowTracker {
   identificador: number
@@ -30,25 +21,26 @@ const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective }) => {
     setIsOpen(!isOpen)
     if (!isOpen) {
       try {
-        const response = await getWeeklyTrackers(objective.id + '')
+        const response = await getWeeklyTrackers(objective.identificador + '')
         setRowsTracker(response.data)
       } catch (error) {
         console.log('error in fetch weekly trackers', error)
       }
     }
   }
+
   return (
     <div className="bg-[rgb(224,227,255)] rounded px-3 mb-3">
       <div className="flex flex-row py-1 items-center border-b border-[#c6caff] w-full">
         <div className="w-auto pr-2 border-r border-[#c6caff]">
-          <p className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {objective.id}</p>
+          <p className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {objective.identificador}</p>
         </div>
-        <div className="w-8/12 pl-2">{objective.nombre} </div>
+        <div className="w-8/12 pl-2">{objective.objective} </div>
         <div className="w-[88px]"></div>
         <div className="w-auto inline-flex justify-center border-l border-[#c6caff]">
           <p className="flex items-center justify-end pl-3">
             Fechas:
-            <span className="bg-red-200 rounded-xl text-sm ml-1 p-1 text-gray-600 font-normal">{formatDateToDMY(objective.finDate)}</span> -
+            <span className="bg-red-200 rounded-xl text-sm ml-1 p-1 text-gray-600 font-normal">{formatDateToDMY(objective.iniDate)}</span> -
             <span className="bg-indigo-200 rounded-xl text-sm p-1 ml-1 text-gray-600 font-normal">
               {formatDateToDMY(objective.finDate)}
             </span>
