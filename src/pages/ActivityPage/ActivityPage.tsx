@@ -1,13 +1,13 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, SyntheticEvent } from 'react'
 import Activity from './Components/Activity'
 import DialogActivity from './Components/DialogActivity'
 import { Dayjs } from 'dayjs'
 import { ActivityProps } from '../../interfaces/activity.interface'
-import { SelectChangeEvent } from '@mui/material/Select'
 import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
 import { UserData } from '../../interfaces/user.interface'
 import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 import { createActivity, getActivities } from '../../services/activity.service'
+import { Alert, Snackbar } from '@mui/material'
 
 const ActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityProps[]>([])
@@ -16,6 +16,7 @@ const ActivityPage = (): JSX.Element => {
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
   const [responsables, setResponsables] = useState<string[]>([])
   const [objetivos, setObjetivos] = useState<ObjectiveData[]>([])
+  const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
 
   // Cargar actividades, responsables y objetivos solo una vez al montar el componente
   useEffect(() => {
@@ -62,18 +63,21 @@ const ActivityPage = (): JSX.Element => {
     setSelectedActivity((prev) => (prev ? { ...prev, [name]: value } : null))
   }, [])
 
-  const handleNewObjectiveActivityChange = useCallback((e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target
-    setSelectedActivity((prev) =>
-      prev
-        ? {
-            ...prev,
-            [name]: value,
-            identificadorObjet: Number(value),
-          }
-        : null
-    )
-  }, [])
+  const handleNewObjectiveActivityChange = useCallback(
+    (_event: SyntheticEvent<Element, Event>, value: { identificadorObjet: number | undefined; nombre: string } | null) => {
+      console.log('value', value)
+      setSelectedActivity((prev) =>
+        prev
+          ? {
+              ...prev,
+              objetivo: value?.nombre === undefined ? '' : value.nombre,
+              identificadorObjet: value?.identificadorObjet,
+            }
+          : null
+      )
+    },
+    []
+  )
 
   const handleNewInitialDateActivityChange = useCallback((value: Dayjs | null) => {
     if (value) {
@@ -87,12 +91,18 @@ const ActivityPage = (): JSX.Element => {
     }
   }, [])
 
-  const handleAddNewActivity = useCallback(() => {
-    if (selectedActivity) {
-      setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
-      createActivity({ ...selectedActivity })
-      setIsDialogOpen(false)
-      setSelectedActivity(null)
+  const handleAddNewActivity = useCallback(async () => {
+    try {
+      if (selectedActivity) {
+        await createActivity({ ...selectedActivity })
+        setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
+        setIsDialogOpen(false)
+        setSelectedActivity(null)
+        setOpenSnackbar(true)
+      }
+      return false
+    } catch (error) {
+      return true
     }
   }, [selectedActivity, activities.length])
 
@@ -111,6 +121,13 @@ const ActivityPage = (): JSX.Element => {
     })
     setIsEditMode(true)
     setIsDialogOpen(true)
+  }
+
+  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
   }
 
   return (
@@ -153,6 +170,15 @@ const ActivityPage = (): JSX.Element => {
           responsables={responsables}
           objetivos={objetivos}
         />
+
+        <Snackbar
+          autoHideDuration={5000}
+          open={openSnackbar}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <Alert severity="success">Actividad creada exitosamente</Alert>
+        </Snackbar>
       </div>
     </>
   )

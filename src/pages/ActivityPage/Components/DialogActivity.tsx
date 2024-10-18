@@ -1,4 +1,4 @@
-import { MenuItem, Button, TextField, FormControl, InputAdornment, Select } from '@mui/material'
+import { MenuItem, Button, TextField, FormControl, InputAdornment, Autocomplete } from '@mui/material'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
@@ -6,7 +6,6 @@ import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
 import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
 import { useState } from 'react'
-import { ObjectiveData } from '../../../services/objective.service'
 
 const DialogActivity = ({
   activity,
@@ -20,7 +19,7 @@ const DialogActivity = ({
   isEditMode,
   responsables,
   objetivos,
-}: DialogActivityProps) => {
+}: DialogActivityProps): JSX.Element => {
   const [errors, setErrors] = useState<ActivityErrors>({
     nombre: '',
     descripcion: '',
@@ -42,17 +41,13 @@ const DialogActivity = ({
       resultados: Array(activity?.resultados?.length).fill(''),
     }
 
-    if (!activity?.nombre || activity?.nombre.length === 0) {
-      newErrors.nombre = 'El título es obligatorio'
-    } else if (activity?.nombre.length > 50) {
-      newErrors.nombre = 'El título no puede exceder 50 caracteres'
-    }
+    if (!activity?.nombre || activity?.nombre.length === 0) newErrors.nombre = 'El título es obligatorio'
+    else if (activity?.nombre.length < 5) newErrors.nombre = 'El título debe tener al menos 5 caracteres'
+    else if (activity?.nombre.length > 50) newErrors.nombre = 'El título no puede exceder 50 caracteres'
 
-    if (!activity?.descripcion || activity?.descripcion.length === 0) {
-      newErrors.descripcion = 'La descripción es obligatoria'
-    } else if (activity?.descripcion.length > 255) {
-      newErrors.descripcion = 'La descripción no puede exceder 255 caracteres'
-    }
+    if (!activity?.descripcion || activity?.descripcion.length === 0) newErrors.descripcion = 'La descripción es obligatoria'
+    else if (activity?.descripcion.length < 5) newErrors.descripcion = 'La descripción debe tener al menos 5 caracteres'
+    else if (activity?.descripcion.length > 255) newErrors.descripcion = 'La descripción no puede exceder 255 caracteres'
 
     if (!activity?.responsable || activity?.responsable.length === 0) {
       newErrors.responsable = 'El responsable es obligatorio'
@@ -80,11 +75,9 @@ const DialogActivity = ({
     }
 
     activity?.resultados?.forEach((resultado, index) => {
-      if (!resultado || resultado.length === 0) {
-        newErrors.resultados[index] = 'El resultado es obligatorio'
-      } else if (resultado.length > 255) {
-        newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
-      }
+      if (!resultado || resultado.length === 0) newErrors.resultados[index] = 'El resultado es obligatorio'
+      else if (resultado.length < 5) newErrors.resultados[index] = 'El resultado debe tener al menos 5 caracteres'
+      else if (resultado.length > 255) newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
     })
 
     setErrors(newErrors)
@@ -117,10 +110,28 @@ const DialogActivity = ({
     })
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (validateFields()) {
-      onSave()
+      const isTitleError = await onSave()
+      if (isTitleError) setErrors({ ...errors, nombre: 'El nombre de la actividad ya existe' })
     }
+  }
+
+  const handleRemoveResult = (index: number) => {
+    const newResults = [...(activity?.resultados ?? [])]
+    newResults.splice(index, 1) // Elimina el resultado en el índice dado
+
+    onChange({
+      target: {
+        name: 'resultados',
+        value: newResults,
+      },
+    })
+
+    // Actualiza también los errores para asegurarte de que el error desaparezca cuando se elimina un resultado
+    const newErrors = { ...errors }
+    newErrors.resultados.splice(index, 1)
+    setErrors(newErrors)
   }
 
   return (
@@ -153,6 +164,7 @@ const DialogActivity = ({
                 }}
                 error={Boolean(errors.nombre)}
                 helperText={errors.nombre}
+                slotProps={{ htmlInput: { maxLength: 50 } }}
               />
             ) : (
               <h2 className="text-xl">{activity?.nombre}</h2>
@@ -193,20 +205,18 @@ const DialogActivity = ({
           {errors.fechaFin && <p className="text-red-600 text-xs mb-2 pl-3">{errors.fechaFin}</p>}
 
           <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
-          <Select
-            name="objetivo"
-            value={activity.objetivo}
-            onChange={onChangeObjective}
-            size="small"
-            className="w-48"
-            required
-            disabled={!isEditMode}
-            error={Boolean(errors.objetivo)}
-          >
-            {objetivos.map((objetivo: ObjectiveData) => {
-              return <MenuItem value={`${isEditMode ? objetivo.identificador : objetivo.nombre}`}>{objetivo.nombre}</MenuItem>
+          <Autocomplete
+            disablePortal
+            options={objetivos.map((objetivo) => {
+              return { identificadorObjet: objetivo.identificador, nombre: objetivo.nombre }
             })}
-          </Select>
+            getOptionLabel={(option) => option.nombre}
+            value={{ identificadorObjet: activity.identificadorObjet, nombre: activity.objetivo }}
+            onChange={onChangeObjective}
+            renderInput={(params) => <TextField {...params} label="Objetivo" />}
+            disabled={!isEditMode}
+            size="small"
+          />
           {errors.objetivo && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo}</p>}
 
           <h3 className="text-lg font-semibold mb-2">Descripción</h3>
@@ -223,6 +233,7 @@ const DialogActivity = ({
             size="small"
             error={Boolean(errors.descripcion)}
             helperText={errors.descripcion}
+            slotProps={{ htmlInput: { maxLength: 255 } }}
           />
 
           <h3 className="text-lg font-semibold mb-2">Responsable</h3>
@@ -273,13 +284,14 @@ const DialogActivity = ({
                 multiline={!isEditMode}
                 error={Boolean(errors.resultados[index])}
                 helperText={errors.resultados[index] || ''}
+                slotProps={{ htmlInput: { maxLength: 255 } }}
               />
 
-              {/* {isEditMode ? (
-                <Button className="ml-2" color="secondary">
+              {isEditMode ? (
+                <Button onClick={() => handleRemoveResult(index)} className="ml-2" color="inherit">
                   X
                 </Button>
-              ) : null} */}
+              ) : null}
             </div>
           ))}
 
