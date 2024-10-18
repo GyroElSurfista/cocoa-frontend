@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, SyntheticEvent } from 'react'
 import Activity from './Components/Activity'
 import DialogActivity from './Components/DialogActivity'
 import { Dayjs } from 'dayjs'
 import { ActivityProps } from '../../interfaces/activity.interface'
-import { SelectChangeEvent } from '@mui/material/Select'
 import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
 import { UserData } from '../../interfaces/user.interface'
 import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
@@ -62,18 +61,21 @@ const ActivityPage = (): JSX.Element => {
     setSelectedActivity((prev) => (prev ? { ...prev, [name]: value } : null))
   }, [])
 
-  const handleNewObjectiveActivityChange = useCallback((e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target
-    setSelectedActivity((prev) =>
-      prev
-        ? {
-            ...prev,
-            [name]: value,
-            identificadorObjet: Number(value),
-          }
-        : null
-    )
-  }, [])
+  const handleNewObjectiveActivityChange = useCallback(
+    (_event: SyntheticEvent<Element, Event>, value: { identificadorObjet: number | undefined; nombre: string } | null) => {
+      console.log('value', value)
+      setSelectedActivity((prev) =>
+        prev
+          ? {
+              ...prev,
+              objetivo: value.nombre,
+              identificadorObjet: value.identificadorObjet,
+            }
+          : null
+      )
+    },
+    []
+  )
 
   const handleNewInitialDateActivityChange = useCallback((value: Dayjs | null) => {
     if (value) {

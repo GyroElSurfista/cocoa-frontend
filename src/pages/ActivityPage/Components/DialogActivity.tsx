@@ -1,4 +1,4 @@
-import { MenuItem, Button, TextField, FormControl, InputAdornment, Select } from '@mui/material'
+import { MenuItem, Button, TextField, FormControl, InputAdornment, Select, Autocomplete } from '@mui/material'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
@@ -20,7 +20,7 @@ const DialogActivity = ({
   isEditMode,
   responsables,
   objetivos,
-}: DialogActivityProps) => {
+}: DialogActivityProps): JSX.Element => {
   const [errors, setErrors] = useState<ActivityErrors>({
     nombre: '',
     descripcion: '',
@@ -193,20 +193,18 @@ const DialogActivity = ({
           {errors.fechaFin && <p className="text-red-600 text-xs mb-2 pl-3">{errors.fechaFin}</p>}
 
           <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
-          <Select
-            name="objetivo"
-            value={activity.objetivo}
-            onChange={onChangeObjective}
-            size="small"
-            className="w-48"
-            required
-            disabled={!isEditMode}
-            error={Boolean(errors.objetivo)}
-          >
-            {objetivos.map((objetivo: ObjectiveData) => {
-              return <MenuItem value={`${isEditMode ? objetivo.identificador : objetivo.nombre}`}>{objetivo.nombre}</MenuItem>
+          <Autocomplete
+            disablePortal
+            options={objetivos.map((objetivo) => {
+              return { identificadorObjet: objetivo.identificador, nombre: objetivo.nombre }
             })}
-          </Select>
+            getOptionLabel={(option) => option.nombre}
+            value={{ identificadorObjet: activity.identificadorObjet, nombre: activity.objetivo }}
+            onChange={onChangeObjective}
+            renderInput={(params) => <TextField {...params} label="Objetivo" />}
+            disabled={!isEditMode}
+            size="small"
+          />
           {errors.objetivo && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo}</p>}
 
           <h3 className="text-lg font-semibold mb-2">Descripción</h3>
