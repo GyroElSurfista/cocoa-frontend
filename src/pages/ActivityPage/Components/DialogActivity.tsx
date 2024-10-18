@@ -6,7 +6,6 @@ import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
 import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
 import { useState } from 'react'
-import { ObjectiveData } from '../../../services/objective.service'
 
 const DialogActivity = ({
   activity,

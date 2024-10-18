@@ -7,6 +7,7 @@ import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
 import { UserData } from '../../interfaces/user.interface'
 import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 import { createActivity, getActivities } from '../../services/activity.service'
+import { Alert, Snackbar } from '@mui/material'
 
 const ActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityProps[]>([])
@@ -15,6 +16,7 @@ const ActivityPage = (): JSX.Element => {
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
   const [responsables, setResponsables] = useState<string[]>([])
   const [objetivos, setObjetivos] = useState<ObjectiveData[]>([])
+  const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
 
   // Cargar actividades, responsables y objetivos solo una vez al montar el componente
   useEffect(() => {
@@ -68,8 +70,8 @@ const ActivityPage = (): JSX.Element => {
         prev
           ? {
               ...prev,
-              objetivo: value.nombre,
-              identificadorObjet: value.identificadorObjet,
+              objetivo: value?.nombre === undefined ? '' : value.nombre,
+              identificadorObjet: value?.identificadorObjet,
             }
           : null
       )
@@ -95,6 +97,7 @@ const ActivityPage = (): JSX.Element => {
       createActivity({ ...selectedActivity })
       setIsDialogOpen(false)
       setSelectedActivity(null)
+      setOpenSnackbar(true)
     }
   }, [selectedActivity, activities.length])
 
@@ -113,6 +116,13 @@ const ActivityPage = (): JSX.Element => {
     })
     setIsEditMode(true)
     setIsDialogOpen(true)
+  }
+
+  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
   }
 
   return (
@@ -155,6 +165,15 @@ const ActivityPage = (): JSX.Element => {
           responsables={responsables}
           objetivos={objetivos}
         />
+
+        <Snackbar
+          autoHideDuration={5000}
+          open={openSnackbar}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <Alert severity="success">Actividad creada exitosamente</Alert>
+        </Snackbar>
       </div>
     </>
   )
