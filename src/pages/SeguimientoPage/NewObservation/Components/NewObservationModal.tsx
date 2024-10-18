@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Observation } from './Observation.tsx'
+import { Observation } from './ObservationAccordion.tsx'
 
 interface Activity {
   id: number

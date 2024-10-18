@@ -4,7 +4,7 @@ import OutlinedInput from '@mui/material/OutlinedInput'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
-import Trash from '../../../assets/trash.svg'
+import Trash from '../../../../assets/trash.svg'
 
 interface Activity {
   id: number
