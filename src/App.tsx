@@ -7,6 +7,8 @@ import EntregablePage from './pages/EntregablePage/EntregablePage'
 import TrackingSheet from './pages/SeguimientoPage/TrackingSheet/TrackingSheet'
 import ActivityPage from './pages/ActivityPage/ActivityPage'
 import PlanillasPage from './pages/PlanillasPage/PlanillasPage'
+import AuxiliaraSelector from './pages/SeguimientoPage/NewObservation/Components/Selector/auxiliaraSelector'
+import DeleteActivityPage from './pages/ActivityPage/DeleteActivityPage'
 
 function App() {
   return (
@@ -14,6 +16,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route path="objetivos" element={<ObjectivePage />} />
+          <Route path="observaciones" element={<AuxiliaraSelector />} />
           <Route path="entregables" element={<EntregablePage />} />
           <Route path="planillas" element={<PlanillasPage />} />
           <Route path="seguimiento" element={<SeguimientoPage />}>

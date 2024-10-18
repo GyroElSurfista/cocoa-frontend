@@ -4,7 +4,7 @@ import OutlinedInput from '@mui/material/OutlinedInput'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
-import Trash from '../../../assets/trash.svg'
+import Trash from '../../../../assets/trash.svg'
 
 interface Activity {
   id: number
@@ -104,7 +104,7 @@ const MultipleSelectPlaceholder: React.FC<{
   )
 }
 
-export const Observation: React.FC<ObservationProps> = ({
+export const ObservationAccordion: React.FC<ObservationProps> = ({
   observation,
   activities,
   selectedActivities,
@@ -232,6 +232,7 @@ export const Observation: React.FC<ObservationProps> = ({
             setSelectedActivity={setSelectedActivity}
             activities={availableActivities}
           />
+
           <img className="mx-4 cursor-pointer" src={Trash} alt="Trash icon" onClick={handleDelete} />
         </div>
       </div>
