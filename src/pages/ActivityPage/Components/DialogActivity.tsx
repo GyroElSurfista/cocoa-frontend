@@ -1,11 +1,12 @@
-import { MenuItem, Button, TextField, FormControl, InputAdornment, Select, Autocomplete } from '@mui/material'
+import { MenuItem, Button, TextField, FormControl, InputAdornment, Autocomplete } from '@mui/material'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
-import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
+import { ActivityErrors, ActivityMessageErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
 import { useState } from 'react'
+import { AxiosError } from 'axios'
 
 const DialogActivity = ({
   activity,
@@ -110,9 +111,10 @@ const DialogActivity = ({
     })
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (validateFields()) {
-      onSave()
+      const isTitleError = await onSave()
+      if (isTitleError) setErrors({ ...errors, nombre: 'El nombre de la actividad ya existe' })
     }
   }
 

@@ -51,6 +51,7 @@ export type DialogActivityProps = {
   isEditMode: boolean
   responsables: string[]
   objetivos: ObjectiveData[]
+  esDuplicado: string
 }
 
 export interface ActivityErrors {
@@ -61,4 +62,12 @@ export interface ActivityErrors {
   fechaFin: string
   objetivo: string
   resultados: string[]
+}
+
+export interface ActivityMessageErrors {
+  error: string
+  message: string
+  errors: {
+    nombre: [string]
+  }
 }

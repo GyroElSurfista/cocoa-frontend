@@ -91,13 +91,18 @@ const ActivityPage = (): JSX.Element => {
     }
   }, [])
 
-  const handleAddNewActivity = useCallback(() => {
-    if (selectedActivity) {
-      setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
-      createActivity({ ...selectedActivity })
-      setIsDialogOpen(false)
-      setSelectedActivity(null)
-      setOpenSnackbar(true)
+  const handleAddNewActivity = useCallback(async () => {
+    try {
+      if (selectedActivity) {
+        await createActivity({ ...selectedActivity })
+        setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
+        setIsDialogOpen(false)
+        setSelectedActivity(null)
+        setOpenSnackbar(true)
+      }
+      return false
+    } catch (error) {
+      return true
     }
   }, [selectedActivity, activities.length])
 
@@ -164,6 +169,7 @@ const ActivityPage = (): JSX.Element => {
           isEditMode={isEditMode}
           responsables={responsables}
           objetivos={objetivos}
+          esDuplicado=""
         />
 
         <Snackbar
