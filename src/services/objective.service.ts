@@ -1,5 +1,5 @@
 import { AxiosPromise } from 'axios'
-import { ActivityData } from '../interfaces/activity.interface'
+import { ActivityData, ActivityProps } from '../interfaces/activity.interface'
 import { axiosInstance } from '../api/axios'
 
 export interface ObjectiveData {
@@ -9,6 +9,7 @@ export interface ObjectiveData {
   fechaInici: string
   fechaFin: string
   valorPorce: number
+  nombrePlani: string
   actividad?: ActivityData[]
 }
 
@@ -32,4 +33,8 @@ export const getPlannings = async () => {
 
 export const getObjectivesFromPlanification = async (): AxiosPromise<ObjectiveData[]> => {
   return await axiosInstance.get('/planificaciones/1/objetivos')
+}
+
+export const getActivitiesByObjective = async (idObjetivo: number): AxiosPromise<ActivityProps[]> => {
+  return await axiosInstance.get(`/objetivos/${idObjetivo}/actividades`)
 }

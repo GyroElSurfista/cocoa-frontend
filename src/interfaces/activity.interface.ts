@@ -16,6 +16,15 @@ export type ActivityProps = {
   objetivo: string
 }
 
+export type ActivityRowProps = {
+  identificador: number
+  index: number
+  nombre: string
+  fechaInici: Date
+  fechaFin: Date
+  responsable: string | null
+}
+
 export interface ActivityData {
   identificador?: number
   nombre: string

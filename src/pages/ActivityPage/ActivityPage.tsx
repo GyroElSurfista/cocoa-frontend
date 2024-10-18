@@ -9,7 +9,7 @@ import { UserData } from '../../interfaces/user.interface'
 import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 import { createActivity, getActivities } from '../../services/activity.service'
 
-const ActivityPage = () => {
+const ActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityProps[]>([])
   const [selectedActivity, setSelectedActivity] = useState<ActivityProps | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
@@ -22,7 +22,7 @@ const ActivityPage = () => {
     const loadData = async () => {
       try {
         // Obtener actividades y convertir fechas a Date
-        const actividades = (await getActivities(1)).data.map((actividad: ActivityProps) => ({
+        const actividades = (await getActivities(1)).data.map((actividad) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),

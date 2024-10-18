@@ -12,7 +12,7 @@ interface Entregable {
   identificadorObjet: number
 }
 
-const EntregableAccordion: React.FC<EntregableAccordionProps> = ({ entregable, indexEntregable }) => {
+const EntregableAccordion: React.FC<EntregableAccordionProps> = ({ entregable }) => {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleAccordion = () => {
@@ -24,9 +24,10 @@ const EntregableAccordion: React.FC<EntregableAccordionProps> = ({ entregable, i
       <div className="hover:bg-[#c6caff] w-full border rounded border-[#c6caff] p-4" onClick={toggleAccordion}>
         <div className="flex flex-row w-full justify-start items-center">
           <div className="w-auto border-r-2 pr-2 border-[#c6caff]">
-            <span className="text-center text-[#1c1c1c] text-lg font-semibold">Entregable {indexEntregable}</span>
+            {/* Mostrar el número del objetivo en lugar del entregable */}
+            <span className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {entregable.identificadorObjet}</span>
           </div>
-          <span className="ml-1 text-gray-600 font-normal">{entregable.nombre}</span>
+          <span className="ml-1 text-gray-600 font-normal w-auto border-r-2 pr-2 border-[#c6caff]">{entregable.nombre}</span>
         </div>
       </div>
     </div>

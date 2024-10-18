@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Observation } from './Observation.tsx'
 
 interface Activity {
   id: number
@@ -16,7 +15,7 @@ interface ObservationData {
   selectedActivities: Activity[] // Nuevo campo para almacenar las actividades seleccionadas
 }
 
-export const AddObservation: React.FC = () => {
+export const NewObservationModal: React.FC = () => {
   const [observations, setObservations] = useState<ObservationData[]>([])
   const [isAddingObservation, setIsAddingObservation] = useState(false) // To control the add form visibility
   const [newObservationData, setNewObservationData] = useState<ObservationData | null>(null)
@@ -101,21 +100,21 @@ export const AddObservation: React.FC = () => {
       <div className="rounded-lg mx-auto">
         <div className="flex flex-wrap justify-center gap-4">
           {/* Existing observations */}
-          {observations.map((observationData) => (
-            <Observation
-              key={observationData.identificador}
-              observationId={observationData.identificador} // Pasamos el identificador
-              observation={observationData.descripcion}
-              activities={observationData.activities}
-              selectedActivities={observationData.selectedActivities} // Pasa las actividades seleccionadas
-              onSave={handleSaveObservation}
-              onDelete={() => handleDeleteObservation(observationData.identificador)} // Pasamos el identificador a la función de eliminación
-            />
-          ))}
+          {/* {observations.map((observationData) => (
+            // <EditObservationAccordion
+            //   key={observationData.identificador}
+            //   observationId={observationData.identificador} // Pasamos el identificador
+            //   observation={observationData.descripcion}
+            //   activities={observationData.activities}
+            //   selectedActivities={observationData.selectedActivities} // Pasa las actividades seleccionadas
+            //   onSave={handleSaveObservation}
+            //   onDelete={() => handleDeleteObservation(observationData.identificador)} // Pasamos el identificador a la función de eliminación
+            // />
+          ))} */}
 
           {/* Render new observation form if the user clicked "+ Nueva Observación" */}
-          {isAddingObservation && newObservationData && (
-            <Observation
+          {/* {isAddingObservation && newObservationData && (
+            <EditObservationAccordion
               observationId={newObservationData.identificador} // Pasamos el identificador de la nueva observación
               observation={newObservationData.descripcion}
               activities={newObservationData.activities}
@@ -123,7 +122,7 @@ export const AddObservation: React.FC = () => {
               onSave={handleSaveObservation}
               onDelete={() => handleDeleteObservation(newObservationData.identificador)} // Pasamos el identificador a la función de eliminación
             />
-          )}
+          )} */}
         </div>
 
         {/* Button for adding a new observation */}
