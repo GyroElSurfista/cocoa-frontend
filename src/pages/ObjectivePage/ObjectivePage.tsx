@@ -79,7 +79,7 @@ const ObjectivePage = () => {
       <h2 className="text-2xl font-bold">Objetivos</h2>
       <hr className="border-[1.5px] border-[#c6caff] my-3" />
       <div className="">
-        {objectives.length === 0 && <p className="font-semibold text-center">No existen objetivos registrados</p>}
+        {objectives.length === 0 && <p className="font-semibold text-center">No existen ningún objetivo</p>}
         {objectives.map((obj, index) => (
           <div key={index}>
             <ObjectiveAccordion objective={obj} indexObj={index + 1} key={index} />
