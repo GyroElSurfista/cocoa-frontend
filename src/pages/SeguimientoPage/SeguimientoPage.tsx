@@ -17,7 +17,7 @@ const SeguimientoPage = () => {
 
   const handleGenerateTracker = () => {
     cargarObjetivos()
-    setSnackbarMessage('Planilla generada exitosamente')
+    setSnackbarMessage('Planilla de seguimiento semanal generada exitosamente')
     setSnackbarColor('#D3FFD2')
     setOpenSnackbar(true)
   }
@@ -61,9 +61,7 @@ const SeguimientoPage = () => {
       {objetivos.length > 0 ? (
         objetivos.map((objetivo, index) => <ObjectiveTracker key={index} objective={objetivo} />)
       ) : (
-        <p className="text-center font-semibold mt-4">
-          No existen objetivos para los cuales se hayan generado planillas de seguimiento semanal.
-        </p>
+        <p className="text-center font-semibold mt-4">No existen objetivos disponibles.</p>
       )}
 
       <hr className="border-[1.5px] border-[#c6caff] mt-4 mb-4" />
