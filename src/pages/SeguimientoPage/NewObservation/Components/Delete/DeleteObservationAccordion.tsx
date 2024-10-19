@@ -1,4 +1,3 @@
-// DeleteObservationAccordion.tsx
 import { useState, useEffect } from 'react'
 import Checkbox from '@mui/material/Checkbox'
 
@@ -7,12 +6,14 @@ interface Observation {
   descripcion: string
   identificadorPlaniSegui: number
   identificadorActiv: number
+  identificadorObjet: number
 }
 
 interface DeleteObservationAccordionProps {
   selectedObjective: number | null
   selectedPlanilla: number | null
   onSelectObservation: (id: number) => void
+  selectedObservations: number[] // <-- Nuevo prop
   setAllObservations: (ids: number[]) => void
 }
 
@@ -20,55 +21,79 @@ export const DeleteObservationAccordion = ({
   selectedObjective,
   selectedPlanilla,
   onSelectObservation,
+  selectedObservations, // <-- Usamos este estado
   setAllObservations,
 }: DeleteObservationAccordionProps) => {
   const [observations, setObservations] = useState<Observation[]>([])
-  const [loading, setLoading] = useState<boolean>(false) // Estado de carga
+  const [filteredObservations, setFilteredObservations] = useState<Observation[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (selectedObjective && selectedPlanilla) {
-      const fetchObservations = async () => {
-        setLoading(true) // Iniciar carga
-        setError(null) // Limpiar errores
+    const fetchAllObservations = async () => {
+      setLoading(true)
+      setError(null)
 
-        try {
-          const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${selectedObjective}/planillas-seguimiento`)
+      try {
+        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
+        if (!response.ok) throw new Error('Error al obtener los objetivos')
 
-          if (!response.ok) {
-            throw new Error('Error al obtener las observaciones')
-          }
+        const objectives = await response.json()
+
+        const allObservationsPromises = objectives.map(async (objective: any) => {
+          const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${objective.identificador}/planillas-seguimiento`)
+          if (!response.ok) throw new Error('Error al obtener observaciones para un objetivo')
 
           const data = await response.json()
+          return data.flatMap((plani: any) =>
+            plani.observacion.map((obs: Observation) => ({
+              ...obs,
+              identificadorObjet: objective.identificador,
+            }))
+          )
+        })
 
-          if (data.length === 0) {
-            setError('No se encuentran observaciones relacionadas con la búsqueda')
-          } else {
-            setObservations(data)
-            setAllObservations(data.map((obs: Observation) => obs.identificador))
-          }
-        } catch (error) {
-          setError('Error al cargar las observaciones')
-        } finally {
-          setLoading(false) // Terminar carga
-        }
+        const observationsArrays = await Promise.all(allObservationsPromises)
+        const combinedObservations = observationsArrays.flat()
+
+        setObservations(combinedObservations)
+        setFilteredObservations(combinedObservations)
+        setAllObservations(combinedObservations.map((obs) => obs.identificador))
+      } catch (error) {
+        setError('Error al cargar los datos')
+      } finally {
+        setLoading(false)
       }
-
-      fetchObservations()
     }
-  }, [selectedObjective, selectedPlanilla, setAllObservations])
+
+    fetchAllObservations()
+  }, [setAllObservations])
+
+  useEffect(() => {
+    let filtered = observations
+
+    if (selectedObjective) {
+      filtered = filtered.filter((obs) => obs.identificadorObjet === selectedObjective)
+    }
+
+    if (selectedPlanilla) {
+      filtered = filtered.filter((obs) => obs.identificadorPlaniSegui === selectedPlanilla)
+    }
+
+    setFilteredObservations(filtered)
+  }, [selectedObjective, selectedPlanilla, observations])
 
   return (
-    <div className="bg-white rounded-lg shadow-md w-full">
+    <div className="flex items-center gap-[20px] self-stretch rounded-[8px] border-[2px] border-[#FFC3CC] bg-white shadow-md w-full">
       {loading ? (
         <p className="text-gray-500 text-center py-4">Cargando observaciones...</p>
       ) : error ? (
         <p className="text-red-500 text-center py-4">{error}</p>
-      ) : observations.length > 0 ? (
-        observations.map((obs) => (
-          <div key={obs.identificador} className="flex items-center border rounded-lg w-full p-2 mb-2">
+      ) : filteredObservations.length > 0 ? (
+        filteredObservations.map((obs) => (
+          <div key={obs.identificador} className="flex items-center border rounded-lg w-full">
             <textarea
-              className="text-left mx-2 w-full resize-none border-none rounded-lg focus:outline-none bg-gray-100"
+              className="text-left mx-2 w-full resize-none border-none rounded-lg focus:outline-none"
               value={obs.descripcion}
               readOnly
             />
@@ -76,9 +101,13 @@ export const DeleteObservationAccordion = ({
               type="text"
               value={`Actividad ${obs.identificadorActiv}`}
               readOnly
-              className="flex p-1 justify-end items-center gap-2 flex-[1_0_0] rounded-lg bg-gray-100"
+              className="flex justify-end items-center p-[3px] gap-[10px] flex-[1_0_0] rounded-[8px] bg-[#FFC3CC] text-center w-28"
             />
-            <Checkbox onChange={() => onSelectObservation(obs.identificador)} />
+
+            <Checkbox
+              checked={selectedObservations.includes(obs.identificador)} // <-- Sincronizar con el estado global
+              onChange={() => onSelectObservation(obs.identificador)}
+            />
           </div>
         ))
       ) : (
