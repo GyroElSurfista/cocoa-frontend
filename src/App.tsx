@@ -9,6 +9,7 @@ import ActivityPage from './pages/ActivityPage/ActivityPage'
 import PlanillasPage from './pages/PlanillasPage/PlanillasPage'
 import AuxiliaraSelector from './pages/SeguimientoPage/NewObservation/Components/Selector/auxiliaraSelector'
 import DeleteActivityPage from './pages/ActivityPage/DeleteActivityPage'
+import DeleteObservationPage from './pages/SeguimientoPage/NewObservation/Components/Delete/DeleteObservationPage'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route path="objetivos" element={<ObjectivePage />} />
           <Route path="observaciones" element={<AuxiliaraSelector />} />
+          <Route path="eliminarObservaciones" element={<DeleteObservationPage />} />
           <Route path="entregables" element={<EntregablePage />} />
           <Route path="planillas" element={<PlanillasPage />} />
           <Route path="seguimiento" element={<SeguimientoPage />}>
