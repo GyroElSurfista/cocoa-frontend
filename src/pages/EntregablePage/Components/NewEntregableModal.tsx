@@ -44,6 +44,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
   const [selectedObjetivo, setSelectedObjetivo] = useState<number | null>(null)
   const [apiError, setApiError] = useState<string | null>(null)
   const [objetivoValidado, setObjetivoValidado] = useState<boolean>(false)
+  const [entregableErrors, setEntregableErrors] = useState<string[]>([])
 
   useEffect(() => {
     if (isOpen) fetchObjetivos()
@@ -66,6 +67,10 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const value = e.target.value
     setEntregables((prev) => prev.map((entregable, idx) => (idx === index ? { nombre: value } : entregable)))
+
+    // Validación de tamaño de caracteres y gestión de errores
+    const error = value.length < 5 || value.length > 50 ? 'El nombre debe tener entre 5 y 50 caracteres.' : ''
+    setEntregableErrors((prevErrors) => prevErrors.map((errorMsg, idx) => (idx === index ? error : errorMsg)))
   }, [])
 
   const handleObjetivoInputChange = useCallback(
@@ -127,11 +132,35 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setApiError(null)
     setObjetivoValidado(false)
     setSelectedObjetivo(null)
+    setEntregableErrors([])
+  }
+
+  const validateEntregables = () => {
+    let isValid = true
+    const newErrors = entregables.map((entregable) => {
+      if (entregable.nombre.length < 5) {
+        isValid = false
+        return 'El nombre del entregable debe tener al menos 5 caracteres.'
+      }
+      if (entregable.nombre.length > 50) {
+        isValid = false
+        return 'El nombre del entregable no puede exceder los 50 caracteres.'
+      }
+      return ''
+    })
+    setEntregableErrors(newErrors)
+    return isValid
   }
 
   const onSubmit: SubmitHandler<FormData> = async () => {
     // Validar si el objetivo ingresado es correcto solo al intentar guardar
     if (!validateObjetivo()) return
+
+    // Validar los entregables antes de enviar
+    if (!validateEntregables()) {
+      setApiError('')
+      return
+    }
 
     const validEntregables = entregables.filter((e) => e.nombre.trim())
 
@@ -245,7 +274,9 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                   onChange={(ev) => handleInputChange(ev, idx)}
                   placeholder="¿Cual es el entregable?"
                   className="border text-gray-900 rounded-lg block w-full p-2.5"
+                  maxLength={55}
                 />
+                {entregableErrors[idx] && <p className="text-red-500 text-sm">{entregableErrors[idx]}</p>}
               </div>
             ))}
           </div>

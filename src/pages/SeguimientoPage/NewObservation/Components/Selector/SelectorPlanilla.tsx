@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import ObservationPage from '../../ObservationPage'
-
-interface Objective {
-  identificador: number
-  nombre: string
-}
+import { getObjectives } from '../../../../../services/objective.service'
+import ObjectiveTracker from '../../../Components/ObjectiveTracker'
+import { Objective } from '../../../../ObjectivePage/Models/objective'
 
 interface Planilla {
   identificador: number
@@ -16,13 +14,37 @@ interface Planilla {
   }[]
 }
 
-const AuxiliaraSelector = () => {
+const SelectorPlanilla = () => {
+  const [objetivos, setObjetivos] = useState<Objective[]>([])
   const [objectives, setObjectives] = useState<Objective[]>([])
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(null)
   const [planillas, setPlanillas] = useState<Planilla[]>([])
   const [selectedPlanilla, setSelectedPlanilla] = useState<Planilla | null>(null)
   const [viewingObservationPage, setViewingObservationPage] = useState<boolean>(false)
 
+  const cargarObjetivos = async () => {
+    try {
+      const response = await getObjectives()
+      const objetivosFiltrados = response.data
+        .map((obj: any) => ({
+          identificador: obj.identificador,
+          iniDate: obj.fechaInici,
+          finDate: obj.fechaFin,
+          objective: obj.nombre,
+          valueP: obj.valorPorce,
+          planillasGener: obj.planillasGener,
+        }))
+        .filter((objetivo: Objective) => objetivo.planillasGener)
+
+      setObjetivos(objetivosFiltrados)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    cargarObjetivos()
+  }, [])
   useEffect(() => {
     const fetchObjectives = async () => {
       try {
@@ -82,28 +104,14 @@ const AuxiliaraSelector = () => {
   return (
     <div>
       <h2>Objetivos</h2>
-      {objectives.length === 0 ? (
-        <p>Navega para encontrar las planillas</p>
+
+      {objetivos.length > 0 ? (
+        objetivos.map((objetivo, index) => <ObjectiveTracker key={index} objective={objetivo} />)
       ) : (
-        <ul>
-          {objectives.map((objective) => (
-            <li key={objective.identificador} onClick={() => handleObjectiveClick(objective.identificador)}>
-              Objetivo {objective.identificador}: {objective.nombre}
-              {selectedObjectiveId === objective.identificador && planillas.length > 0 && (
-                <ul>
-                  {planillas.map((planilla) => (
-                    <li key={planilla.identificador} onClick={() => handlePlanillaClick(planilla)}>
-                      Planilla #{planilla.identificador} (Fecha: {new Date(planilla.fecha).toLocaleDateString()})
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
+        <p className="text-center font-semibold mt-4">No existen objetivos disponibles.</p>
       )}
     </div>
   )
 }
 
-export default AuxiliaraSelector
+export default SelectorPlanilla
