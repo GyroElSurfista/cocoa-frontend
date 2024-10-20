@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Snackbar, SnackbarContent, SnackbarCloseReason } from '@mui/material'
 import { useLocation, NavLink } from 'react-router-dom'
 import NewEntregableModal from './Components/NewEntregableModal'
 import EntregableAccordion from './Components/EntregableAccordion'
@@ -27,6 +28,11 @@ const EntregablePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [entregables, setEntregables] = useState<Entregable[]>([])
   const [availableObjetivos, setAvailableObjetivos] = useState<Objetivo[]>([])
+
+  // Estados para controlar el Snackbar
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarColor, setSnackbarColor] = useState('')
 
   // Fetch entregables
   useEffect(() => {
@@ -59,8 +65,22 @@ const EntregablePage = () => {
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
 
+  // Maneja el cierre del Snackbar
+  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+    setOpenSnackbar(false)
+  }
+
+  // Maneja la creación del entregable
   const handleCreateEntregable = (newEntregables: Entregable[]) => {
     setEntregables([...entregables, ...newEntregables])
+
+    // Configurar el mensaje del Snackbar
+    setSnackbarMessage('Entregable(s) agregado(s) correctamente')
+    setSnackbarColor('#D3FFD2') // Color verde
+    setOpenSnackbar(true) // Mostrar el Snackbar
   }
 
   return (
@@ -99,6 +119,29 @@ const EntregablePage = () => {
       </div>
 
       <NewEntregableModal isOpen={isModalOpen} onClose={closeModal} onCreate={handleCreateEntregable} />
+
+      {/* Snackbar para mostrar mensajes */}
+      <Snackbar
+        open={openSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+      >
+        <SnackbarContent
+          style={{
+            display: 'flex',
+            width: '325px',
+            padding: '15px 20px',
+            justifyContent: 'start',
+            alignItems: 'center',
+            gap: '10px',
+            borderRadius: '10px',
+            background: snackbarColor,
+            color: snackbarColor === '#D3FFD2' ? '#00A407' : '#A40000',
+          }}
+          message={snackbarMessage}
+        />
+      </Snackbar>
     </div>
   )
 }
