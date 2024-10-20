@@ -299,7 +299,7 @@ const DialogActivity = ({
             <>
               <div className="flex justify-center">
                 <button onClick={handleAddResult} className="button-primary mt-2 mb-6">
-                  + Resultado
+                  +
                 </button>
               </div>
 
