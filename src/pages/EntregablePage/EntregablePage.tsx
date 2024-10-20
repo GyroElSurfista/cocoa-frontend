@@ -87,7 +87,7 @@ const EntregablePage = () => {
               <EntregableAccordion key={entregable.identificador} entregable={entregable} indexEntregable={index + 1} />
             ))
         ) : (
-          <p className="text-sm text-center text-gray-500">No existen entregables registrados</p>
+          <p className="text-sm text-center text-gray-500">No existen entregables disponibles</p>
         )}
       </div>
 
