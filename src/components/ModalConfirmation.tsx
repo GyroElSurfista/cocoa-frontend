@@ -35,7 +35,7 @@ const ModalConfirmation = ({ open, text, handleConfirm, handleClose }: ModalConf
             Cancelar
           </button>
           <button onClick={handleConfirm} className="button-primary">
-            Eliminar
+            Aceptar
           </button>
         </div>
       </Box>
