@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
+import Checkbox from '@mui/material/Checkbox'
+import Snackbar from '@mui/material/Snackbar'
+import SnackbarContent from '@mui/material/SnackbarContent'
+import { DeleteObservationAccordion } from './DeleteObservationAccordion'
 import IconTrash from '../../../../../assets/trash.svg'
 import IconRefresh from '../../../../../assets/ico-refresh.svg'
 import IconDanger from '../../../../../assets/ico-danger.svg'
-import Checkbox from '@mui/material/Checkbox'
-import { DeleteObservationAccordion } from './DeleteObservationAccordion'
-import Snackbar from '@mui/material/Snackbar'
-import SnackbarContent from '@mui/material/SnackbarContent'
 
 interface Objective {
   identificador: number
@@ -27,7 +27,7 @@ const DeleteObservationPage = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [allObservations, setAllObservations] = useState<number[]>([])
-  const [reloadKey, setReloadKey] = useState<number>(0) // <-- Cambiamos a un contador
+  const [reloadKey, setReloadKey] = useState<number>(0)
 
   useEffect(() => {
     const fetchObjectives = async () => {
@@ -60,7 +60,9 @@ const DeleteObservationPage = () => {
   }, [selectedObjective])
 
   const handleRefresh = useCallback(() => {
-    setReloadKey((prevKey) => prevKey + 1) // <-- Incrementamos el contador
+    setSelectedObjective(null) // Restablecemos el valor de selectedObjective
+    setSelectedPlanilla(null) // Restablecemos el valor de selectedPlanilla
+    setReloadKey((prevKey) => prevKey + 1) // Refrescamos las observaciones
   }, [])
 
   const handleSelectObservation = (observationId: number) => {
@@ -85,6 +87,10 @@ const DeleteObservationPage = () => {
       setShowModal(false)
       setSnackbarOpen(true)
       setSelectedObservations([])
+
+      // Actualizamos el estado eliminando las observaciones localmente
+      setAllObservations((prev) => prev.filter((id) => !selectedObservations.includes(id)))
+      setReloadKey((prevKey) => prevKey + 1) // Refrescar el componente
     } catch (error) {
       setError('Error al eliminar observaciones')
     }
@@ -100,6 +106,7 @@ const DeleteObservationPage = () => {
             <select
               id="objetivo"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md block w-48 p-1"
+              value={selectedObjective || ''} // Establecer el valor del selector
               onChange={(e) => setSelectedObjective(Number(e.target.value))}
             >
               <option value="">Selecciona un objetivo</option>
@@ -116,6 +123,7 @@ const DeleteObservationPage = () => {
             <select
               id="planilla"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md block w-48 p-1"
+              value={selectedPlanilla || ''} // Establecer el valor del selector
               onChange={(e) => setSelectedPlanilla(Number(e.target.value))}
               disabled={!selectedObjective}
             >
@@ -131,12 +139,12 @@ const DeleteObservationPage = () => {
             src={IconRefresh}
             alt="Refresh"
             className="cursor-pointer"
-            onClick={handleRefresh} // <-- Manejador del clic
+            onClick={handleRefresh} // Restablecer filtros
           />
         </div>
       </div>
 
-      <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
+      <hr className="border-[1.5px] border-[#c6caff] mt-3" />
 
       <div className="flex justify-end items-center space-x-2">
         <p>Eliminar</p>
@@ -145,9 +153,9 @@ const DeleteObservationPage = () => {
           <img src={IconTrash} alt="Trash" />
         </button>
       </div>
-
+      <hr className="border-[1.5px] border-[#c6caff]  mb-3" />
       <DeleteObservationAccordion
-        key={reloadKey} // <-- Usamos el contador como clave única
+        key={reloadKey}
         selectedObjective={selectedObjective}
         selectedPlanilla={selectedPlanilla}
         onSelectObservation={handleSelectObservation}
@@ -168,15 +176,33 @@ const DeleteObservationPage = () => {
                 Cancelar
               </button>
               <button onClick={handleConfirmDelete} className="button-primary">
-                Eliminar
+                Aceptar
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <Snackbar open={snackbarOpen} autoHideDuration={5000} onClose={() => setSnackbarOpen(false)}>
-        <SnackbarContent message="Observación eliminada exitosamente" style={{ backgroundColor: '#D3FFD2', color: '#00A407' }} />
+      <Snackbar
+        open={snackbarOpen}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        autoHideDuration={5000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <SnackbarContent
+          style={{
+            display: 'flex',
+            width: '325px',
+            padding: '15px 20px',
+            justifyContent: 'start',
+            alignItems: 'center',
+            gap: '10px',
+            borderRadius: '10px',
+            background: '#D3FFD2',
+            color: '#00A407',
+          }}
+          message="Observación eliminada exitosamente"
+        />
       </Snackbar>
 
       {error && <p className="text-red-500 text-sm pt-2">{error}</p>}
