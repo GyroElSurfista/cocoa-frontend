@@ -97,7 +97,7 @@ const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({
 
         {apiError && <p className="text-red-500 text-sm">{apiError}</p>}
 
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="mt-4 flex justify-end gap-2">
           <button type="button" onClick={onClose} className="button-secondary_outlined">
             Cancelar
           </button>

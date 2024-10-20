@@ -1,3 +1,4 @@
+// EntregablePage.tsx
 import { useEffect, useState } from 'react'
 import { Snackbar, SnackbarContent, SnackbarCloseReason } from '@mui/material'
 import { useLocation, NavLink } from 'react-router-dom'
@@ -73,8 +74,9 @@ const EntregablePage = () => {
     setOpenSnackbar(false)
   }
 
-  // Maneja la creación del entregable
+  // Maneja la creación del entregable en tiempo real
   const handleCreateEntregable = (newEntregables: Entregable[]) => {
+    // Aquí actualizamos el estado local inmediatamente después de guardar el entregable
     setEntregables([...entregables, ...newEntregables])
 
     // Configurar el mensaje del Snackbar

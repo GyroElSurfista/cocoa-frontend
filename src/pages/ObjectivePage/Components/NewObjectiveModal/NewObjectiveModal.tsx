@@ -211,7 +211,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   <p className="text-gray-500">Bs. {equivalence}</p>
                 </div>
               </div>
-              {apiError && <p className="text-red-500 text-sm mt-4">{apiError}</p>}
+              {apiError && <p className="text-red-500 text-sm">{apiError}</p>}
             </div>
           </>
         )
@@ -340,7 +340,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         </div>
         <hr className="border-[1.5px] mb-4" />
         <ObjectiveStepper activeStep={activeStep} renderStepContent={renderStepContent} />
-        {errorMessage && <p className="text-red-500 text-sm mt-4">{errorMessage}</p>} {/* Muestra el mensaje de error aquí */}
+        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>} {/* Muestra el mensaje de error aquí */}
         <div className="mt-6 flex justify-between gap-2">
           <button
             onClick={handleBack}
