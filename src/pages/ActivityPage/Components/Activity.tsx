@@ -9,34 +9,39 @@ type ActivityProps = {
   descripcion: string
   responsable: string | null
   resultados: string[]
-  orden?: number // Agrega orden si es necesario
+  orden?: number
   onClick: () => void
   isDialogOpen?: boolean
+  objetivo: string
 }
 
-const Activity: React.FC<ActivityProps> = ({ orden, nombre, responsable, onClick, fechaInici, fechaFin, isDialogOpen }) => {
+const Activity: React.FC<ActivityProps> = ({ orden, nombre, responsable, onClick, fechaInici, fechaFin, isDialogOpen, objetivo }) => {
   return (
     <div
       onClick={onClick}
-      className="flex justify-between items-center h-12 my-2 py-2 bg-[#eef0ff] cursor-pointer text-sm text-[#1c1c1c] overflow-hidden"
+      className="flex justify-between items-center h-12 my-2 py-2 px-4 bg-[#eef0ff] cursor-pointer text-sm text-[#1c1c1c] overflow-hidden"
     >
-      <div className="flex items-center flex-shrink-0">
-        <p className="mx-2.5 whitespace-nowrap">Actividad {orden}</p>
-        <Divider orientation="vertical" flexItem className="border-l border-[#1c1c1c]" />
-        <p className={`mx-2 text-[#5d5d5d] truncate ${isDialogOpen ? 'md:w-14 lg:w-32 xl:w-80' : 'md:w-80 lg:w-[28rem] xl:w-[45rem]'}`}>
-          {nombre}
-        </p>
+      {/* Sección izquierda con nombre y orden */}
+      <div className="flex items-center flex-shrink-0 max-w-[30%]">
+        <p className="whitespace-nowrap text-gray-700">Actividad {orden}</p>
+        <Divider orientation="vertical" flexItem className="border-l border-[#1c1c1c] mx-2" />
+        <p className="text-[#5d5d5d] truncate">{nombre}</p>
       </div>
 
-      <div className="flex items-center opacity-0 w-0 md:opacity-100 md:w-auto">
-        <div className="flex items-center mx-2.5">
+      {/* Sección derecha con fechas, objetivo y responsable */}
+      <div className="flex justify-end items-center md:space-x-6 w-full max-w-[70%]">
+        <p className="truncate text-gray-600 min-w-[150px] max-w-[150px]">Objetivo: {objetivo}</p>
+
+        <div className="flex items-center">
           <span className="p-1 bg-[#ffc3cc] rounded-lg text-xs">{fechaInici.toLocaleDateString()}</span>
-          <hr className="mx-1 w-2.5 border-[#1c1c1c]" />
+          <hr className="w-2 border-[#1c1c1c] mx-1" />
           <span className="p-1 bg-[#c6caff] rounded-lg text-xs">{fechaFin.toLocaleDateString()}</span>
         </div>
 
-        <AccountCircle fontSize="large" />
-        <span className="mx-2 whitespace-nowrap">{responsable || 'No asignado'}</span>
+        <div className="flex items-center">
+          <AccountCircle fontSize="large" />
+          <span className="truncate text-gray-700 max-w-[80px]">{responsable || 'No asignado'}</span>
+        </div>
       </div>
     </div>
   )

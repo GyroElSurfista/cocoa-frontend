@@ -144,6 +144,7 @@ const ActivityPage = (): JSX.Element => {
                 orden={index + 1}
                 onClick={() => handleActivityClick(activity)}
                 isDialogOpen={isDialogOpen}
+                objetivo={activity.objetivo}
               />
             ))
           ) : (
