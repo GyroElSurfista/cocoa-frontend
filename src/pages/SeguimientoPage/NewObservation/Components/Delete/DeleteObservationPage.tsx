@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import Checkbox from '@mui/material/Checkbox'
 import Snackbar from '@mui/material/Snackbar'
 import SnackbarContent from '@mui/material/SnackbarContent'
+import Autocomplete from '@mui/material/Autocomplete' // Autocompletado
+import TextField from '@mui/material/TextField' // Input para el autocompletado
 import { DeleteObservationAccordion } from './DeleteObservationAccordion'
 import IconTrash from '../../../../../assets/trash.svg'
 import IconRefresh from '../../../../../assets/ico-refresh.svg'
@@ -19,7 +21,7 @@ interface Planilla {
 
 const DeleteObservationPage = () => {
   const [objectives, setObjectives] = useState<Objective[]>([])
-  const [selectedObjective, setSelectedObjective] = useState<number | null>(null)
+  const [selectedObjective, setSelectedObjective] = useState<Objective | null>(null)
   const [planillas, setPlanillas] = useState<Planilla[]>([])
   const [selectedPlanilla, setSelectedPlanilla] = useState<number | null>(null)
   const [selectedObservations, setSelectedObservations] = useState<number[]>([])
@@ -46,7 +48,9 @@ const DeleteObservationPage = () => {
     if (selectedObjective) {
       const fetchPlanillas = async () => {
         try {
-          const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${selectedObjective}/planillas-seguimiento`)
+          const response = await fetch(
+            `https://cocoabackend.onrender.com/api/objetivos/${selectedObjective.identificador}/planillas-seguimiento`
+          )
           const data = await response.json()
           setPlanillas(data)
         } catch (error) {
@@ -60,9 +64,9 @@ const DeleteObservationPage = () => {
   }, [selectedObjective])
 
   const handleRefresh = useCallback(() => {
-    setSelectedObjective(null) // Restablecemos el valor de selectedObjective
-    setSelectedPlanilla(null) // Restablecemos el valor de selectedPlanilla
-    setReloadKey((prevKey) => prevKey + 1) // Refrescamos las observaciones
+    setSelectedObjective(null)
+    setSelectedPlanilla(null)
+    setReloadKey((prevKey) => prevKey + 1)
   }, [])
 
   const handleSelectObservation = (observationId: number) => {
@@ -88,9 +92,8 @@ const DeleteObservationPage = () => {
       setSnackbarOpen(true)
       setSelectedObservations([])
 
-      // Actualizamos el estado eliminando las observaciones localmente
       setAllObservations((prev) => prev.filter((id) => !selectedObservations.includes(id)))
-      setReloadKey((prevKey) => prevKey + 1) // Refrescar el componente
+      setReloadKey((prevKey) => prevKey + 1)
     } catch (error) {
       setError('Error al eliminar observaciones')
     }
@@ -103,19 +106,58 @@ const DeleteObservationPage = () => {
         <div className="flex space-x-4 items-center">
           <div className="flex items-center space-x-4">
             <h3 className="font-bold text-xl">Objetivo:</h3>
-            <select
-              id="objetivo"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md block w-48 p-1"
-              value={selectedObjective || ''} // Establecer el valor del selector
-              onChange={(e) => setSelectedObjective(Number(e.target.value))}
-            >
-              <option value="">Selecciona un objetivo</option>
-              {objectives.map((objective) => (
-                <option key={objective.identificador} value={objective.identificador}>
-                  {objective.nombre}
-                </option>
-              ))}
-            </select>
+
+            <Autocomplete
+              id="objetivo-autocomplete"
+              options={objectives}
+              getOptionLabel={(option) => option.nombre}
+              value={selectedObjective}
+              onChange={(event, newValue) => setSelectedObjective(newValue)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Selecciona un objetivo"
+                  variant="outlined"
+                  InputProps={{
+                    ...params.InputProps,
+                    sx: {
+                      height: '30px', // Controla el alto del input
+                      fontSize: '14px', // Texto seleccionado
+                      backgroundColor: '#f9fafb', // bg-gray-50
+                      borderColor: '#d1d5db', // border-gray-300
+                      color: '#111827', // text-gray-900
+                      paddingLeft: '0.75rem', // Padding interno para separar texto del borde izquierdo
+                      alignItems: 'center', // Alinea verticalmente el contenido
+                    },
+                  }}
+                  InputLabelProps={{
+                    sx: {
+                      fontSize: '12px', // Placeholder de 12px
+                      left: '1rem', // Margen a la izquierda del label
+                      top: '50%', // Centrado vertical inicial
+                      transform: 'translateY(-50%)', // Centrado vertical exacto
+                      transition: 'all 0.2s ease-in-out', // Animación suave
+                      '&.MuiInputLabel-shrink': {
+                        fontSize: '10px', // Mantener tamaño reducido del label
+                        top: '-6px', // Ajustar posición cuando sube
+                        left: '1rem', // Mantener el mismo margen al subir
+                        transform: 'none', // Eliminar transformaciones adicionales
+                      },
+                    },
+                  }}
+                  sx={{
+                    width: '12rem', // Ancho w-48
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0.375rem', // rounded-md
+                      padding: '0.25rem', // p-1
+                    },
+                    '& .MuiOutlinedInput-root.Mui-focused': {
+                      borderColor: '#d1d5db', // Mantener color del borde al enfocar
+                    },
+                  }}
+                />
+              )}
+            />
           </div>
 
           <div className="flex items-center space-x-4">
@@ -123,7 +165,7 @@ const DeleteObservationPage = () => {
             <select
               id="planilla"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md block w-48 p-1"
-              value={selectedPlanilla || ''} // Establecer el valor del selector
+              value={selectedPlanilla || ''}
               onChange={(e) => setSelectedPlanilla(Number(e.target.value))}
               disabled={!selectedObjective}
             >
@@ -135,12 +177,7 @@ const DeleteObservationPage = () => {
               ))}
             </select>
           </div>
-          <img
-            src={IconRefresh}
-            alt="Refresh"
-            className="cursor-pointer"
-            onClick={handleRefresh} // Restablecer filtros
-          />
+          <img src={IconRefresh} alt="Refresh" className="cursor-pointer" onClick={handleRefresh} />
         </div>
       </div>
 
@@ -156,7 +193,7 @@ const DeleteObservationPage = () => {
       <hr className="border-[1.5px] border-[#c6caff]  mb-3" />
       <DeleteObservationAccordion
         key={reloadKey}
-        selectedObjective={selectedObjective}
+        selectedObjective={selectedObjective?.identificador ?? null}
         selectedPlanilla={selectedPlanilla}
         onSelectObservation={handleSelectObservation}
         selectedObservations={selectedObservations}
