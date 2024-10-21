@@ -6,7 +6,7 @@ interface EntregableAccordionProps {
 }
 
 interface Entregable {
-  identificador: number
+  identificador?: number // Hacer identificador opcional
   nombre: string
   descripcion: string
   identificadorObjet: number
