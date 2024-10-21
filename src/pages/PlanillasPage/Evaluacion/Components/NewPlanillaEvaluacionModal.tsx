@@ -51,7 +51,7 @@ const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({
     ]
 
     try {
-      const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${selectedObjetivo}/generar-planillas-seguimiento`, {
+      const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${selectedObjetivo}/generar-planilla-evaluacion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(planillasData),

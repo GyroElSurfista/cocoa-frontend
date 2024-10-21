@@ -5,6 +5,7 @@ import { Snackbar, SnackbarContent, SnackbarCloseReason } from '@mui/material'
 
 const EvaluacionPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0) // Estado para forzar la recarga de los accordions
 
   // Estado para el control del snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false)
@@ -26,13 +27,21 @@ const EvaluacionPage = () => {
     }
     setOpenSnackbar(false)
   }
+
+  // Función que actualiza la clave de recarga y cierra el modal
+  const handlePlanillasGenerated = () => {
+    setRefreshKey((prevKey) => prevKey + 1) // Incrementa la clave para forzar la recarga
+    handleShowSnackbar('Generación de planilla exitosa.', '#D3FFD2')
+    closeModal()
+  }
+
   return (
     <div className="mx-28">
       <h1 className="font-bold text-3xl">Generar planillas de evaluacion</h1>
 
       <div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
-        <PlanillasEvaluacionAccordion />
+        <PlanillasEvaluacionAccordion key={refreshKey} />
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
       </div>
 
@@ -43,11 +52,7 @@ const EvaluacionPage = () => {
         </button>
       </div>
 
-      <NewPlanillaEvaluacionModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onPlanillasGenerated={() => handleShowSnackbar('Planillas generadas exitosamente', '#D3FFD2')}
-      />
+      <NewPlanillaEvaluacionModal isOpen={isModalOpen} onClose={closeModal} onPlanillasGenerated={handlePlanillasGenerated} />
 
       {/* Snackbar para mostrar mensajes */}
       <Snackbar
@@ -66,7 +71,7 @@ const EvaluacionPage = () => {
             gap: '10px',
             borderRadius: '10px',
             background: snackbarColor,
-            color: snackbarColor === '#D3FFD2' ? '#00A407' : '#A40000', // Cambia el color del texto basado en el tipo de mensaje
+            color: snackbarColor === '#D3FFD2' ? '#00A407' : '#A40000',
           }}
           message={snackbarMessage}
         />
