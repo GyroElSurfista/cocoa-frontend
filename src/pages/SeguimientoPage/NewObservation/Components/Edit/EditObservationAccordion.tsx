@@ -15,7 +15,9 @@ interface Activity {
 interface ObservationProps {
   observation: string
   observationId: number
-  objectiveId: number // Utilizamos el objectiveId para cargar actividades
+  identificadorPlaniSegui: number
+  identificadorActiv: number
+  objectiveId: number
   planillaId: number
   selectedActivities: Activity[]
   onSave: (observation: string, activities: Activity[]) => void
@@ -35,6 +37,7 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
   observation,
   observationId,
   objectiveId,
+  identificadorPlaniSegui,
   planillaId,
   selectedActivities = [], // Valor predeterminado
   onSave,
@@ -105,6 +108,7 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
         body: JSON.stringify({
           identificador: observationId,
           descripcion: editableObservation,
+          identificadorPlaniSegui,
           identificadorActiv: selectedActivity.id,
         }),
       })
@@ -126,6 +130,7 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
   const toggleEditing = () => {
     if (isEditing) {
       validateAndSave()
+      console.log(observation, observationId, objectiveId, planillaId, selectedActivities)
     } else {
       setIsEditing(true)
     }

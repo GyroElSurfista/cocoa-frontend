@@ -13,7 +13,7 @@ interface DeleteObservationAccordionProps {
   selectedObjective: number | null
   selectedPlanilla: number | null
   onSelectObservation: (id: number) => void
-  selectedObservations: number[] // <-- Nuevo prop
+  selectedObservations: number[]
   setAllObservations: (ids: number[]) => void
 }
 
@@ -21,7 +21,7 @@ export const DeleteObservationAccordion = ({
   selectedObjective,
   selectedPlanilla,
   onSelectObservation,
-  selectedObservations, // <-- Usamos este estado
+  selectedObservations,
   setAllObservations,
 }: DeleteObservationAccordionProps) => {
   const [observations, setObservations] = useState<Observation[]>([])
@@ -84,14 +84,21 @@ export const DeleteObservationAccordion = ({
   }, [selectedObjective, selectedPlanilla, observations])
 
   return (
-    <div className="flex items-center gap-[20px] self-stretch rounded-[8px] border-[2px] border-[#FFC3CC] bg-white shadow-md w-full">
+    <div>
       {loading ? (
         <p className="text-gray-500 text-center py-4">Cargando observaciones...</p>
       ) : error ? (
         <p className="text-red-500 text-center py-4">{error}</p>
-      ) : filteredObservations.length > 0 ? (
+      ) : observations.length === 0 ? ( // Condición para "No existen observaciones disponibles"
+        <p className="text-gray-500 text-center py-4">No existen observaciones disponibles</p>
+      ) : filteredObservations.length === 0 ? ( // Condición para "No existen coincidencias"
+        <p className="text-gray-500 text-center py-4">No existen coincidencias</p>
+      ) : (
         filteredObservations.map((obs) => (
-          <div key={obs.identificador} className="flex items-center border rounded-lg w-full">
+          <div
+            key={obs.identificador}
+            className="flex my-4 items-center gap-[20px] self-stretch rounded-[8px] border-[2px] border-[#FFC3CC] bg-white shadow-md w-full"
+          >
             <textarea
               className="text-left mx-2 w-full resize-none border-none rounded-lg focus:outline-none"
               value={obs.descripcion}
@@ -103,15 +110,12 @@ export const DeleteObservationAccordion = ({
               readOnly
               className="flex justify-end items-center p-[3px] gap-[10px] flex-[1_0_0] rounded-[8px] bg-[#FFC3CC] text-center w-28"
             />
-
             <Checkbox
-              checked={selectedObservations.includes(obs.identificador)} // <-- Sincronizar con el estado global
+              checked={selectedObservations.includes(obs.identificador)} // Sincronizar con el estado global
               onChange={() => onSelectObservation(obs.identificador)}
             />
           </div>
         ))
-      ) : (
-        <p className="text-gray-500 text-center py-4">No hay observaciones disponibles</p>
       )}
     </div>
   )

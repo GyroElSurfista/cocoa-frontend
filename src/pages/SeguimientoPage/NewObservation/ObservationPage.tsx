@@ -12,18 +12,21 @@ interface Observation {
   id: number
   observation: string
   activities: Activity[]
-  selectedActivities: Activity[] // Cambiado a Activity[]
+  selectedActivities: Activity[]
+  identificadorPlaniSegui: number
+  identificadorActiv: number
 }
 
 interface ObservationPageProps {
   observations: Observation[]
-  objectiveId: number // Asegúrate de pasar el objectiveId
+  objectiveId: number
   planillaDate: string
   onBack: () => void
 }
 
-const ObservationPage: React.FC<ObservationPageProps> = ({ observations, objectiveId, planillaDate, onBack }) => {
+const ObservationPage: React.FC<ObservationPageProps> = ({ observations: initialObservations, objectiveId, planillaDate, onBack }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [observations, setObservations] = useState(initialObservations) // Estado de las observaciones
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('#D3FFD2')
@@ -31,7 +34,7 @@ const ObservationPage: React.FC<ObservationPageProps> = ({ observations, objecti
   const closeModal = () => setIsModalOpen(false)
 
   const handleSaveObservation = () => {
-    setSnackbarMessage('Los cambios se guardaron con éxito')
+    setSnackbarMessage('Edición exitosa')
     setSnackbarColor('#D3FFD2') // Color de éxito
     setSnackbarOpen(true)
     closeModal()
@@ -50,12 +53,36 @@ const ObservationPage: React.FC<ObservationPageProps> = ({ observations, objecti
     setSnackbarOpen(false)
   }
 
+  // Función para simular la actualización de datos
+  const refreshObservations = () => {
+    // Aquí se haría una llamada a la API para obtener las observaciones actualizadas
+    const updatedObservations = [
+      // Simulación de nuevos datos
+      {
+        id: 1,
+        observation: 'Observación actualizada',
+        activities: [{ id: 1, name: 'Actividad 1' }],
+        selectedActivities: [{ id: 1, name: 'Actividad 1' }],
+        identificadorPlaniSegui: 123,
+        identificadorActiv: 456,
+      },
+      // Puedes agregar más observaciones aquí
+    ]
+    setObservations(updatedObservations) // Actualiza el estado con los nuevos datos
+  }
+
+  // Función que se ejecuta al presionar el botón onBack
+  const handleBack = () => {
+    refreshObservations() // Refresca los datos
+    onBack() // Llama a la función onBack original
+  }
+
   return (
     <div className="mx-28">
       <h1 className="font-bold text-3xl">Editar Observaciones</h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
       <h2 className="font-bold text-2xl">
-        <button onClick={onBack}>Objetivo {objectiveId}</button> {'>'} Planilla #{planillaDate}
+        <button onClick={handleBack}>Objetivo {objectiveId}</button> {'>'} Planilla #{planillaDate}
       </h2>
 
       <div>
@@ -68,7 +95,9 @@ const ObservationPage: React.FC<ObservationPageProps> = ({ observations, objecti
               key={obs.id}
               observation={obs.observation}
               observationId={obs.id}
-              onSave={handleSaveObservation} // Llamada al guardar
+              identificadorPlaniSegui={obs.identificadorPlaniSegui} // Pasamos identificadorPlaniSegui
+              identificadorActiv={obs.identificadorActiv} // Pasamos identificadorActiv
+              onSave={handleSaveObservation}
               selectedActivities={obs.selectedActivities}
               objectiveId={objectiveId}
               planillaId={0}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import Drop from '../../../assets/icon-drop.svg'
+import Drop from '../../../../assets/icon-drop.svg'
 
 interface Observacion {
   identificador: number
