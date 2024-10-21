@@ -7,7 +7,7 @@ import EntregablePage from './pages/EntregablePage/EntregablePage'
 import TrackingSheet from './pages/SeguimientoPage/TrackingSheet/TrackingSheet'
 import ActivityPage from './pages/ActivityPage/ActivityPage'
 import PlanillasPage from './pages/PlanillasPage/Seguimiento/PlanillasPage'
-import AuxiliaraSelector from './pages/SeguimientoPage/NewObservation/Components/Selector/SelectorPlanilla'
+import SelectorObservationModal from './pages/SeguimientoPage/NewObservation/Components/Selector/SelectorObservationModal'
 import DeleteActivityPage from './pages/ActivityPage/DeleteActivityPage'
 import DeleteObservationPage from './pages/SeguimientoPage/NewObservation/Components/Delete/DeleteObservationPage'
 import EvaluacionPage from './pages/PlanillasPage/Evaluacion/EvaluacionPage'
@@ -18,7 +18,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route path="objetivos" element={<ObjectivePage />} />
-          <Route path="editar-observaciones" element={<AuxiliaraSelector />} />
+          <Route path="editar-observaciones" element={<SelectorObservationModal />} />
           <Route path="eliminar-observaciones" element={<DeleteObservationPage />} />
           <Route path="objetivos-entregables" element={<EntregablePage />} />
           <Route path="planilla-evaluacion" element={<EvaluacionPage />} />
