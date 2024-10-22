@@ -137,7 +137,7 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md w-full">
+    <div className="hover:border-[#8f96ff] w-full border-2 my-4 rounded-lg border-[#c6caff] ">
       <div className="flex items-center justify-between rounded-lg w-full">
         <textarea
           ref={textAreaRef}
@@ -185,7 +185,7 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
                 fontSize: '12px',
                 // Altura reducida
                 height: '30px',
-                minHeight: '30px', // Establecemos una altura mínima para evitar expansiones no deseadas
+                minHeight: '30px',
               }}
             >
               <MenuItem disabled value="">

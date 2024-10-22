@@ -86,7 +86,7 @@ export const PlanillasEvaluacionAccordion: React.FC = () => {
                   </span>
                 </div>
                 <span className="ml-1 text-gray-600 font-normal w-auto border-r-2 pr-2 border-[#c6caff]">
-                  {planilla.evaluacion_objetivo.length > 0 ? planilla.evaluacion_objetivo[0].observacion : 'Sin observaciones'}
+                  {planilla.evaluacion_objetivo.length > 0 ? planilla.nombre : 'Sin observaciones'}
                 </span>
 
                 <div className="ml-auto flex flex-row items-center space-x-4">
@@ -122,14 +122,18 @@ export const PlanillasEvaluacionAccordion: React.FC = () => {
             </div>
             <p className="font-semibold">Entregables:</p>
             <div className="px-[10%]">
-              {deliverables.map((deliverable) => (
-                <div
-                  key={deliverable.identificador}
-                  className="flex rounded-md py-0.5 px-1 my-2 items-center gap-10 align-self-stretch border-radius-4 bg-[#E0E3FF]"
-                >
-                  <p>{deliverable.descripcion}</p>
-                </div>
-              ))}
+              {deliverables.length > 0 ? (
+                deliverables.map((deliverable) => (
+                  <div
+                    key={deliverable.identificador}
+                    className="flex rounded-md py-0.5 px-1 my-2 items-center gap-10 align-self-stretch border-radius-4 bg-[#E0E3FF]"
+                  >
+                    <p>{deliverable.nombre}</p>
+                  </div>
+                ))
+              ) : (
+                <p>No hay entregables disponibles.</p>
+              )}
             </div>
 
             <div className="mt-4 flex justify-end gap-2">
