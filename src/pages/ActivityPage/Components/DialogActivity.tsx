@@ -5,7 +5,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
 import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const DialogActivity = ({
   activity,
@@ -29,6 +29,20 @@ const DialogActivity = ({
     objetivo: '',
     resultados: [],
   })
+
+  useEffect(() => {
+    if (activity?.nombre) {
+      setErrors({
+        nombre: '',
+        descripcion: '',
+        responsable: '',
+        fechaInici: '',
+        fechaFin: '',
+        objetivo: '',
+        resultados: [],
+      })
+    }
+  }, [activity?.nombre])
 
   const validateFields = () => {
     const newErrors: ActivityErrors = {
@@ -169,7 +183,21 @@ const DialogActivity = ({
             ) : (
               <h2 className="text-xl">{activity?.nombre}</h2>
             )}
-            <Button onClick={onHide} className="text-[#1c1c1c] font-semibold mb-1">
+            <Button
+              onClick={() => {
+                onHide()
+                setErrors({
+                  nombre: '',
+                  descripcion: '',
+                  responsable: '',
+                  fechaInici: '',
+                  fechaFin: '',
+                  objetivo: '',
+                  resultados: [],
+                })
+              }}
+              className="text-[#1c1c1c] font-semibold mb-1"
+            >
               X
             </Button>
           </div>
@@ -304,7 +332,21 @@ const DialogActivity = ({
               </div>
 
               <div className="flex justify-end">
-                <button onClick={onHide} className="button-secondary_outlined mx-1">
+                <button
+                  onClick={() => {
+                    onHide()
+                    setErrors({
+                      nombre: '',
+                      descripcion: '',
+                      responsable: '',
+                      fechaInici: '',
+                      fechaFin: '',
+                      objetivo: '',
+                      resultados: [],
+                    })
+                  }}
+                  className="button-secondary_outlined mx-1"
+                >
                   Cancelar
                 </button>
                 <button onClick={handleSave} className="button-primary mx-1">
