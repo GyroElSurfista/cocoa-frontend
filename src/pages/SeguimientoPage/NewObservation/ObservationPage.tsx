@@ -34,7 +34,7 @@ const ObservationPage: React.FC<ObservationPageProps> = ({ observations: initial
   const closeModal = () => setIsModalOpen(false)
 
   const handleSaveObservation = () => {
-    setSnackbarMessage('Edición exitosa')
+    setSnackbarMessage('Los cambios se guardaron con exito')
     setSnackbarColor('#D3FFD2') // Color de éxito
     setSnackbarOpen(true)
     closeModal()
@@ -95,12 +95,13 @@ const ObservationPage: React.FC<ObservationPageProps> = ({ observations: initial
               key={obs.id}
               observation={obs.observation}
               observationId={obs.id}
-              identificadorPlaniSegui={obs.identificadorPlaniSegui} // Pasamos identificadorPlaniSegui
-              identificadorActiv={obs.identificadorActiv} // Pasamos identificadorActiv
+              identificadorPlaniSegui={obs.identificadorPlaniSegui}
+              identificadorActiv={obs.identificadorActiv}
               onSave={handleSaveObservation}
               selectedActivities={obs.selectedActivities}
               objectiveId={objectiveId}
               planillaId={0}
+              observations={observations} // Asegúrate de pasar el array de observaciones
             />
           ))
         )}
