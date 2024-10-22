@@ -2,6 +2,7 @@ import NewPlanillaEvaluacionModal from './Components/NewPlanillaEvaluacionModal'
 import { PlanillasEvaluacionAccordion } from './Components/PlanillasEvaluacionAccordion'
 import React, { useState } from 'react'
 import { Snackbar, SnackbarContent, SnackbarCloseReason } from '@mui/material'
+import { PlanillasAccordion } from '../Seguimiento/Components/PlanillasAccordion'
 
 const EvaluacionPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -48,7 +49,7 @@ const EvaluacionPage = () => {
       {/* Contenedor para centrar el botón */}
       <div className="flex justify-center">
         <button className="button-primary" onClick={openModal}>
-          Generar planilla
+          Generar Planillas
         </button>
       </div>
 

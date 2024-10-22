@@ -18,10 +18,10 @@ interface Planilla {
 }
 
 interface SelectorObservationModalProps {
-  onRedirect: (observations: any[], objectiveId: number, planillaDate: string) => void
+  onRedirect: (observations: any[], objectiveId: number, planillaDate: string, planiId: number) => void
 }
 
-export const SelectorObservationModal = ({ onRedirect }: SelectorObservationModalProps) => {
+export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationModalProps) => {
   const [showModal, setShowModal] = useState(false)
   const [objectives, setObjectives] = useState<Objective[]>([])
   const [selectedObjective, setSelectedObjective] = useState<number | null>(null)
@@ -76,8 +76,9 @@ export const SelectorObservationModal = ({ onRedirect }: SelectorObservationModa
         activities: [],
       }))
 
-      // Redirigimos y pasamos la información necesaria al componente padre
-      onRedirect(observations, selectedObjective, selectedPlanillaData.fecha)
+      console.log('Redirecting with planiId:', selectedPlanillaData.identificador) // Verificar el identificador
+      // Redirigir incluyendo `planiId`
+      onRedirect(observations, selectedObjective, selectedPlanillaData.fecha, selectedPlanillaData.identificador)
     }
   }
 
@@ -87,15 +88,15 @@ export const SelectorObservationModal = ({ onRedirect }: SelectorObservationModa
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => setShowModal(true)}
       >
-        <div>Servicio de edición de observaciones</div>
+        <div>Servicio de planilla de equipos</div>
       </div>
 
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white w-[375px] max-w-lg p-6 rounded-[20px] shadow-lg max-h-[85vh] overflow-y-auto">
-            <h5 className="text-xl font-semibold text-center">Editar Observación</h5>
+            <h5 className="text-xl font-semibold text-center">Llenar planilla de Seguimiento</h5>
             <hr className="border-[1.5px] mb-4 mt-4" />
-            <p className="font-sm my-2">Selecciona el objetivo y la planilla correspondiente para la cual desees editar la observación</p>
+            <p className="font-sm my-2">Selecciona el objetivo y la planilla correspondiente para la cual desees agregar la observación</p>
 
             <div className="flex gap-4">
               <div className="w-1/2">
@@ -157,4 +158,4 @@ export const SelectorObservationModal = ({ onRedirect }: SelectorObservationModa
   )
 }
 
-export default SelectorObservationModal
+export default SelectorPlanillaEquipoModal
