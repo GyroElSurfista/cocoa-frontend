@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import IconUser from '../../../../assets/icon-user.svg'
 import Checkbox from '@mui/material/Checkbox'
 import axios from 'axios'
@@ -11,10 +11,8 @@ interface RowInformationUserProps {
   planillaDate: string // Pasar la fecha de la planilla
 }
 
-// Definimos un tipo que contiene las claves válidas
 type Motivo = 'Licencia' | 'Imprevisto' | 'Injustificado'
 
-// Mapeo de identificador de motivos
 const motivosMap: Record<Motivo, number> = {
   Licencia: 1,
   Imprevisto: 2,
@@ -24,26 +22,44 @@ const motivosMap: Record<Motivo, number> = {
 export const RowInformationUser: React.FC<RowInformationUserProps> = ({ userName, companyName, userId, planillaDate }) => {
   const [isChecked, setIsChecked] = useState(true)
   const [motivo, setMotivo] = useState<string>('Motivo de Inasistencia')
-  const [isMotivoEditable, setIsMotivoEditable] = useState(true) // Para hacer el select ineditable después de seleccionar un motivo
-  const [snackbarOpen, setSnackbarOpen] = useState(false) // Controlar la apertura del Snackbar
-  const [snackbarMessage, setSnackbarMessage] = useState('') // Mensaje para el Snackbar
+  const [isMotivoEditable, setIsMotivoEditable] = useState(true)
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+
+  // Nueva solicitud para el segundo endpoint
+  useEffect(() => {
+    const fetchGrupoEmpresaData = async () => {
+      try {
+        const payload = {
+          identificadorGrupoEmpre: 1,
+          fecha: planillaDate, // Usamos la fecha proporcionada
+        }
+
+        const response = await axios.post('https://cocoabackend.onrender.com/api/grupo-empresa/asistencia', payload)
+
+        console.log('Respuesta del endpoint grupo-empresa:', response.data)
+      } catch (error) {
+        console.error('Error al obtener datos del grupo-empresa:', error)
+      }
+    }
+
+    fetchGrupoEmpresaData()
+  }, [planillaDate]) // Se ejecuta al montar el componente o si cambia la fecha
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsChecked(event.target.checked)
   }
 
   const handleMotivoChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedMotivo = event.target.value as Motivo // Cast the selected value as 'Motivo'
+    const selectedMotivo = event.target.value as Motivo
     setMotivo(selectedMotivo)
 
-    // Solo hacemos la solicitud si el motivo seleccionado es válido
     if (selectedMotivo in motivosMap) {
       const identificadorMotiv = motivosMap[selectedMotivo]
 
-      // Crear el payload para la solicitud
       const payload = {
         identificadorUsuar: userId,
-        fecha: planillaDate, // Asegurarse de que la fecha esté en formato 'YYYY-MM-DD'
+        fecha: planillaDate,
         valor: true,
         identificadorMotiv,
       }
@@ -54,10 +70,9 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({ userName
         const response = await axios.post('https://cocoabackend.onrender.com/api/asistencias-inasistencia', payload)
 
         if (response.status === 201) {
-          // Mostrar mensaje de éxito y deshabilitar el select
           setSnackbarMessage('Inasistencia registrada correctamente')
           setSnackbarOpen(true)
-          setIsMotivoEditable(false) // Deshabilitar el select
+          setIsMotivoEditable(false)
         }
       } catch (error) {
         console.error('Error al registrar la inasistencia', error)
@@ -67,7 +82,6 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({ userName
     }
   }
 
-  // Manejar el cierre del Snackbar
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false)
   }
@@ -93,7 +107,7 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({ userName
             value={motivo}
             onChange={handleMotivoChange}
             className="inline-flex items-center px-1 py-0 gap-1 rounded-md border-[0.5px] border-[#FFC3CC] bg-[#FFDEE3] text-[#A70920] h-7"
-            disabled={!isMotivoEditable} // Deshabilitar el select si ya se seleccionó un motivo
+            disabled={!isMotivoEditable}
           >
             <option value="Motivo de Inasistencia" className="bg-[#FFF0F2] border-b border-[#FFDEE3]">
               Motivo de Inasistencia
@@ -111,7 +125,6 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({ userName
         </div>
       )}
 
-      {/* Snackbar para mostrar mensajes */}
       <Snackbar
         open={snackbarOpen}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}

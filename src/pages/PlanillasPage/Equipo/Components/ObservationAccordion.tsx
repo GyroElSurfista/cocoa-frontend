@@ -72,6 +72,17 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
   }
 
   const validateAndSave = async () => {
+    // Verificar tamaño mínimo y máximo de la observación
+    if (editableObservation.trim().length < 5) {
+      setError('La observación debe tener al menos 5 caracteres.')
+      return
+    }
+
+    if (editableObservation.trim().length > 100) {
+      setError('La observación no puede tener más de 100 caracteres.')
+      return
+    }
+
     if (!editableObservation.trim()) {
       setError('La observación no puede estar vacía.')
       return
@@ -116,6 +127,7 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
       } else {
         const errorMessage = await response.text()
         setError('Error al guardar la observación. Inténtalo de nuevo.')
+        console.log(errorMessage)
       }
     } catch (error) {
       setError('Error en la conexión al servidor.')
