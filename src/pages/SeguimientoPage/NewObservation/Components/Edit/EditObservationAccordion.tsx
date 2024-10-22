@@ -140,6 +140,7 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
       if (response.ok) {
         const updatedObservation = await response.json()
         console.log('Observación actualizada:', updatedObservation)
+        console.log(identificadorPlaniSegui)
         onSave(editableObservation, [selectedActivity])
         setIsEditing(false)
       } else {
