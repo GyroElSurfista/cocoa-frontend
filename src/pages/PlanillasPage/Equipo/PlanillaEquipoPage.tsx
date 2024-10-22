@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
 import ObservationAccordion from './Components/ObservationAccordion'
 import { ButtonAddObservation } from './Components/ButtonAddObservation'
+import { RowInformationUser } from './Components/RowInformationUser'
+import axios from 'axios' // Para realizar las peticiones a los endpoints
 
 interface Activity {
   id: number
@@ -17,11 +19,23 @@ interface Observation {
   identificadorActiv: number | null
 }
 
+interface User {
+  id: number
+  name: string
+  email: string
+}
+
+interface Empresa {
+  identificador: number
+  nombreLargo: string
+  nombreCorto: string
+}
+
 interface ObservationPageProps {
   observations: Observation[]
   objectiveId: number
   planillaDate: string
-  planillaSeguiId?: number // Hacer que `planillaSeguiId` sea opcional
+  planillaSeguiId?: number
   onBack: () => void
 }
 
@@ -35,11 +49,33 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   const [observations, setObservations] = useState<Observation[]>(initialObservations)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [usuarios, setUsuarios] = useState<User[]>([])
+  const [empresa, setEmpresa] = useState<Empresa | null>(null)
 
-  // Función para agregar una nueva observación, utilizando el `identificadorPlaniSegui` inicial
+  // Obtener datos de empresa y usuarios
+  useEffect(() => {
+    const fetchEmpresaYUsuarios = async () => {
+      try {
+        // Obtener datos de la empresa
+        const grupoResponse = await axios.get('https://cocoabackend.onrender.com/api/grupoEmpresas')
+        const empresaData = grupoResponse.data.find((e: Empresa) => e.identificador === 1) // Usar ID 1 por defecto
+        setEmpresa(empresaData)
+
+        // Obtener usuarios asociados a la empresa
+        const usuariosResponse = await axios.get(
+          `https://cocoabackend.onrender.com/api/grupoEmpresas/${empresaData.identificador}/usuarios`
+        )
+        setUsuarios(usuariosResponse.data)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }
+    }
+
+    fetchEmpresaYUsuarios()
+  }, [])
+
+  // Función para agregar una nueva observación
   const handleAddObservation = () => {
-    console.log('Adding observation with planillaSeguiId:', planillaSeguiId) // Verificar valor de `planillaSeguiId`
-
     const newObservation: Observation = {
       id: null, // Nueva observación
       observation: '',
@@ -48,21 +84,26 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
       identificadorPlaniSegui: planillaSeguiId, // Usamos el `planillaSeguiId` inicial
       identificadorActiv: null,
     }
-
     setObservations([...observations, newObservation])
   }
 
+  // Manejar el guardado de observaciones
   const handleSaveObservation = (observation: string, activities: Activity[]) => {
     setSnackbarMessage('Observación agregada exitosamente ')
     setSnackbarOpen(true)
   }
 
+  // Manejar el cierre del Snackbar
   const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
-    if (reason === 'clickaway') {
-      return
-    }
+    if (reason === 'clickaway') return
     setSnackbarOpen(false)
   }
+
+  // Crear un array de observaciones existentes (nombres)
+  const existingObservations = observations.map((obs) => ({
+    observation: obs.observation,
+    identificadorActiv: obs.identificadorActiv,
+  }))
 
   return (
     <div className="mx-28">
@@ -73,7 +114,20 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
       </h2>
 
       <div>
-        <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
+        <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
+        <h2 className="font-bold text-2xl">Asistencia</h2>
+        <hr className="border-[1.5px] border-[#c6caff] mt-3 " />
+        <div className="my-3 px-[7%]">
+          {usuarios.map((usuario) => (
+            <RowInformationUser
+              key={usuario.id}
+              userName={usuario.name}
+              companyName={empresa?.nombreCorto || ''}
+              userId={usuario.id}
+              planillaDate={planillaDate}
+            />
+          ))}
+        </div>
         <h2 className="font-bold text-2xl">Observaciones</h2>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
       </div>
@@ -91,6 +145,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
             onSave={handleSaveObservation}
             selectedActivities={obs.selectedActivities}
             objectiveId={objectiveId}
+            existingObservations={existingObservations}
           />
         ))
       )}

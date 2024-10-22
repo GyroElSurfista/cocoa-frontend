@@ -14,6 +14,7 @@ interface ObservationProps {
   objectiveId: number
   selectedActivities: Activity[]
   onSave: (observation: string, activities: Activity[]) => void
+  existingObservations: string[] // Lista de observaciones existentes para verificar duplicados
 }
 
 const ObservationAccordion: React.FC<ObservationProps> = ({
@@ -24,6 +25,7 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
   objectiveId,
   selectedActivities = [],
   onSave,
+  existingObservations,
 }) => {
   const [editableObservation, setEditableObservation] = useState<string>(observation)
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(selectedActivities.length > 0 ? selectedActivities[0] : null)
@@ -80,6 +82,17 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
       return
     }
 
+    // Verificar si ya existe una observación con el mismo nombre para la misma actividad
+    const duplicateObservation = existingObservations.find(
+      (obs) => obs.observation.trim() === editableObservation.trim() && obs.identificadorActiv === selectedActivity.id
+    )
+
+    if (duplicateObservation) {
+      setError('Ya existe una observación con el mismo nombre para esta actividad.')
+      return
+    }
+
+    // Guardar la observación si no es duplicada
     try {
       const response = await fetch(`https://cocoabackend.onrender.com/api/crear-observacion`, {
         method: 'POST',
@@ -98,7 +111,7 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
         const createdObservation = await response.json()
         console.log('Observación creada:', createdObservation)
         onSave(editableObservation, [selectedActivity])
-        setError('') // Clear error message after successful save
+        setError('') // Limpiar mensaje de error tras guardar correctamente
         setIsEditing(false)
       } else {
         const errorMessage = await response.text()
