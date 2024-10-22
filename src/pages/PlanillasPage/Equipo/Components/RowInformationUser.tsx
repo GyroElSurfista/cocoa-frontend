@@ -2,6 +2,7 @@ import { useState } from 'react'
 import IconUser from '../../../../assets/icon-user.svg'
 import Checkbox from '@mui/material/Checkbox'
 import axios from 'axios'
+import { Snackbar, SnackbarContent } from '@mui/material'
 
 interface RowInformationUserProps {
   userName: string
@@ -23,6 +24,9 @@ const motivosMap: Record<Motivo, number> = {
 export const RowInformationUser: React.FC<RowInformationUserProps> = ({ userName, companyName, userId, planillaDate }) => {
   const [isChecked, setIsChecked] = useState(true)
   const [motivo, setMotivo] = useState<string>('Motivo de Inasistencia')
+  const [isMotivoEditable, setIsMotivoEditable] = useState(true) // Para hacer el select ineditable después de seleccionar un motivo
+  const [snackbarOpen, setSnackbarOpen] = useState(false) // Controlar la apertura del Snackbar
+  const [snackbarMessage, setSnackbarMessage] = useState('') // Mensaje para el Snackbar
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsChecked(event.target.checked)
@@ -49,15 +53,23 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({ userName
       try {
         const response = await axios.post('https://cocoabackend.onrender.com/api/asistencias-inasistencia', payload)
 
-        if (response.status === 200) {
-          console.log('Inasistencia registrada correctamente')
-          alert('Inasistencia registrada correctamente')
+        if (response.status === 201) {
+          // Mostrar mensaje de éxito y deshabilitar el select
+          setSnackbarMessage('Inasistencia registrada correctamente')
+          setSnackbarOpen(true)
+          setIsMotivoEditable(false) // Deshabilitar el select
         }
       } catch (error) {
         console.error('Error al registrar la inasistencia', error)
-        alert('Error al registrar la inasistencia')
+        setSnackbarMessage('Error al registrar la inasistencia')
+        setSnackbarOpen(true)
       }
     }
+  }
+
+  // Manejar el cierre del Snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false)
   }
 
   return (
@@ -81,6 +93,7 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({ userName
             value={motivo}
             onChange={handleMotivoChange}
             className="inline-flex items-center px-1 py-0 gap-1 rounded-md border-[0.5px] border-[#FFC3CC] bg-[#FFDEE3] text-[#A70920] h-7"
+            disabled={!isMotivoEditable} // Deshabilitar el select si ya se seleccionó un motivo
           >
             <option value="Motivo de Inasistencia" className="bg-[#FFF0F2] border-b border-[#FFDEE3]">
               Motivo de Inasistencia
@@ -97,6 +110,29 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({ userName
           </select>
         </div>
       )}
+
+      {/* Snackbar para mostrar mensajes */}
+      <Snackbar
+        open={snackbarOpen}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+      >
+        <SnackbarContent
+          style={{
+            display: 'flex',
+            width: '325px',
+            padding: '15px 20px',
+            justifyContent: 'start',
+            alignItems: 'center',
+            gap: '10px',
+            borderRadius: '10px',
+            background: '#D3FFD2',
+            color: '#00A407',
+          }}
+          message={snackbarMessage}
+        />
+      </Snackbar>
     </div>
   )
 }
