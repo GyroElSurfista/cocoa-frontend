@@ -104,7 +104,6 @@ const ObservationPage: React.FC<ObservationPageProps> = ({ observations: initial
             />
           ))
         )}
-        <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
       </div>
 
       {isModalOpen && <NewObservationModal />}
