@@ -1,9 +1,12 @@
+// PlanillaEquipoPage.tsx
+
 import { useState, useEffect } from 'react'
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
 import ObservationAccordion from './Components/ObservationAccordion'
 import { ButtonAddObservation } from './Components/ButtonAddObservation'
 import { RowInformationUser } from './Components/RowInformationUser'
 import axios from 'axios'
+import { SavePlanillaEquipoModal } from './Components/SavePlanillaEquipoModal'
 
 interface Activity {
   id: number
@@ -51,11 +54,9 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [usuarios, setUsuarios] = useState<User[]>([])
   const [empresa, setEmpresa] = useState<Empresa | null>(null)
-
-  // Obtener empresa y usuarios al montar el componente
-  useEffect(() => {
-    fetchEmpresaYUsuarios(1) // Por ahora usamos ID 1
-  }, [planillaDate])
+  const [asistencias, setAsistencias] = useState<Record<number, { valor: boolean; identificadorMotiv: number | null }>>({})
+  const [isReadOnly, setIsReadOnly] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
 
   // Función que realiza la solicitud para obtener empresa y usuarios
   const fetchEmpresaYUsuarios = async (empresaId: number) => {
@@ -76,6 +77,30 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
       console.error('Error al obtener empresa o usuarios:', error)
     }
   }
+
+  // Obtener empresa, usuarios y asistencias al montar el componente
+  useEffect(() => {
+    fetchEmpresaYUsuarios(1) // Por ahora usamos ID 1
+
+    const fetchAsistencias = async () => {
+      try {
+        const response = await axios.get(`https://cocoabackend.onrender.com/api/asistencia?grupoEmpresaId=1&fecha=${planillaDate}`)
+        const data = response.data
+        const asistenciaMap: Record<number, { valor: boolean; identificadorMotiv: number | null }> = {}
+
+        data.forEach((registro: any) => {
+          asistenciaMap[registro.identificadorUsuar] = { valor: registro.valor, identificadorMotiv: registro.identificadorMotiv }
+        })
+
+        setAsistencias(asistenciaMap)
+        setIsReadOnly(data.length > 0) // Si hay datos de asistencia, el modo es solo lectura
+      } catch (error) {
+        console.error('Error al obtener asistencias:', error)
+      }
+    }
+
+    fetchAsistencias()
+  }, [planillaDate])
 
   const handleAddObservation = () => {
     const newObservation: Observation = {
@@ -99,19 +124,65 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     setSnackbarOpen(false)
   }
 
-  const existingObservations = observations.map((obs) => ({
-    observation: obs.observation,
-    identificadorActiv: obs.identificadorActiv,
-  }))
+  // Manejar cambios del checkbox y motivo
+  const handleChangeAsistencia = (userId: number, valor: boolean, identificadorMotiv: number | null) => {
+    setAsistencias((prevState) => ({
+      ...prevState,
+      [userId]: { valor, identificadorMotiv },
+    }))
+  }
+
+  // Función para manejar el guardado de la planilla
+  const handleGuardarPlanilla = async () => {
+    const solicitudes = usuarios.map(async (usuario) => {
+      const asistencia = asistencias[usuario.id]
+
+      // Si el usuario tiene el checkbox marcado (asistencia) o seleccionó un motivo (inasistencia)
+      if (asistencia.valor && asistencia.identificadorMotiv === null) {
+        // Guardar asistencia
+        return axios.post('https://cocoabackend.onrender.com/api/asistencias-asistencia', {
+          identificadorUsuar: usuario.id,
+          fecha: planillaDate,
+          valor: true,
+        })
+      } else if (asistencia.identificadorMotiv !== null) {
+        // Guardar inasistencia con motivo
+        return axios.post('https://cocoabackend.onrender.com/api/asistencias-inasistencia', {
+          identificadorUsuar: usuario.id,
+          fecha: planillaDate,
+          valor: false, // Assuming it's an absence, hence false
+          identificadorMotiv: asistencia.identificadorMotiv,
+        })
+      }
+    })
+
+    try {
+      await Promise.all(solicitudes)
+      setSnackbarMessage('Asistencia guardada exitosamente')
+      setSnackbarOpen(true)
+      setIsReadOnly(true)
+      fetchEmpresaYUsuarios(1) // Refrescar datos para reflejar el estado no editable
+    } catch (error) {
+      console.error('Error al guardar asistencia:', error)
+      setSnackbarMessage('Error al guardar la asistencia')
+      setSnackbarOpen(true)
+    }
+  }
 
   return (
     <div className="mx-28">
       <h1 className="font-bold text-3xl">Llenar planilla de Seguimiento</h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
-      <h2 className="font-bold text-2xl">
-        <button onClick={onBack}>Objetivo {objectiveId}</button> {'>'} Planilla #{planillaDate}
-      </h2>
-
+      <div className="flex justify-between">
+        <h2 className="font-bold text-2xl">
+          <button onClick={onBack}>Objetivo {objectiveId}</button> {'>'} Planilla #{planillaDate}
+        </h2>
+        {!isReadOnly && (
+          <button onClick={() => setModalOpen(true)} className="button-primary">
+            Guardar Planillas
+          </button>
+        )}
+      </div>
       <div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
         <h2 className="font-bold text-2xl">Asistencia</h2>
@@ -125,6 +196,9 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
               companyName={empresa?.nombreCorto || ''}
               userId={usuario.id}
               planillaDate={planillaDate}
+              isReadOnly={isReadOnly}
+              asistenciaData={asistencias[usuario.id]}
+              onChangeAsistencia={handleChangeAsistencia} // Nueva prop para manejar cambios
             />
           ))}
         </div>
@@ -146,12 +220,24 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
             onSave={handleSaveObservation}
             selectedActivities={obs.selectedActivities}
             objectiveId={objectiveId}
-            existingObservations={existingObservations}
+            existingObservations={observations}
           />
         ))
       )}
 
-      <ButtonAddObservation onAddObservation={handleAddObservation} />
+      {/* Mostrar el botón de añadir observación solo si no está en modo de solo lectura */}
+      {!isReadOnly && <ButtonAddObservation onAddObservation={handleAddObservation} />}
+
+      {/* Modal de confirmación para guardar planilla */}
+      {modalOpen && (
+        <SavePlanillaEquipoModal
+          onConfirm={() => {
+            handleGuardarPlanilla()
+            setModalOpen(false)
+          }}
+          onCancel={() => setModalOpen(false)}
+        />
+      )}
 
       <Snackbar
         open={snackbarOpen}
