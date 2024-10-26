@@ -65,7 +65,8 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     setActiveStep(0)
     reset()
     onClose()
-    setErrorMessage('') // Clear the error message when canceling
+    setErrorMessage('')
+    setSelectedProject(null)
   }
 
   const renderStepContent = (step: number) => {
@@ -112,6 +113,10 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   {...register('iniDate', {
                     required: 'La fecha de inicio es obligatoria',
                     validate: {
+                      notPast: (value) => {
+                        const today = new Date().toISOString().split('T')[0] // Formato de fecha 'YYYY-MM-DD'
+                        return value >= today || 'La fecha de inicio no puede ser anterior a la fecha actual'
+                      },
                       beforeEndDate: (value) => {
                         const endDate = watch('finDate')
                         return (
@@ -135,6 +140,10 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   {...register('finDate', {
                     required: 'La fecha de fin es obligatoria',
                     validate: {
+                      notPast: (value) => {
+                        const today = new Date().toISOString().split('T')[0] // Formato de fecha 'YYYY-MM-DD'
+                        return value >= today || 'La fecha de fin no puede ser anterior a la fecha actual'
+                      },
                       afterStartDate: (value) => {
                         const startDate = watch('iniDate')
                         return (
@@ -269,14 +278,14 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
           setActiveStep(1)
           setError('finDate', {
             type: 'manual',
-            message: errorData.errors.fechaFin.join(', '),
+            message: errorData.errors.fechaFin.join('. '),
           })
         }
         if (errorData.errors.nombre) {
           setActiveStep(1)
           setError('objective', {
             type: 'manual',
-            message: errorData.errors.nombre.join(', '),
+            message: errorData.errors.nombre.join('. '),
           })
         }
         if (errorData.errors.valorPorce) {
@@ -308,7 +317,11 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     if (valueP) {
       const value = parseFloat(valueP)
       if (!isNaN(value)) {
-        setEquivalence((value / 100) * planningCost) // Aplica el valor porcentual al costo de la planificación
+        if (value >= 0 && value <= 100) {
+          setEquivalence((value / 100) * planningCost) // Aplica el valor porcentual al costo de la planificación
+        } else {
+          setEquivalence(0)
+        }
       } else {
         setEquivalence(0)
       }
