@@ -36,9 +36,11 @@ const GenerateTrackerModal: React.FC<GenerateTrackerModalProps> = ({ isOpen, onC
     }
 
     try {
-      await generateWeeklyTracking(selectedObjective.identificador)
+      const response = await generateWeeklyTracking(selectedObjective.identificador)
+      console.log(response)
       onGenerate()
       setSelectedObjective(null)
+      fetchObjectives()
       onClose()
     } catch (error) {
       console.error('Error generating tracking sheet:', error)
