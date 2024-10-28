@@ -1,5 +1,3 @@
-// PlanillaEquipoPage.tsx
-
 import { useState, useEffect } from 'react'
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
 import ObservationAccordion from './Components/ObservationAccordion'
@@ -58,7 +56,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   const [isReadOnly, setIsReadOnly] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
 
-  // Función que realiza la solicitud para obtener empresa y usuarios
+  // Función para obtener empresa y usuarios
   const fetchEmpresaYUsuarios = async (empresaId: number) => {
     try {
       const grupoResponse = await axios.get('https://cocoabackend.onrender.com/api/grupoEmpresas')
@@ -80,7 +78,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
 
   // Obtener empresa, usuarios y asistencias al montar el componente
   useEffect(() => {
-    fetchEmpresaYUsuarios(1) // Por ahora usamos ID 1
+    fetchEmpresaYUsuarios(1) // Usamos el ID 1 por ahora
 
     const fetchAsistencias = async () => {
       try {
@@ -93,7 +91,8 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
         })
 
         setAsistencias(asistenciaMap)
-        setIsReadOnly(data.length > 0) // Si hay datos de asistencia, el modo es solo lectura
+        setIsReadOnly(data.length > 0)
+        console.log(isReadOnly) // Si hay datos de asistencia, el modo es solo lectura
       } catch (error) {
         console.error('Error al obtener asistencias:', error)
       }
@@ -119,12 +118,29 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     setSnackbarOpen(true)
   }
 
+  // Nueva función para manejar la eliminación de observaciones
+  const handleDeleteObservation = async (observationId: number) => {
+    try {
+      // Solicitud para eliminar la observación
+      await axios.delete(`https://cocoabackend.onrender.com/api/observaciones/${observationId}`)
+      // Actualizar el estado de las observaciones después de eliminar
+      setObservations((prevObservations) => prevObservations.filter((obs) => obs.id !== observationId))
+      setSnackbarMessage('Observación eliminada exitosamente')
+      setSnackbarOpen(true)
+    } catch (error) {
+      console.log(observations)
+      console.error('Error al eliminar observación:', error)
+      setSnackbarMessage('Error al eliminar la observación')
+      setSnackbarOpen(true)
+    }
+  }
+
   const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
     if (reason === 'clickaway') return
     setSnackbarOpen(false)
   }
 
-  // Manejar cambios del checkbox y motivo
+  // Manejar cambios del checkbox y motivo de asistencia
   const handleChangeAsistencia = (userId: number, valor: boolean, identificadorMotiv: number | null) => {
     setAsistencias((prevState) => ({
       ...prevState,
@@ -132,7 +148,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     }))
   }
 
-  // Función para manejar el guardado de la planilla
+  // Función para guardar la planilla
   const handleGuardarPlanilla = async () => {
     const solicitudes = usuarios.map(async (usuario) => {
       const asistencia = asistencias[usuario.id]
@@ -150,7 +166,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
         return axios.post('https://cocoabackend.onrender.com/api/asistencias-inasistencia', {
           identificadorUsuar: usuario.id,
           fecha: planillaDate,
-          valor: false, // Assuming it's an absence, hence false
+          valor: false, // Asumimos que es una ausencia
           identificadorMotiv: asistencia.identificadorMotiv,
         })
       }
@@ -198,7 +214,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
               planillaDate={planillaDate}
               isReadOnly={isReadOnly}
               asistenciaData={asistencias[usuario.id]}
-              onChangeAsistencia={handleChangeAsistencia} // Nueva prop para manejar cambios
+              onChangeAsistencia={handleChangeAsistencia} // Prop para manejar cambios de asistencia
             />
           ))}
         </div>
@@ -218,9 +234,11 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
             identificadorPlaniSegui={planillaSeguiId ?? 0}
             identificadorActiv={obs.identificadorActiv}
             onSave={handleSaveObservation}
+            onDelete={handleDeleteObservation} // Nueva función para eliminar observaciones
             selectedActivities={obs.selectedActivities}
+            isReadOnly={isReadOnly}
             objectiveId={objectiveId}
-            existingObservations={observations}
+            existingObservations={observations.map((o) => o.observation)}
           />
         ))
       )}
