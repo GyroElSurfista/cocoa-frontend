@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import IconModeEdit from '../../../../assets/icon-modeEdit.svg'
+import IconTrash from '../../../../assets/trash.svg'
 
 interface Activity {
   id: number
@@ -8,13 +9,15 @@ interface Activity {
 
 interface ObservationProps {
   observation: string
-  observationId: number | null // Puede ser null para las nuevas observaciones
+  observationId: number | null
   identificadorPlaniSegui: number
   identificadorActiv: number | null
   objectiveId: number
   selectedActivities: Activity[]
+  isReadOnly: boolean
   onSave: (observation: string, activities: Activity[]) => void
-  existingObservations: string[] // Lista de observaciones existentes para verificar duplicados
+  onDelete: (observationId: number) => void
+  existingObservations: string[]
 }
 
 const ObservationAccordion: React.FC<ObservationProps> = ({
@@ -24,7 +27,9 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
   identificadorActiv,
   objectiveId,
   selectedActivities = [],
+  isReadOnly,
   onSave,
+  onDelete,
   existingObservations,
 }) => {
   const [editableObservation, setEditableObservation] = useState<string>(observation)
@@ -32,9 +37,9 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
   const [availableActivities, setAvailableActivities] = useState<Activity[]>([])
   const [error, setError] = useState<string>('')
 
-  const [isEditing, setIsEditing] = useState(observationId === null) // Inicia en modo edición si la observación es nueva
+  const [isEditing, setIsEditing] = useState(observationId === null)
+  const [isSaved, setIsSaved] = useState<boolean>(observationId !== null)
 
-  // Fetch actividades para el objetivo seleccionado
   useEffect(() => {
     const fetchActivities = async () => {
       try {
@@ -72,7 +77,6 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
   }
 
   const validateAndSave = async () => {
-    // Verificar tamaño mínimo y máximo de la observación
     if (editableObservation.trim().length < 5) {
       setError('La observación debe tener al menos 5 caracteres.')
       return
@@ -93,9 +97,8 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
       return
     }
 
-    // Verificar si ya existe una observación con el mismo nombre para la misma actividad
     const duplicateObservation = existingObservations.find(
-      (obs) => obs.observation.trim() === editableObservation.trim() && obs.identificadorActiv === selectedActivity.id
+      (obs) => obs === editableObservation.trim() && identificadorActiv === selectedActivity.id
     )
 
     if (duplicateObservation) {
@@ -103,7 +106,6 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
       return
     }
 
-    // Guardar la observación si no es duplicada
     try {
       const response = await fetch(`https://cocoabackend.onrender.com/api/crear-observacion`, {
         method: 'POST',
@@ -112,7 +114,7 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
         },
         body: JSON.stringify({
           descripcion: editableObservation,
-          fecha: new Date().toISOString().split('T')[0], // Fecha actual en formato "YYYY-MM-DD"
+          fecha: new Date().toISOString().split('T')[0],
           identificadorPlaniSegui,
           identificadorActiv: selectedActivity.id,
         }),
@@ -120,25 +122,34 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
 
       if (response.ok) {
         const createdObservation = await response.json()
-        console.log('Observación creada:', createdObservation)
         onSave(editableObservation, [selectedActivity])
-        setError('') // Limpiar mensaje de error tras guardar correctamente
+        setError('')
         setIsEditing(false)
+        setIsSaved(true)
       } else {
-        const errorMessage = await response.text()
         setError('Error al guardar la observación. Inténtalo de nuevo.')
-        console.log(errorMessage)
       }
     } catch (error) {
       setError('Error en la conexión al servidor.')
     }
   }
 
-  const toggleEditing = () => {
+  const handleDelete = async () => {
     if (isEditing) {
-      validateAndSave() // Si está en modo edición, guardamos los cambios
+      if (observationId !== null) {
+        onDelete(observationId)
+      }
     } else {
-      setIsEditing(true) // Si no está en edición, activamos el modo edición
+      setIsEditing(true)
+    }
+  }
+
+  const toggleEditing = () => {
+    console.log(isReadOnly)
+    if (isEditing) {
+      validateAndSave()
+    } else {
+      setIsEditing(true)
     }
   }
 
@@ -169,15 +180,19 @@ const ObservationAccordion: React.FC<ObservationProps> = ({
             ))}
           </select>
 
-          {isEditing && (
-            <div onClick={toggleEditing} className="cursor-pointer ml-2 flex items-center justify-center">
-              <img
-                src={IconModeEdit}
-                alt="Modo Edición"
-                className="h-6 w-6" // Tamaño fijo para que no se haga pequeño
-                style={{ minWidth: '24px', minHeight: '24px' }} // Añade un tamaño mínimo para evitar que se encoja
-              />
-            </div>
+          {/* Condicional para no mostrar los íconos cuando isReadOnly es true */}
+          {!isReadOnly && (
+            <>
+              {!isEditing && isSaved ? (
+                <div onClick={handleDelete} className="cursor-pointer ml-2 flex items-center justify-center">
+                  <img src={IconTrash} alt="Eliminar" className="h-6 w-6" style={{ minWidth: '24px', minHeight: '24px' }} />
+                </div>
+              ) : (
+                <div onClick={toggleEditing} className="cursor-pointer ml-2 flex items-center justify-center">
+                  <img src={IconModeEdit} alt="Editar" className="h-6 w-6" style={{ minWidth: '24px', minHeight: '24px' }} />
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
