@@ -20,6 +20,9 @@ export type ActivityRowProps = {
   identificador: number
   index: number
   nombre: string
+  objetivo: string
+  proyecto: string
+  esEliminable: boolean
   fechaInici: Date
   fechaFin: Date
   responsable: string | null
@@ -40,7 +43,7 @@ export type DialogActivityProps = {
   activity: ActivityProps | null
   isVisible: boolean
   onHide: () => void
-  onSave: () => void
+  onSave: () => Promise<boolean>
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onChangeObjective: (
     event: SyntheticEvent<Element, Event>,

@@ -210,19 +210,37 @@ const DeleteActivityPage = (): JSX.Element => {
       ) : activities.length === 0 ? (
         <h3 className="flex justify-center font-semibold mt-2">No existen actividades disponibles</h3>
       ) : (
-        activities.map((actividad, index) => (
-          <ActivityRowDelete
-            key={actividad.identificador}
-            fechaFin={actividad.fechaFin}
-            fechaInici={actividad.fechaInici}
-            index={index + 1}
-            nombre={actividad.nombre}
-            responsable={actividad.responsable}
-            identificador={actividad.identificador}
-            onCheckboxChange={handleCheckboxChange}
-            checked={selectedActivities.includes(actividad.identificador)}
-          />
-        ))
+        activities.map((actividad, index) =>
+          Math.floor(Math.random() * 2) === 1 ? (
+            <ActivityRowDelete
+              key={actividad.identificador}
+              fechaFin={actividad.fechaFin}
+              fechaInici={actividad.fechaInici}
+              index={index + 1}
+              nombre={actividad.nombre}
+              responsable={actividad.responsable}
+              identificador={actividad.identificador}
+              objetivo={actividad.objetivo}
+              proyecto="COCOA"
+              onCheckboxChange={handleCheckboxChange}
+              checked={selectedActivities.includes(actividad.identificador)}
+              esEliminable={true}
+            />
+          ) : (
+            <ActivityRowDelete
+              key={actividad.identificador}
+              fechaFin={actividad.fechaFin}
+              fechaInici={actividad.fechaInici}
+              index={index + 1}
+              nombre={actividad.nombre}
+              responsable={actividad.responsable}
+              identificador={actividad.identificador}
+              objetivo={actividad.objetivo}
+              proyecto="COCOA"
+              esEliminable={false}
+            />
+          )
+        )
       )}
 
       <ModalConfirmation

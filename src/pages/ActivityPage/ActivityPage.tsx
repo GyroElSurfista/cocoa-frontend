@@ -7,7 +7,7 @@ import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
 import { UserData } from '../../interfaces/user.interface'
 import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 import { createActivity, getActivities } from '../../services/activity.service'
-import { Alert, Snackbar } from '@mui/material'
+import { Alert, Snackbar, SnackbarCloseReason } from '@mui/material'
 
 const ActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityProps[]>([])
@@ -91,7 +91,7 @@ const ActivityPage = (): JSX.Element => {
     }
   }, [])
 
-  const handleAddNewActivity = useCallback(async () => {
+  const handleAddNewActivity = useCallback(async (): Promise<boolean> => {
     try {
       if (selectedActivity) {
         await createActivity({ ...selectedActivity })
@@ -101,7 +101,7 @@ const ActivityPage = (): JSX.Element => {
         setOpenSnackbar(true)
       }
       return false
-    } catch (error) {
+    } catch (error: unknown) {
       return true
     }
   }, [selectedActivity, activities.length])
