@@ -315,7 +315,7 @@ const DialogActivity = ({
                 slotProps={{ htmlInput: { maxLength: 255 } }}
               />
 
-              {isEditMode ? (
+              {isEditMode && activity.resultados.length > 1 ? (
                 <Button onClick={() => handleRemoveResult(index)} className="ml-2" color="inherit">
                   X
                 </Button>
