@@ -143,8 +143,8 @@ const ActivityPage = (): JSX.Element => {
                 {...activity}
                 orden={index + 1}
                 onClick={() => handleActivityClick(activity)}
-                isDialogOpen={isDialogOpen}
                 objetivo={activity.objetivo}
+                proyecto="COCOA"
               />
             ))
           ) : (
