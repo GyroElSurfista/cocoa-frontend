@@ -57,12 +57,12 @@ export type DialogActivityProps = {
 }
 
 export interface ActivityErrors {
-  nombre: string
-  descripcion: string
-  responsable: string
-  fechaInici: string
-  fechaFin: string
-  objetivo: string
+  nombre: string[]
+  descripcion: string[]
+  responsable: string[]
+  fechaInici: string[]
+  fechaFin: string[]
+  objetivo: string[]
   resultados: string[]
 }
 

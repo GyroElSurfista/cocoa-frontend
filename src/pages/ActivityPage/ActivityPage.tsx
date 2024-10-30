@@ -91,7 +91,7 @@ const ActivityPage = (): JSX.Element => {
     }
   }, [])
 
-  const handleAddNewActivity = useCallback(async (): Promise<boolean> => {
+  const handleAddNewActivity = useCallback(async (): Promise<any> => {
     try {
       if (selectedActivity) {
         await createActivity({ ...selectedActivity })
@@ -102,7 +102,7 @@ const ActivityPage = (): JSX.Element => {
       }
       return false
     } catch (error: unknown) {
-      return true
+      return error
     }
   }, [selectedActivity, activities.length])
 
