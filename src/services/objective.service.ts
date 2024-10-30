@@ -28,7 +28,7 @@ export const getObjectives = async () => {
 }
 
 export const getPlannings = async () => {
-  return await axiosInstance.get('/grupo-empresa/1/planificaciones')
+  return await axiosInstance.get('/planificaciones')
 }
 
 export const getObjectivesFromPlanification = async (): AxiosPromise<ObjectiveData[]> => {
