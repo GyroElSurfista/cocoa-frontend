@@ -59,6 +59,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     if (activeStep > 0) {
       setActiveStep((prev) => prev - 1)
     }
+    setApiError(null)
   }
 
   const handleCancel = () => {
@@ -304,6 +305,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   const fetchProjects = async () => {
     try {
       const response = await getPlannings()
+      console.log('planificaciones', response.data)
       setProjects(response.data)
     } catch (error) {
       console.error('Error fetching projects', error)
