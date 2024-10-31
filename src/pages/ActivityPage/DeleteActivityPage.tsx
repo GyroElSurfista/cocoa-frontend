@@ -25,6 +25,7 @@ const DeleteActivityPage = (): JSX.Element => {
   const [resetKey, setResetKey] = useState<number>(0)
   const [open, setOpen] = useState<boolean>(false)
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
+  const [noErrors, setNoErrors] = useState<boolean>(true)
 
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
@@ -74,6 +75,7 @@ const DeleteActivityPage = (): JSX.Element => {
       setActivities(actividades)
     } catch (error) {
       console.error('Error al buscar actividades', error)
+      setActivities([])
       setSearchNotFound(true)
     }
   }
@@ -86,11 +88,12 @@ const DeleteActivityPage = (): JSX.Element => {
   }
 
   const handleToggleAllCheckboxes = () => {
-    if (selectedActivities.length === activities.length) {
+    if (selectedActivities.length === activities.filter((actividad) => actividad.esEliminable).length) {
       setSelectedActivities([]) // Desmarcar todos
     } else {
-      const allActivityIds = activities.map((activity) => activity.identificador)
-      setSelectedActivities(allActivityIds) // Marcar todos
+      const allActivityIds = activities.filter((actividad) => actividad.esEliminable).map((actividad) => actividad.identificador)
+      console.log(allActivityIds)
+      setSelectedActivities(allActivityIds as number[]) // Marcar todos los eliminables
     }
   }
 
@@ -105,6 +108,7 @@ const DeleteActivityPage = (): JSX.Element => {
     setActivities(actividades)
     setSelectedActivities([])
     setOpen(false)
+    setNoErrors(true)
     setOpenSnackbar(true)
   }
 
@@ -191,7 +195,17 @@ const DeleteActivityPage = (): JSX.Element => {
       <hr className="border-[1.5px] border-[#c6caff]" />
       <div className="flex justify-end items-center">
         <label>Eliminar</label>
-        <DeleteIcon fontSize="medium" onClick={handleOpen} />
+        <DeleteIcon
+          fontSize="medium"
+          onClick={() => {
+            if (selectedActivities.length > 0) handleOpen()
+            else {
+              setNoErrors(false)
+              setOpenSnackbar(true)
+            }
+          }}
+          className="hover:fill-red-500 cursor-pointer"
+        />
         <Checkbox
           sx={{
             color: 'black',
@@ -199,7 +213,10 @@ const DeleteActivityPage = (): JSX.Element => {
               color: 'black',
             },
           }}
-          checked={selectedActivities.length === activities.length && activities.length > 0} // Controlar si está marcado
+          checked={
+            selectedActivities.length === activities.filter((actividad) => actividad.esEliminable).length &&
+            activities.filter((actividad) => actividad.esEliminable).length > 0
+          } // Controlar si está marcado
           onChange={handleToggleAllCheckboxes}
         />
       </div>
@@ -210,19 +227,37 @@ const DeleteActivityPage = (): JSX.Element => {
       ) : activities.length === 0 ? (
         <h3 className="flex justify-center font-semibold mt-2">No existen actividades disponibles</h3>
       ) : (
-        activities.map((actividad, index) => (
-          <ActivityRowDelete
-            key={actividad.identificador}
-            fechaFin={actividad.fechaFin}
-            fechaInici={actividad.fechaInici}
-            index={index + 1}
-            nombre={actividad.nombre}
-            responsable={actividad.responsable}
-            identificador={actividad.identificador}
-            onCheckboxChange={handleCheckboxChange}
-            checked={selectedActivities.includes(actividad.identificador)}
-          />
-        ))
+        activities.map((actividad, index) =>
+          actividad.esEliminable ? (
+            <ActivityRowDelete
+              key={actividad.identificador}
+              fechaFin={actividad.fechaFin}
+              fechaInici={actividad.fechaInici}
+              index={index + 1}
+              nombre={actividad.nombre}
+              responsable={actividad.responsable}
+              identificador={actividad.identificador}
+              objetivo={actividad.objetivo}
+              proyecto={actividad.proyecto}
+              onCheckboxChange={handleCheckboxChange}
+              checked={selectedActivities.includes(actividad.identificador)}
+              esEliminable={true}
+            />
+          ) : (
+            <ActivityRowDelete
+              key={actividad.identificador}
+              fechaFin={actividad.fechaFin}
+              fechaInici={actividad.fechaInici}
+              index={index + 1}
+              nombre={actividad.nombre}
+              responsable={actividad.responsable}
+              identificador={actividad.identificador}
+              objetivo={actividad.objetivo}
+              proyecto={actividad.proyecto}
+              esEliminable={false}
+            />
+          )
+        )
       )}
 
       <ModalConfirmation
@@ -238,7 +273,11 @@ const DeleteActivityPage = (): JSX.Element => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <Alert severity="success">Actividad(es) eliminada(s) existosamente</Alert>
+        {noErrors ? (
+          <Alert severity="success">Actividad(es) eliminada(s) existosamente</Alert>
+        ) : (
+          <Alert severity="warning">No seleccionaste ninguna actividad para eliminar</Alert>
+        )}
       </Snackbar>
     </>
   )

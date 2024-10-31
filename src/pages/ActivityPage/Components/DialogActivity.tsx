@@ -21,58 +21,64 @@ const DialogActivity = ({
   objetivos,
 }: DialogActivityProps): JSX.Element => {
   const [errors, setErrors] = useState<ActivityErrors>({
-    nombre: '',
-    descripcion: '',
-    responsable: '',
-    fechaInici: '',
-    fechaFin: '',
-    objetivo: '',
+    nombre: [''],
+    descripcion: [''],
+    responsable: [''],
+    fechaInici: [''],
+    fechaFin: [''],
+    objetivo: [''],
     resultados: [],
   })
 
   useEffect(() => {
-    if (activity?.nombre) {
+    if (activity) {
       setErrors({
-        nombre: '',
-        descripcion: '',
-        responsable: '',
-        fechaInici: '',
-        fechaFin: '',
-        objetivo: '',
+        nombre: [''],
+        descripcion: [''],
+        responsable: [''],
+        fechaInici: [''],
+        fechaFin: [''],
+        objetivo: [''],
         resultados: [],
       })
     }
-  }, [activity?.nombre])
+  }, [activity])
 
-  const validateFields = () => {
+  const validateFields = async (): Promise<boolean> => {
     const newErrors: ActivityErrors = {
-      nombre: '',
-      descripcion: '',
-      responsable: '',
-      fechaInici: '',
-      fechaFin: '',
-      objetivo: '',
+      nombre: [''],
+      descripcion: [''],
+      responsable: [''],
+      fechaInici: [''],
+      fechaFin: [''],
+      objetivo: [''],
       resultados: Array(activity?.resultados?.length).fill(''),
     }
 
-    if (!activity?.nombre || activity?.nombre.length === 0) newErrors.nombre = 'El título es obligatorio'
-    else if (activity?.nombre.length < 5) newErrors.nombre = 'El título debe tener al menos 5 caracteres'
-    else if (activity?.nombre.length > 50) newErrors.nombre = 'El título no puede exceder 50 caracteres'
+    if (!activity?.nombre || activity?.nombre.length === 0) newErrors.nombre[0] = 'El título es obligatorio'
+    else if (activity?.nombre.length < 5) newErrors.nombre[0] = 'El título debe tener al menos 5 caracteres'
+    else if (activity?.nombre.length > 50) newErrors.nombre[0] = 'El título no puede exceder 50 caracteres'
+    else if (activity?.nombre.trim() === '') newErrors.nombre[0] = 'El título no puede contener solo espacios en blanco'
+    else if (activity?.nombre !== activity?.nombre.trim())
+      newErrors.nombre[0] = 'El título no puede contener espacios en blanco al principio o final'
 
-    if (!activity?.descripcion || activity?.descripcion.length === 0) newErrors.descripcion = 'La descripción es obligatoria'
-    else if (activity?.descripcion.length < 5) newErrors.descripcion = 'La descripción debe tener al menos 5 caracteres'
-    else if (activity?.descripcion.length > 255) newErrors.descripcion = 'La descripción no puede exceder 255 caracteres'
+    if (!activity?.descripcion || activity?.descripcion.length === 0) newErrors.descripcion[0] = 'La descripción es obligatoria'
+    else if (activity?.descripcion.length < 5) newErrors.descripcion[0] = 'La descripción debe tener al menos 5 caracteres'
+    else if (activity?.descripcion.length > 255) newErrors.descripcion[0] = 'La descripción no puede exceder 255 caracteres'
+    else if (activity?.descripcion.trim() === '') newErrors.descripcion[0] = 'La descripción no puede contener solo espacios en blanco'
+    else if (activity?.descripcion !== activity?.descripcion.trim())
+      newErrors.descripcion[0] = 'La descripción no puede contener espacios en blanco al principio o final'
 
     if (!activity?.responsable || activity?.responsable.length === 0) {
-      newErrors.responsable = 'El responsable es obligatorio'
+      newErrors.responsable[0] = 'El responsable es obligatorio'
     }
 
     if (!activity?.fechaInici) {
-      newErrors.fechaInici = 'La fecha de inicio es obligatoria'
+      newErrors.fechaInici[0] = 'La fecha de inicio es obligatoria'
     }
 
     if (!activity?.fechaFin) {
-      newErrors.fechaFin = 'La fecha de fin es obligatoria'
+      newErrors.fechaFin[0] = 'La fecha de fin es obligatoria'
     }
 
     // Validación: fechaInici no puede ser mayor o igual a fechaFin
@@ -80,27 +86,32 @@ const DialogActivity = ({
       const fechaInici = dayjs(activity?.fechaInici)
       const fechaFin = dayjs(activity?.fechaFin)
       if (fechaInici.toDate() >= fechaFin.toDate()) {
-        newErrors.fechaInici = 'La fecha de inicio no puede ser mayor o igual a la fecha de fin'
+        newErrors.fechaInici[0] = 'La fecha de inicio no puede ser mayor o igual a la fecha de fin'
       }
     }
 
     if (!activity?.objetivo || activity?.objetivo.length === 0) {
-      newErrors.objetivo = 'El objetivo es obligatorio'
+      newErrors.objetivo[0] = 'El objetivo es obligatorio'
     }
 
     activity?.resultados?.forEach((resultado, index) => {
       if (!resultado || resultado.length === 0) newErrors.resultados[index] = 'El resultado es obligatorio'
       else if (resultado.length < 5) newErrors.resultados[index] = 'El resultado debe tener al menos 5 caracteres'
       else if (resultado.length > 255) newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
+      else if (resultado.trim() === '') newErrors.resultados[index] = 'El resultado no puede contener solo espacios en blanco'
+      else if (resultado !== resultado.trim())
+        newErrors.resultados[index] = 'El resultado no puede contener espacios en blanco al principio o final'
     })
 
     setErrors(newErrors)
-    return Object.keys(newErrors).every((key) => {
-      if (key === 'resultados') {
-        return newErrors.resultados.every((err) => !err)
+    const hasErrors = Object.values(newErrors).some((error) => {
+      if (Array.isArray(error)) {
+        return error.some((err) => err) // Check each entry in arrays like resultados
       }
-      return !newErrors[key as keyof ActivityErrors]
+      return Boolean(error) // For single-value fields like nombre, descripcion, etc.
     })
+
+    return !hasErrors // Return true if no errors, false otherwise
   }
 
   const handleAddResult = () => {
@@ -125,9 +136,16 @@ const DialogActivity = ({
   }
 
   const handleSave = async () => {
-    if (validateFields()) {
-      const isTitleError = await onSave()
-      if (isTitleError) setErrors({ ...errors, nombre: 'El nombre de la actividad ya existe' })
+    if (await validateFields()) {
+      const endpointErrors = await onSave()
+      if (endpointErrors) {
+        if (endpointErrors.response.data.errors) setErrors({ ...errors, ...endpointErrors.response.data.errors })
+        else if (
+          endpointErrors.response.data.error === 'La fecha de fin de la actividad no puede ser posterior a la fecha de fin del objetivo.'
+        )
+          setErrors({ ...errors, fechaFin: [endpointErrors.response.data.error] })
+        else setErrors({ ...errors, fechaInici: [endpointErrors.response.data.error] })
+      }
     }
   }
 
@@ -176,8 +194,8 @@ const DialogActivity = ({
                     fontSize: '1.25rem', // Aumentar tamaño del placeholder
                   },
                 }}
-                error={Boolean(errors.nombre)}
-                helperText={errors.nombre}
+                error={Boolean(errors.nombre[0])}
+                helperText={errors.nombre[0]}
                 slotProps={{ htmlInput: { maxLength: 50 } }}
               />
             ) : (
@@ -187,12 +205,12 @@ const DialogActivity = ({
               onClick={() => {
                 onHide()
                 setErrors({
-                  nombre: '',
-                  descripcion: '',
-                  responsable: '',
-                  fechaInici: '',
-                  fechaFin: '',
-                  objetivo: '',
+                  nombre: [''],
+                  descripcion: [''],
+                  responsable: [''],
+                  fechaInici: [''],
+                  fechaFin: [''],
+                  objetivo: [''],
                   resultados: [],
                 })
               }}
@@ -210,13 +228,13 @@ const DialogActivity = ({
               value={dayjs(activity.fechaInici)}
               onChange={onChangeInitialDate}
               label="Fecha de Inicio"
-              className={`${errors.fechaInici ? '' : 'mb-2'} w-36`}
+              className={`${errors.fechaInici[0] ? '' : 'mb-2'} w-36`}
               format="DD/MM/YYYY"
               disabled={!isEditMode}
               slotProps={{ textField: { required: true } }}
             />
           </LocalizationProvider>
-          {errors.fechaInici && <p className="text-red-600 text-xs mb-4 pl-3">{errors.fechaInici}</p>}
+          {errors.fechaInici[0] && <p className="text-red-600 text-xs mb-4 pl-3">{errors.fechaInici[0]}</p>}
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
@@ -230,7 +248,7 @@ const DialogActivity = ({
               slotProps={{ textField: { required: true } }}
             />
           </LocalizationProvider>
-          {errors.fechaFin && <p className="text-red-600 text-xs mb-2 pl-3">{errors.fechaFin}</p>}
+          {errors.fechaFin[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.fechaFin[0]}</p>}
 
           <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
           <Autocomplete
@@ -245,7 +263,7 @@ const DialogActivity = ({
             disabled={!isEditMode}
             size="small"
           />
-          {errors.objetivo && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo}</p>}
+          {errors.objetivo[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo[0]}</p>}
 
           <h3 className="text-lg font-semibold mb-2">Descripción</h3>
           <TextField
@@ -259,8 +277,8 @@ const DialogActivity = ({
             disabled={!isEditMode}
             multiline
             size="small"
-            error={Boolean(errors.descripcion)}
-            helperText={errors.descripcion}
+            error={Boolean(errors.descripcion[0])}
+            helperText={errors.descripcion[0]}
             slotProps={{ htmlInput: { maxLength: 255 } }}
           />
 
@@ -276,8 +294,8 @@ const DialogActivity = ({
             className="mb-2"
             disabled={!isEditMode}
             size="small"
-            error={Boolean(errors.responsable)}
-            helperText={errors.responsable}
+            error={Boolean(errors.responsable[0])}
+            helperText={errors.responsable[0]}
             slotProps={{
               input: {
                 startAdornment: (
@@ -315,7 +333,7 @@ const DialogActivity = ({
                 slotProps={{ htmlInput: { maxLength: 255 } }}
               />
 
-              {isEditMode ? (
+              {isEditMode && activity.resultados.length > 1 ? (
                 <Button onClick={() => handleRemoveResult(index)} className="ml-2" color="inherit">
                   X
                 </Button>
@@ -336,12 +354,12 @@ const DialogActivity = ({
                   onClick={() => {
                     onHide()
                     setErrors({
-                      nombre: '',
-                      descripcion: '',
-                      responsable: '',
-                      fechaInici: '',
-                      fechaFin: '',
-                      objetivo: '',
+                      nombre: [''],
+                      descripcion: [''],
+                      responsable: [''],
+                      fechaInici: [''],
+                      fechaFin: [''],
+                      objetivo: [''],
                       resultados: [],
                     })
                   }}
