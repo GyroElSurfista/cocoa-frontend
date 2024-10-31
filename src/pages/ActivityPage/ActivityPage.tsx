@@ -118,6 +118,7 @@ const ActivityPage = (): JSX.Element => {
       objetivo: '',
       identificadorUsua: 1,
       identificadorObjet: 0,
+      proyecto: '',
     })
     setIsEditMode(true)
     setIsDialogOpen(true)
@@ -144,7 +145,7 @@ const ActivityPage = (): JSX.Element => {
                 orden={index + 1}
                 onClick={() => handleActivityClick(activity)}
                 objetivo={activity.objetivo}
-                proyecto="COCOA"
+                proyecto={activity.proyecto}
               />
             ))
           ) : (

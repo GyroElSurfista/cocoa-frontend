@@ -14,6 +14,7 @@ export type ActivityProps = {
   identificadorObjet: number
   resultados: string[]
   objetivo: string
+  proyecto: string
 }
 
 export type ActivityRowProps = {
