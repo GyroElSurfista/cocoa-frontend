@@ -31,20 +31,22 @@ const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective }) => {
 
   return (
     <div className="bg-[rgb(224,227,255)] rounded px-3 mb-3">
-      <div className="flex flex-row py-1 items-center border-b border-[#c6caff] w-full">
+      <div className="flex flex-row py-1 items-center border-b border-[#c6caff] w-full justify-between">
         <div className="w-auto pr-2 border-r border-[#c6caff]">
           <p className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {objective.identificador}</p>
         </div>
         <div className="w-8/12 pl-2">{objective.objective} </div>
-        <div className="w-[88px]"></div>
         <div className="w-auto inline-flex justify-center border-l border-[#c6caff]">
-          <p className="flex items-center justify-end pl-3">
+          <p className="flex items-center justify-end pl-3 pr-2">
             Fechas:
             <span className="bg-red-200 rounded-xl text-sm ml-1 p-1 text-gray-600 font-normal">{formatDateToDMY(objective.iniDate)}</span> -
             <span className="bg-indigo-200 rounded-xl text-sm p-1 ml-1 text-gray-600 font-normal">
               {formatDateToDMY(objective.finDate)}
             </span>
           </p>
+        </div>
+        <div className="border-l border-[#c6caff] uppercase font-bold pl-2">{objective.nombrePlani}</div>
+        <div className="justify-end">
           <button className="py-4 pl-3 font-medium text-gray-800 focus:outline-none" onClick={toggleAccordion}>
             <svg
               className={`w-6 h-6 transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}

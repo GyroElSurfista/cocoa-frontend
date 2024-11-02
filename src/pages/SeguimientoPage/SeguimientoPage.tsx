@@ -32,6 +32,7 @@ const SeguimientoPage = () => {
   const cargarObjetivos = async () => {
     try {
       const response = await getObjectives()
+      console.log('objSegui', response.data)
       const objetivosFiltrados = response.data
         .map((obj: any) => ({
           identificador: obj.identificador,
@@ -40,6 +41,7 @@ const SeguimientoPage = () => {
           objective: obj.nombre,
           valueP: obj.valorPorce,
           planillasGener: obj.planillasGener,
+          nombrePlani: obj.nombrePlani,
         }))
         .filter((objetivo: Objective) => objetivo.planillasGener) // Filtrar solo los objetivos con planillasGener: true
 
