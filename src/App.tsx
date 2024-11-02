@@ -13,6 +13,7 @@ import DeleteObservationPage from './pages/SeguimientoPage/NewObservation/Compon
 import EvaluacionPage from './pages/PlanillasPage/Evaluacion/EvaluacionPage'
 import SelectorServices from './pages/SelectorServices'
 import PlanillaEquipoPage from './pages/PlanillasPage/Equipo/PlanillaEquipoPage'
+import LlenarPlaniEvaObjPage from './pages/LlenarPlaniEvaObjPage/Components/LlenarPlaniEvaObjPage'
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           </Route>
           <Route path="crear-actividad" element={<ActivityPage />}></Route>
           <Route path="eliminar-actividad" element={<DeleteActivityPage />}></Route>
+          <Route path="llenar-plani-eva-obj" element={<LlenarPlaniEvaObjPage />}></Route>
         </Route>
       </Routes>
     </>
