@@ -1,0 +1,56 @@
+import { Entregable } from '../Models/PlaniEvaObj'
+
+interface EntregableComponentProps {
+  entregable: Entregable
+  onToggleCriteria: (entregableId: number, criterioId: number) => void
+}
+
+const EntregableComponent = ({ entregable, onToggleCriteria }: EntregableComponentProps) => {
+  return (
+    <div className="w-full">
+      <div className="flex flex-row bg-[#eef0ff] rounded-[10px] border-b border-[#c6caff]">
+        <div className="w-auto py-4 px-3 border-r border-[#c6caff]">
+          <p className="font-medium">Entregable {entregable.identificador}</p>
+        </div>
+        <div className="flex items-center">
+          <p className="px-8">{entregable.nombre}</p>
+        </div>
+      </div>
+      <div className="pl-28 pb-5 w-full">
+        <table className="table-auto text-left w-full">
+          <thead>
+            <tr>
+              <th className="pr-1">Criterios de Evaluación</th>
+              <th className="text-center">¿Se cumple el criterio?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entregable.criterio_aceptacion_entregable.map((criterio, index) => (
+              <tr key={criterio.identificador} className="border-b border-[#8680f9] text-[#1c1c1c]">
+                <td className=" flex py-2.5 pr-1">
+                  <div className="pr-5">{index}.</div>
+                  <p>{criterio.descripcion}</p>
+                </td>
+                <td>
+                  <div className="flex items-center justify-center">
+                    <input
+                      id="checkbox-table-search-1"
+                      type="checkbox"
+                      onChange={() => onToggleCriteria(entregable.identificador, criterio.identificador)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <label htmlFor="checkbox-table-search-1" className="sr-only">
+                      checkbox
+                    </label>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+export default EntregableComponent

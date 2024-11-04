@@ -13,7 +13,7 @@ import DeleteObservationPage from './pages/SeguimientoPage/NewObservation/Compon
 import EvaluacionPage from './pages/PlanillasPage/Evaluacion/EvaluacionPage'
 import SelectorServices from './pages/SelectorServices'
 import PlanillaEquipoPage from './pages/PlanillasPage/Equipo/PlanillaEquipoPage'
-import LlenarPlaniEvaObjPage from './pages/LlenarPlaniEvaObjPage/Components/LlenarPlaniEvaObjPage'
+import LlenarPlaniEvaObjPage from './pages/LlenarPlaniEvaObjPage/LlenarPlaniEvaObjPage'
 
 function App() {
   return (
