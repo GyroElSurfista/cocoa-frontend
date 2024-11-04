@@ -1,4 +1,4 @@
-import { Entregable } from '../Models/PlaniEvaObj'
+import { Entregable } from '../Models/planiEvaObj'
 
 interface EntregableComponentProps {
   entregable: Entregable
@@ -28,7 +28,7 @@ const EntregableComponent = ({ entregable, onToggleCriteria }: EntregableCompone
             {entregable.criterio_aceptacion_entregable.map((criterio, index) => (
               <tr key={criterio.identificador} className="border-b border-[#8680f9] text-[#1c1c1c]">
                 <td className=" flex py-2.5 pr-1">
-                  <div className="pr-5">{index}.</div>
+                  <div className="pr-5">{index + 1}.</div>
                   <p>{criterio.descripcion}</p>
                 </td>
                 <td>

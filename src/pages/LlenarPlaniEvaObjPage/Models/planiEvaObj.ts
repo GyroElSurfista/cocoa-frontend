@@ -2,6 +2,7 @@ export interface CriterioAceptacionEntreg {
   identificador: number
   descripcion: string
   identificadorEntre: number
+  isChecked: boolean
 }
 
 export interface Entregable {
