@@ -11,9 +11,10 @@ interface rowTracker {
 }
 interface ObjectiveTrackerProps {
   objective: Objective
+  index: number
 }
 
-const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective }) => {
+const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective, index }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [rowsTracker, setRowsTracker] = useState<Array<rowTracker>>()
 
@@ -33,7 +34,7 @@ const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective }) => {
     <div className="bg-[rgb(224,227,255)] rounded px-3 mb-3">
       <div className="flex flex-row py-1 items-center border-b border-[#c6caff] w-full justify-between">
         <div className="w-auto pr-2 border-r border-[#c6caff]">
-          <p className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {objective.identificador}</p>
+          <p className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {index + 1}</p>
         </div>
         <div className="w-8/12 pl-2">{objective.objective} </div>
         <div className="w-auto inline-flex justify-center border-l border-[#c6caff]">

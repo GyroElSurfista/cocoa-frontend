@@ -61,7 +61,7 @@ const SeguimientoPage = () => {
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
 
       {objetivos.length > 0 ? (
-        objetivos.map((objetivo, index) => <ObjectiveTracker key={index} objective={objetivo} />)
+        objetivos.map((objetivo, index) => <ObjectiveTracker key={index} objective={objetivo} index={index} />)
       ) : (
         <p className="text-center font-semibold mt-4">No existen objetivos disponibles.</p>
       )}

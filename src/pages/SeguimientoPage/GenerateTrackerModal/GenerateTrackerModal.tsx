@@ -80,7 +80,7 @@ const GenerateTrackerModal: React.FC<GenerateTrackerModalProps> = ({ isOpen, onC
         </div>
         <Autocomplete
           options={objectives}
-          getOptionLabel={(option) => `ID ${option.identificador}: ${option.nombre} - ${option.nombrePlani}`}
+          getOptionLabel={(option) => `${option.nombre} - ${option.nombrePlani}`}
           value={selectedObjective}
           onChange={(event, newValue) => {
             setSelectedObjective(newValue)
