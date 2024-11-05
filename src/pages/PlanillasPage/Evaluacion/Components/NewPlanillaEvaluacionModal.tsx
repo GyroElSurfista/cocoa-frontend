@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import Autocomplete from '@mui/material/Autocomplete'
+import TextField from '@mui/material/TextField'
 
 interface NewPlanillaEvaluacionModalProps {
   isOpen: boolean
@@ -15,29 +17,21 @@ interface Objetivo {
   planillasGener: boolean
 }
 
-interface Entregable {
-  identificador: number
-  nombre: string
-  descripcion: string
-  identificadorObjet: number
-}
-
 const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({ isOpen, onClose, onPlanillasGenerated }) => {
   const [objetivos, setObjetivos] = useState<Objetivo[]>([])
-  const [selectedObjetivo, setSelectedObjetivo] = useState<number | null>(null)
+  const [selectedObjetivo, setSelectedObjetivo] = useState<Objetivo | null>(null)
+  const [inputValue, setInputValue] = useState<string>('') // Para capturar el valor de texto
   const [apiError, setApiError] = useState<string | null>(null)
+  const [validationError, setValidationError] = useState<string | null>(null) // Para el error de validación
 
   // Fetch objetivos sin planilla generada y con entregables
   useEffect(() => {
     const fetchObjetivosSinPlanillaConEntregables = async () => {
       try {
-        // Obtener los objetivos sin planilla generada
         const response = await fetch('https://cocoabackend.onrender.com/api/objetivos-sin-planilla-evaluacion-generada')
         if (!response.ok) throw new Error('Error al cargar los objetivos')
 
         const objetivosData = await response.json()
-
-        // Filtrar aquellos que tengan entregables disponibles
         const filteredObjetivos = await Promise.all(
           objetivosData.map(async (objetivo: Objetivo) => {
             const entregablesResponse = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${objetivo.identificador}/entregables`)
@@ -58,23 +52,30 @@ const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({
   }, [isOpen])
 
   const handleAccept = async () => {
-    if (!selectedObjetivo) {
-      setApiError('Debes seleccionar un objetivo.')
+    // Validación: verificar si el nombre ingresado en `inputValue` coincide con algún nombre en `objetivos`
+    const matchedObjetivo = objetivos.find((objetivo) => objetivo.nombre.toLowerCase() === inputValue.toLowerCase())
+    if (!matchedObjetivo) {
+      setValidationError('Debe seleccionar un objetivo válido de la lista.')
       return
     }
+    setSelectedObjetivo(matchedObjetivo)
+    setValidationError(null) // Limpiar el error si hay coincidencia
 
     const planillasData = [
-      { identificadorObjet: selectedObjetivo, fecha: '2024-09-03', identificador: Date.now() },
-      { identificadorObjet: selectedObjetivo, fecha: '2024-09-10', identificador: Date.now() + 1 },
-      { identificadorObjet: selectedObjetivo, fecha: '2024-09-17', identificador: Date.now() + 2 },
+      { identificadorObjet: matchedObjetivo.identificador, fecha: '2024-09-03', identificador: Date.now() },
+      { identificadorObjet: matchedObjetivo.identificador, fecha: '2024-09-10', identificador: Date.now() + 1 },
+      { identificadorObjet: matchedObjetivo.identificador, fecha: '2024-09-17', identificador: Date.now() + 2 },
     ]
 
     try {
-      const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${selectedObjetivo}/generar-planilla-evaluacion`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(planillasData),
-      })
+      const response = await fetch(
+        `https://cocoabackend.onrender.com/api/objetivos/${matchedObjetivo.identificador}/generar-planilla-evaluacion`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(planillasData),
+        }
+      )
 
       if (!response.ok) throw new Error('Error al generar las planillas.')
 
@@ -95,22 +96,29 @@ const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({
         <hr className="border-[1.5px] mb-4 mt-4" />
         <p className="font-inter font-normal mb-2 text-sm">Selecciona un objetivo con entregables para generar la planilla.</p>
 
-        <label htmlFor="objetivo" className="block mb-1 text-sm font-medium text-gray-900">
+        <label htmlFor="objetivo" className="block mb-3 text-sm font-medium text-gray-900">
           Objetivo <span className="text-[#f60c2e]">*</span>
         </label>
-        <select
-          id="objetivo"
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 mb-4"
-          value={selectedObjetivo ?? ''}
-          onChange={(e) => setSelectedObjetivo(Number(e.target.value))}
-        >
-          <option value="">Selecciona un objetivo</option>
-          {objetivos.map((objetivo) => (
-            <option key={objetivo.identificador} value={objetivo.identificador}>
-              {objetivo.nombre}
-            </option>
-          ))}
-        </select>
+
+        <Autocomplete
+          id="objetivo-autocomplete"
+          options={objetivos}
+          getOptionLabel={(option) => option.nombre}
+          value={selectedObjetivo}
+          onChange={(event, newValue) => setSelectedObjetivo(newValue)}
+          inputValue={inputValue}
+          onInputChange={(event, newInputValue) => setInputValue(newInputValue)} // Capturar el valor del input
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Selecciona un objetivo"
+              variant="outlined"
+              className="w-full mb-4"
+              error={Boolean(validationError)}
+              helperText={validationError}
+            />
+          )}
+        />
 
         {apiError && <p className="text-red-500 text-sm">{apiError}</p>}
 
