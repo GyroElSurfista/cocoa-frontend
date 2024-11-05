@@ -4,13 +4,15 @@ export interface CriterioEvaluacionFinal {
   descripcion: string
 }
 
-export interface ParametroEvaluacionFinal {
+export type ParametroEvaluacionFinal = ParametroCualitativo | ParametroCuantitativo
+
+export interface ParametroEvaluacion {
   identificador: number
   nombre: string
   tipo: string
 }
 
-export interface ParametroCualitativo extends ParametroEvaluacionFinal {
+export interface ParametroCualitativo extends ParametroEvaluacion {
   tipo: 'cualitativo'
   campos: {
     identificador: number
@@ -21,7 +23,7 @@ export interface ParametroCualitativo extends ParametroEvaluacionFinal {
   }[]
 }
 
-export interface ParametroCuantitativo extends ParametroEvaluacionFinal {
+export interface ParametroCuantitativo extends ParametroEvaluacion {
   tipo: 'cuantitativo'
   valorMinim: number
   cantidadInter: number
