@@ -31,7 +31,7 @@ function App() {
           </Route>
           <Route path="crear-actividad" element={<ActivityPage />}></Route>
           <Route path="eliminar-actividad" element={<DeleteActivityPage />}></Route>
-          <Route path="llenar-plani-eva-obj" element={<LlenarPlaniEvaObjPage />}></Route>
+          <Route path="planilla-evaluacion/:idObjetivo" element={<LlenarPlaniEvaObjPage />}></Route>
         </Route>
       </Routes>
     </>

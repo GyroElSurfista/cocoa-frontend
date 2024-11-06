@@ -26,6 +26,8 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
 
   const handleCancel = () => {
     onClose()
+    setSelectedProject(null)
+    setSelectedObjective(null)
   }
 
   const handleGenerate = () => {}
