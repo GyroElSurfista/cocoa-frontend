@@ -98,10 +98,10 @@ const RubricaItem = ({
             ) : (
               <Box className="w-full">
                 <Slider
-                  defaultValue={selectedParametro.valorMinim}
+                  defaultValue={selectedParametro?.valorMinim}
                   marks
-                  min={selectedParametro.valorMinim}
-                  max={selectedParametro.cantidadInter}
+                  min={selectedParametro?.valorMinim}
+                  max={selectedParametro?.cantidadInter}
                   valueLabelDisplay="auto"
                   sx={{
                     color: '#b0b0b0', // Color grisáceo personalizado

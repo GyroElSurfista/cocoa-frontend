@@ -1,5 +1,5 @@
-import { TextField } from '@mui/material'
-import { CriterioEvaluacionFinal, ParametroEvaluacionFinal } from '../../interfaces/plantilla.interface'
+import { CircularProgress, TextField } from '@mui/material'
+import { CrearPlantillaEvaluacionFinal, CriterioEvaluacionFinal, ParametroEvaluacionFinal } from '../../interfaces/plantilla.interface'
 import { useEffect, useState } from 'react'
 import { getAllCriteriosEvaluacion } from '../../services/criterio.service'
 import { getAllParametrosEvaluacion } from '../../services/parametro.service'
@@ -8,23 +8,33 @@ import RubricaItem from './Components/RubricaItem'
 const CrearPlantillaPage = (): JSX.Element => {
   const [criterios, setCriterios] = useState<CriterioEvaluacionFinal[]>([])
   const [parametros, setParametros] = useState<ParametroEvaluacionFinal[]>([])
+  const [plantilla, setPlantilla] = useState<CrearPlantillaEvaluacionFinal>({ nombre: '', descripcion: '', puntaje: 0, rubricas: [] })
+  const [rubricas, setRubricas] = useState<JSX.Element[]>([])
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        let response
-        response = await getAllCriteriosEvaluacion()
-        setCriterios(response.data)
+        const criteriosResponse = await getAllCriteriosEvaluacion()
+        setCriterios(criteriosResponse.data)
 
-        response = await getAllParametrosEvaluacion()
-        setParametros(response.data)
+        const parametrosResponse = await getAllParametrosEvaluacion()
+        setParametros(parametrosResponse.data)
+
+        setRubricas([<RubricaItem key={0} criterios={criteriosResponse.data} parametros={parametrosResponse.data} />])
       } catch (error) {
-        console.error('Error fetching criterios:', error)
+        console.error('Error fetching data:', error)
       }
     }
 
     fetchData()
   }, [])
+
+  const addNewRubrica = () => {
+    setRubricas((prevRubricas) => [
+      ...prevRubricas,
+      <RubricaItem key={prevRubricas.length} criterios={criterios} parametros={parametros} />,
+    ])
+  }
 
   return (
     <>
@@ -55,13 +65,19 @@ const CrearPlantillaPage = (): JSX.Element => {
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
 
       <section className="mt-4 space-y-6">
-        <RubricaItem criterios={criterios} parametros={parametros} />
-        <RubricaItem criterios={criterios} parametros={parametros} />
-        <RubricaItem criterios={criterios} parametros={parametros} />
+        {criterios.length > 0 && parametros.length > 0 ? (
+          rubricas.map((rubrica) => rubrica)
+        ) : (
+          <div className="flex justify-center items-center h-16">
+            <CircularProgress />
+          </div>
+        )}
       </section>
 
       <div className="flex justify-center">
-        <button className="button-primary my-2.5">+ Nuevo Criterio</button>
+        <button onClick={addNewRubrica} className="button-primary my-2.5">
+          + Nuevo Criterio
+        </button>
       </div>
     </>
   )
