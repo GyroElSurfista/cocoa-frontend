@@ -3,13 +3,14 @@ import { useEffect, useState } from 'react'
 import { CriterioEvaluacionFinal, ParametroEvaluacionFinal } from '../../../interfaces/plantilla.interface'
 import DeleteIcon from '@mui/icons-material/Delete'
 
-const RubricaItem = ({
-  criterios,
-  parametros,
-}: {
+interface RubricaItemProps {
+  index: number
   criterios: CriterioEvaluacionFinal[]
   parametros: ParametroEvaluacionFinal[]
-}): JSX.Element => {
+  quitRubrica: (index: number) => void
+}
+
+const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemProps): JSX.Element => {
   const [selectedCriterio, setSelectedCriterio] = useState<CriterioEvaluacionFinal | null>(null)
   const [selectedParametro, setSelectedParametro] = useState<ParametroEvaluacionFinal>(parametros[0] || null)
 
@@ -18,6 +19,11 @@ const RubricaItem = ({
       setSelectedParametro(parametros[0])
     }
   }, [parametros])
+
+  const handleDelete = (event: React.MouseEvent<SVGSVGElement, MouseEvent>): void => {
+    event.stopPropagation()
+    quitRubrica(index)
+  }
 
   return (
     <>
@@ -119,7 +125,11 @@ const RubricaItem = ({
               </Box>
             )}
           </div>
-          <DeleteIcon fontSize="large" className="fill-[#f60c2e] hover:bg-red-100  hover:rounded-full cursor-pointer p-1" />
+          <DeleteIcon
+            onClick={handleDelete}
+            fontSize="large"
+            className="fill-[#f60c2e] hover:bg-red-100  hover:rounded-full cursor-pointer p-1"
+          />
         </div>
       </section>
     </>

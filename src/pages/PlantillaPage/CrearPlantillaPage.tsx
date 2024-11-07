@@ -9,18 +9,31 @@ const CrearPlantillaPage = (): JSX.Element => {
   const [criterios, setCriterios] = useState<CriterioEvaluacionFinal[]>([])
   const [parametros, setParametros] = useState<ParametroEvaluacionFinal[]>([])
   const [plantilla, setPlantilla] = useState<CrearPlantillaEvaluacionFinal>({ nombre: '', descripcion: '', puntaje: 0, rubricas: [] })
-  const [rubricas, setRubricas] = useState<JSX.Element[]>([])
+  const [rubricas, setRubricas] = useState<{ id: number; component: JSX.Element }[]>([])
+  const [rubricaCounter, setRubricaCounter] = useState<number>(0) // Contador de rubricas
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const criteriosResponse = await getAllCriteriosEvaluacion()
+        const [criteriosResponse, parametrosResponse] = await Promise.all([getAllCriteriosEvaluacion(), getAllParametrosEvaluacion()])
         setCriterios(criteriosResponse.data)
-
-        const parametrosResponse = await getAllParametrosEvaluacion()
         setParametros(parametrosResponse.data)
 
-        setRubricas([<RubricaItem key={0} criterios={criteriosResponse.data} parametros={parametrosResponse.data} />])
+        setRubricaCounter((prevCounter) => prevCounter + 1) // Incrementa el contador
+        setRubricas([
+          {
+            id: 0,
+            component: (
+              <RubricaItem
+                key={0}
+                index={0}
+                criterios={criteriosResponse.data}
+                parametros={parametrosResponse.data}
+                quitRubrica={quitRubrica}
+              />
+            ),
+          },
+        ])
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -29,11 +42,20 @@ const CrearPlantillaPage = (): JSX.Element => {
     fetchData()
   }, [])
 
-  const addNewRubrica = () => {
+  const addRubrica = () => {
+    setRubricaCounter((prevCounter) => prevCounter + 1) // Incrementa el contador
+    const id = rubricaCounter
     setRubricas((prevRubricas) => [
       ...prevRubricas,
-      <RubricaItem key={prevRubricas.length} criterios={criterios} parametros={parametros} />,
+      {
+        id,
+        component: <RubricaItem key={id} index={id} criterios={criterios} parametros={parametros} quitRubrica={quitRubrica} />,
+      },
     ])
+  }
+
+  const quitRubrica = (id: number) => {
+    setRubricas((prevRubricas) => prevRubricas.filter((rubrica) => rubrica.id !== id))
   }
 
   return (
@@ -66,7 +88,7 @@ const CrearPlantillaPage = (): JSX.Element => {
 
       <section className="mt-4 space-y-6">
         {criterios.length > 0 && parametros.length > 0 ? (
-          rubricas.map((rubrica) => rubrica)
+          rubricas.map((rubrica) => rubrica.component)
         ) : (
           <div className="flex justify-center items-center h-16">
             <CircularProgress />
@@ -75,7 +97,7 @@ const CrearPlantillaPage = (): JSX.Element => {
       </section>
 
       <div className="flex justify-center">
-        <button onClick={addNewRubrica} className="button-primary my-2.5">
+        <button onClick={addRubrica} className="button-primary my-2.5">
           + Nuevo Criterio
         </button>
       </div>
