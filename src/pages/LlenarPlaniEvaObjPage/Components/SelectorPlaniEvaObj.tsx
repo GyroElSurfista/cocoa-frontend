@@ -1,6 +1,9 @@
 import { Autocomplete, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { getObjectivesFromPlanification, getPlannings, ObjectiveData } from '../../../services/objective.service'
+import { formatDateToDMY } from '../../../utils/formatDate'
+import { verificarLlenadoObj } from '../../../services/planiEvaObj.service'
+import { useNavigate } from 'react-router-dom'
 
 interface Planning {
   identificador: number
@@ -24,13 +27,34 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
   const [objectives, setObjectives] = useState<Array<ObjectiveData>>([])
   const [selectedObjective, setSelectedObjective] = useState<ObjectiveData | null>(null)
 
+  const navigate = useNavigate()
+
   const handleCancel = () => {
     onClose()
     setSelectedProject(null)
     setSelectedObjective(null)
   }
 
-  const handleGenerate = () => {}
+  const handleGenerate = async () => {
+    try {
+      if (!selectedProject || !selectedObjective) {
+        setError('Selecciona un proyecto y un objetivo')
+        return
+      }
+      if (selectedObjective.identificador) {
+        const response = await verificarLlenadoObj(selectedObjective.identificador)
+        console.log(response.data)
+        if (response.data.puedeSerLlenado) {
+          navigate(`/planilla-evaluacion/${selectedObjective.identificador}`)
+        } else {
+          setError('El objetivo seleccionado no puede ser llenado')
+        }
+      }
+    } catch (error) {
+      console.log(error)
+    }
+    // Proceed with your generate logic
+  }
 
   const fetchProjects = async () => {
     try {
@@ -63,6 +87,8 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
     }
   }, [selectedProject])
 
+  const today = new Date()
+
   if (!isOpen) return null
 
   return (
@@ -79,7 +105,12 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
           </div>
           <Autocomplete
             options={projects}
-            getOptionLabel={(option) => option.nombre}
+            getOptionLabel={(option) => `${option.nombre}: ${formatDateToDMY(option.fechaInici)} - ${formatDateToDMY(option.fechaFin)}`}
+            getOptionDisabled={(option) => {
+              const startDate = new Date(option.fechaInici)
+              const endDate = new Date(option.fechaFin)
+              return today < startDate || today > endDate
+            }}
             value={selectedProject}
             onChange={(event, newValue) => {
               setSelectedProject(newValue)
@@ -87,7 +118,6 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
             }}
             renderInput={(params) => <TextField {...params} label="Selecciona un proyecto" variant="outlined" />}
           />
-          {error && <p className="text-red-500 text-sm pt-2">{error}</p>}
           <div className={`py-2 font-medium ${!selectedProject ? 'text-[#888888]' : ''}`}>
             Objetivo <span className="text-red-500">*</span>
           </div>

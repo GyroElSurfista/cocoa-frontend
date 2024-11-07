@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getEntregablesConCriterios } from '../../services/planiEvaObj.service'
+import { enviarRevision, getEntregablesConCriterios } from '../../services/planiEvaObj.service'
 import { Entregable } from './Models/planiEvaObj'
 import EntregableComponent from './Components/EntregableComponent'
 import { useParams } from 'react-router-dom'
@@ -26,6 +26,7 @@ const LlenarPlaniEvaObjPage = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
+  const [isSaveButtonVisible, setIsSaveButtonVisible] = useState(true)
 
   const { idObjetivo } = useParams()
 
@@ -49,35 +50,38 @@ const LlenarPlaniEvaObjPage = () => {
     }))
   }
 
-  const handleSave = () => {
-    const markedCriteria = Object.keys(criteriaState).reduce(
-      (acc, entregableId) => {
-        const criterios = Object.keys(criteriaState[parseInt(entregableId)])
-          .filter((criterioId) => criteriaState[parseInt(entregableId)][parseInt(criterioId)])
-          .map((id) => parseInt(id))
-        if (criterios.length) acc[parseInt(entregableId)] = criterios
-        return acc
-      },
-      {} as { [entregableId: number]: number[] }
+  const handleSave = async () => {
+    const markedCriteria = Object.values(criteriaState).flatMap((criterios) =>
+      Object.keys(criterios)
+        .filter((criterioId) => criterios[parseInt(criterioId)])
+        .map((id) => parseInt(id))
     )
 
-    console.log('Saving marked criteria:', markedCriteria)
-    setIsModalOpen(false)
-    // API call logic goes here
-
-    setSnackbarMessage('El objetivo esta listo para su pago')
-    setSnackbarColor('#D3FFD2')
-    setOpenSnackbar(true)
+    try {
+      console.log('Saving marked criteria:', markedCriteria)
+      const response = await enviarRevision(markedCriteria, true)
+      setIsModalOpen(false)
+      setSnackbarMessage(response.data.message)
+      setSnackbarColor('#D3FFD2')
+      setOpenSnackbar(true)
+      setIsSaveButtonVisible(false) // Hide button after successful save
+    } catch (error) {
+      console.log('error Revision', error)
+    }
   }
 
   const fetchObjective = async () => {
-    if (idObjetivo) {
-      const response = await getEntregablesConCriterios(idObjetivo)
-      setObjective({
-        identificador: response.data.identificador,
-        nombre: response.data.nombre,
-        entregables: response.data.entregable,
-      })
+    try {
+      if (idObjetivo) {
+        const response = await getEntregablesConCriterios(idObjetivo)
+        setObjective({
+          identificador: response.data.identificador,
+          nombre: response.data.nombre,
+          entregables: response.data.entregable,
+        })
+      }
+    } catch (error) {
+      console.log('error Obj', error)
     }
   }
 
@@ -85,7 +89,6 @@ const LlenarPlaniEvaObjPage = () => {
     fetchObjective()
   }, [])
 
-  // Initialize criteriaState after objective is set
   useEffect(() => {
     if (objective) {
       const initialCriteriaState = objective.entregables.reduce((acc, entregable) => {
@@ -111,12 +114,13 @@ const LlenarPlaniEvaObjPage = () => {
       {objective?.entregables.map((entregable) => (
         <EntregableComponent key={entregable.identificador} entregable={entregable} onToggleCriteria={handleToggleCriteria} />
       ))}
-      <hr className="my-5 border-[1.5px] border-[#c6caff]" />
       <ConfirmationModal isOpen={isModalOpen} onClose={closeModal} onConfirm={handleSave} />
       <div className="flex justify-end py-2">
-        <button onClick={openModal} className="button-primary">
-          Guardar Evaluación
-        </button>
+        {isSaveButtonVisible && (
+          <button onClick={openModal} className="button-primary">
+            Guardar Evaluación
+          </button>
+        )}
       </div>
       <Snackbar
         open={openSnackbar}
