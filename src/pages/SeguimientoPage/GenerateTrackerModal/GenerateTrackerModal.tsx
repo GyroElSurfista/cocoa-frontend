@@ -11,6 +11,7 @@ interface Objective {
   objective: string
   valueP: string
   planillasGener: boolean
+  nombrePlani: string
 }
 
 interface GenerateTrackerModalProps {
@@ -51,6 +52,7 @@ const GenerateTrackerModal: React.FC<GenerateTrackerModalProps> = ({ isOpen, onC
   const fetchObjectives = async () => {
     try {
       const response = await getObjectives()
+      console.log(response.data)
       const filteredObjectives = response.data.filter((obj: Objective) => !obj.planillasGener)
       setObjectives(filteredObjectives)
     } catch (error) {
@@ -78,7 +80,7 @@ const GenerateTrackerModal: React.FC<GenerateTrackerModalProps> = ({ isOpen, onC
         </div>
         <Autocomplete
           options={objectives}
-          getOptionLabel={(option) => option.nombre}
+          getOptionLabel={(option) => `${option.nombre} - ${option.nombrePlani}`}
           value={selectedObjective}
           onChange={(event, newValue) => {
             setSelectedObjective(newValue)

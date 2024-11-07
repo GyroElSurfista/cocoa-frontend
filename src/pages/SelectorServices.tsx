@@ -3,6 +3,7 @@ import SelectorObservationModal from '../pages/SeguimientoPage/NewObservation/Co
 import ObservationPage from '../pages/SeguimientoPage/NewObservation/ObservationPage'
 import PlanillaEquipoPage from './PlanillasPage/Equipo/PlanillaEquipoPage'
 import SelectorPlanillaEquipoModal from './PlanillasPage/Equipo/Components/SelectorPlanillaEquipoModal'
+import { useNavigate } from 'react-router-dom'
 import SelectorPlaniEvaObj from './LlenarPlaniEvaObjPage/Components/SelectorPlaniEvaObj'
 
 export const SelectorServices = () => {
@@ -12,6 +13,8 @@ export const SelectorServices = () => {
   const [planillaDate, setPlanillaDate] = useState<string | null>(null)
   const [observartionPage, setObservationPage] = useState(false)
   const [teamPage, setTeamPage] = useState(false)
+
+  const navigate = useNavigate()
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -76,6 +79,20 @@ export const SelectorServices = () => {
       <h1 className="font-bold text-3xl">Usuario</h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
       <h2 className="font-bold text-2xl">Servicios</h2>
+
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => navigate('/objetivos')}
+      >
+        <p>Servicio de registro de objetivos</p>
+      </div>
+
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => navigate('/seguimiento')}
+      >
+        <p>Servicio de generacion de planillas de seguimiento semanal</p>
+      </div>
 
       {/* Renderizamos el modal de observaciones */}
       <SelectorObservationModal onRedirect={handleRedirectObservations} />
