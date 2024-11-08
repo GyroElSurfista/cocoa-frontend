@@ -117,15 +117,11 @@ const DialogActivity = ({
     else if (activity?.nombre.length < 5) newErrors.nombre[0] = 'El título debe tener al menos 5 caracteres'
     else if (activity?.nombre.length > 50) newErrors.nombre[0] = 'El título no puede exceder 50 caracteres'
     else if (activity?.nombre.trim() === '') newErrors.nombre[0] = 'El título no puede contener solo espacios en blanco'
-    else if (activity?.nombre !== activity?.nombre.trim())
-      newErrors.nombre[0] = 'El título no puede contener espacios en blanco al principio o final'
 
     if (!activity?.descripcion || activity?.descripcion.length === 0) newErrors.descripcion[0] = 'La descripción es obligatoria'
     else if (activity?.descripcion.length < 5) newErrors.descripcion[0] = 'La descripción debe tener al menos 5 caracteres'
     else if (activity?.descripcion.length > 255) newErrors.descripcion[0] = 'La descripción no puede exceder 255 caracteres'
     else if (activity?.descripcion.trim() === '') newErrors.descripcion[0] = 'La descripción no puede contener solo espacios en blanco'
-    else if (activity?.descripcion !== activity?.descripcion.trim())
-      newErrors.descripcion[0] = 'La descripción no puede contener espacios en blanco al principio o final'
 
     if (!activity?.responsable || activity?.responsable.length === 0) {
       newErrors.responsable[0] = 'El responsable es obligatorio'
@@ -161,8 +157,7 @@ const DialogActivity = ({
       else if (resultado.length < 5) newErrors.resultados[index] = 'El resultado debe tener al menos 5 caracteres'
       else if (resultado.length > 255) newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
       else if (resultado.trim() === '') newErrors.resultados[index] = 'El resultado no puede contener solo espacios en blanco'
-      else if (resultado !== resultado.trim())
-        newErrors.resultados[index] = 'El resultado no puede contener espacios en blanco al principio o final'
+      resultado = resultado.trim()
     })
 
     setErrors(newErrors)

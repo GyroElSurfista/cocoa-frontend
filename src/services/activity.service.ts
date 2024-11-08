@@ -4,15 +4,19 @@ import { axiosInstance } from '../api/axios'
 
 export const createActivity = (activityData: ActivityData): AxiosPromise<ActivityData> => {
   try {
-    return axiosInstance.post('/actividad', activityData)
+    return axiosInstance.post('/actividad', {
+      ...activityData,
+      nombre: activityData.nombre.trim(),
+      descripcion: activityData.descripcion.trim(),
+    })
   } catch (error) {
     console.error('Error creando la actividad:', error)
     throw error
   }
 }
 
-export const getActivities = (idPlanificacion: number): AxiosPromise<ActivityProps[]> => {
-  return axiosInstance.get(`/planificacion/${idPlanificacion}/actividades-resultados`)
+export const getActivities = (idGrupoEmpresa: number): AxiosPromise<ActivityProps[]> => {
+  return axiosInstance.get(`/grupo-empresa/${idGrupoEmpresa}/actividades-resultados`)
 }
 
 export const getActivitiesByObjective = (idObjetivo: number): AxiosPromise<ActivityProps[]> => {

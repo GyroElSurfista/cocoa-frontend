@@ -45,7 +45,7 @@ const DeleteActivityPage = (): JSX.Element => {
           }))
         } else {
           // Si no hay búsqueda ni objetivo, obtener todas las actividades
-          actividades = (await getActivities(1)).data.map((actividad) => ({
+          actividades = (await getActivities(1)).data.data.map((actividad) => ({
             ...actividad,
             fechaInici: new Date(actividad.fechaInici),
             fechaFin: new Date(actividad.fechaFin),
@@ -100,7 +100,7 @@ const DeleteActivityPage = (): JSX.Element => {
   // Función para eliminar las actividades seleccionadas
   const handleDeleteClick = async () => {
     await deleteManyActivities(selectedActivities)
-    const actividades = (await getActivities(1)).data.map((actividad) => ({
+    const actividades = (await getActivities(1)).data.data.map((actividad) => ({
       ...actividad,
       fechaInici: new Date(actividad.fechaInici),
       fechaFin: new Date(actividad.fechaFin),
@@ -122,7 +122,7 @@ const DeleteActivityPage = (): JSX.Element => {
     setSelectedObjective(null)
     setSearchNotFound(false)
     setResetKey((prevKey) => prevKey + 1)
-    const actividades = (await getActivities(1)).data.map((actividad) => ({
+    const actividades = (await getActivities(1)).data.data.map((actividad) => ({
       ...actividad,
       fechaInici: new Date(actividad.fechaInici),
       fechaFin: new Date(actividad.fechaFin),
@@ -141,13 +141,13 @@ const DeleteActivityPage = (): JSX.Element => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const actividades = (await getActivities(1)).data.map((actividad) => ({
+        const actividades = (await getActivities(1)).data.data.map((actividad) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
         }))
         setActivities(actividades)
-        const objetivos = (await getObjectivesFromPlanification()).data
+        const objetivos = (await getObjectivesFromPlanification(1)).data
         setObjectives(objetivos)
       } catch (error) {
         console.error('Error al cargar los datos', error)

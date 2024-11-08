@@ -24,7 +24,7 @@ const ActivityPage = (): JSX.Element => {
     const loadData = async () => {
       try {
         // Obtener actividades y convertir fechas a Date
-        const actividades = (await getActivities(1)).data.map((actividad) => ({
+        const actividades = (await getActivities(1)).data.data.map((actividad) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
