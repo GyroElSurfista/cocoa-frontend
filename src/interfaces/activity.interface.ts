@@ -2,6 +2,7 @@ import { DateValidationError, PickerChangeHandlerContext } from '@mui/x-date-pic
 import { Dayjs } from 'dayjs'
 import { ObjectiveData } from '../services/objective.service'
 import { SyntheticEvent } from 'react'
+import { Planificacion } from './project.interface'
 
 export type ActivityProps = {
   identificador: number
@@ -55,6 +56,7 @@ export type DialogActivityProps = {
   isEditMode: boolean
   responsables: string[]
   objetivos: ObjectiveData[]
+  proyectos: Planificacion[]
 }
 
 export interface ActivityErrors {

@@ -19,6 +19,7 @@ const DialogActivity = ({
   isEditMode,
   responsables,
   objetivos,
+  proyectos,
 }: DialogActivityProps): JSX.Element => {
   const [errors, setErrors] = useState<ActivityErrors>({
     nombre: [''],
@@ -249,6 +250,17 @@ const DialogActivity = ({
             />
           </LocalizationProvider>
           {errors.fechaFin[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.fechaFin[0]}</p>}
+
+          <h3 className="text-lg font-semibold mb-4">Proyecto asociado</h3>
+          <Autocomplete
+            disablePortal
+            options={proyectos.map((proyecto) => proyecto)}
+            getOptionLabel={(option) => option.nombre}
+            renderInput={(params) => <TextField {...params} label="Proyecto" />}
+            disabled={!isEditMode}
+            size="small"
+          />
+          {/* {errors.objetivo && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo}</p>} */}
 
           <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
           <Autocomplete

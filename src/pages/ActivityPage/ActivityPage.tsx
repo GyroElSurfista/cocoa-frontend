@@ -8,6 +8,8 @@ import { UserData } from '../../interfaces/user.interface'
 import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 import { createActivity, getActivities } from '../../services/activity.service'
 import { Alert, Snackbar, SnackbarCloseReason } from '@mui/material'
+import { Planificacion } from '../../interfaces/project.interface'
+import { getProjects } from '../../services/project.service'
 
 const ActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityProps[]>([])
@@ -16,6 +18,7 @@ const ActivityPage = (): JSX.Element => {
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
   const [responsables, setResponsables] = useState<string[]>([])
   const [objetivos, setObjetivos] = useState<ObjectiveData[]>([])
+  const [proyectos, setProyectos] = useState<Planificacion[]>([])
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
 
   // Cargar actividades, responsables y objetivos solo una vez al montar el componente
@@ -38,6 +41,10 @@ const ActivityPage = (): JSX.Element => {
         // Obtener objetivos
         const objetivosData = (await getObjectivesFromPlanification()).data
         setObjetivos(objetivosData)
+
+        // Obtener proyectos
+        const proyectosData = (await getProjects()).data
+        setProyectos(proyectosData)
       } catch (error) {
         console.error('Error al cargar los datos', error)
       }
@@ -65,7 +72,6 @@ const ActivityPage = (): JSX.Element => {
 
   const handleNewObjectiveActivityChange = useCallback(
     (_event: SyntheticEvent<Element, Event>, value: { identificadorObjet: number | undefined; nombre: string } | null) => {
-      console.log('value', value)
       setSelectedActivity((prev) =>
         prev
           ? {
@@ -171,6 +177,7 @@ const ActivityPage = (): JSX.Element => {
           isEditMode={isEditMode}
           responsables={responsables}
           objetivos={objetivos}
+          proyectos={proyectos}
         />
 
         <Snackbar
