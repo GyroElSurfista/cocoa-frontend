@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import Autocomplete from '@mui/material/Autocomplete'
+import TextField from '@mui/material/TextField'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import IconClose from '../../../assets/icon-close.svg'
 import IconBack from '../../../assets/icon-back.svg'
@@ -15,6 +17,7 @@ interface NewEntregableModalProps {
 interface Objetivo {
   identificador: number
   nombre: string
+  nombrePlani: string
 }
 
 interface Entregable {
@@ -33,6 +36,8 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
   const { register, handleSubmit, setValue, reset } = useForm<FormData>()
   const [view, setView] = useState<number>(1)
   const [objetivos, setObjetivos] = useState<Objetivo[]>([])
+  const [filteredObjetivos, setFilteredObjetivos] = useState<Objetivo[]>([])
+  const [proyectos, setProyectos] = useState<string[]>([])
   const [entregables, setEntregables] = useState<Entregable[]>([])
   const [currentEntregable, setCurrentEntregable] = useState<Entregable>({
     nombre: '',
@@ -41,11 +46,12 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     criteriosAcept: [],
   })
   const [criterios, setCriterios] = useState<string[]>([])
-  const [selectedObjetivo, setSelectedObjetivo] = useState<number | null>(null)
-  const [selectedProyecto, setSelectedProyecto] = useState<string | null>(null) // Estado para el proyecto seleccionado
+  const [selectedObjetivo, setSelectedObjetivo] = useState<Objetivo | null>(null)
+  const [selectedProyecto, setSelectedProyecto] = useState<string | null>(null)
   const [editIndex, setEditIndex] = useState<number | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [projectError, setProjectError] = useState<string | null>(null) // Estado para error en proyecto
+  const [projectError, setProjectError] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string[] } | null>(null)
 
   useEffect(() => {
     if (isOpen) fetchObjetivos()
@@ -56,22 +62,83 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
       const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
       const data = await response.json()
       setObjetivos(data)
+      const proyectosUnicos: string[] = Array.from(new Set(data.map((obj: Objetivo) => obj.nombrePlani)))
+      setProyectos(proyectosUnicos)
     } catch (error) {
       console.error('Error fetching objetivos:', error)
     }
   }, [])
 
-  const handleObjetivoSelect = (id: number) => {
-    setSelectedObjetivo(id)
-    setValue('objetivoId', id)
+  const handleProyectoSelect = (event: any, newProyecto: string | null) => {
+    setSelectedProyecto(newProyecto)
+    setSelectedObjetivo(null)
+    setFilteredObjetivos(newProyecto ? objetivos.filter((obj) => obj.nombrePlani === newProyecto) : [])
+  }
+
+  const handleObjetivoSelect = (event: React.SyntheticEvent, newObjetivo: Objetivo | null) => {
+    setSelectedObjetivo(newObjetivo)
+    if (newObjetivo) setValue('objetivoId', newObjetivo.identificador)
+  }
+
+  const trimAndValidate = (value: string) => {
+    const trimmedValue = value.trim()
+    if (!trimmedValue) {
+      setErrorMessage('El campo no puede estar vacío o contener solo espacios en blanco.')
+      return ''
+    }
+    return trimmedValue
+  }
+
+  const validateAndTrimAllFields = async () => {
+    const trimmedNombre = trimAndValidate(currentEntregable.nombre)
+    const uniqueCriterios = Array.from(new Set(criterios.map(trimAndValidate).filter((c) => c !== '')))
+    const hasEmptyCriteria = uniqueCriterios.length < criterios.length || uniqueCriterios.length === 0
+
+    // Check for duplicate entregable names
+    if (selectedObjetivo) {
+      const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${selectedObjetivo.identificador}/entregables`)
+      const existingEntregables = await response.json()
+      const isDuplicate = existingEntregables.some((e: Entregable) => e.nombre === trimmedNombre)
+      if (isDuplicate) {
+        setErrorMessage('El nombre del entregable ya existe para el objetivo seleccionado.')
+        return false
+      }
+    }
+
+    if (hasEmptyCriteria) {
+      setErrorMessage('Debe añadir al menos un criterio válido y no duplicado.')
+      return false
+    }
+
+    setCurrentEntregable({
+      ...currentEntregable,
+      nombre: trimmedNombre,
+      descripcion: trimAndValidate(currentEntregable.descripcion),
+      criteriosAcept: uniqueCriterios.map((desc) => ({ descripcion: desc })),
+    })
+
+    return true
   }
 
   const addCriterio = () => setCriterios([...criterios, ''])
   const removeCriterio = (index: number) => setCriterios(criterios.filter((_, i) => i !== index))
   const updateCriterio = (index: number, value: string) => setCriterios(criterios.map((c, i) => (i === index ? value : c)))
 
-  const saveEntregable = () => {
-    const newEntregable = { ...currentEntregable, criteriosAcept: criterios.map((desc) => ({ descripcion: desc })) }
+  const saveEntregable = async () => {
+    const isValid = await validateAndTrimAllFields()
+    if (!isValid) return
+
+    // Verificar si ya existe un entregable con el mismo nombre
+    const duplicateName = entregables.some((e) => e.nombre === currentEntregable.nombre.trim())
+    if (duplicateName) {
+      setErrorMessage('Los nombres de los entregables no pueden ser iguales.')
+      return
+    }
+
+    const newEntregable = {
+      ...currentEntregable,
+      criteriosAcept: criterios.map((desc) => ({ descripcion: desc })),
+    }
 
     if (editIndex !== null) {
       const updatedEntregables = [...entregables]
@@ -82,9 +149,15 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
       setEntregables([...entregables, newEntregable])
     }
 
-    setCurrentEntregable({ nombre: '', descripcion: '', identificadorObjet: selectedObjetivo!, criteriosAcept: [] })
+    setCurrentEntregable({
+      nombre: '',
+      descripcion: '',
+      identificadorObjet: selectedObjetivo!.identificador,
+      criteriosAcept: [],
+    })
     setCriterios([])
     setView(2)
+    setErrorMessage('')
   }
 
   const handleEditEntregable = (index: number) => {
@@ -93,36 +166,38 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setCriterios(entregableToEdit.criteriosAcept.map((c) => c.descripcion))
     setEditIndex(index)
     setView(3)
+    setValidationErrors(null) // Limpiar errores al editar
   }
-
   const removeEntregable = (index: number) => setEntregables(entregables.filter((_, i) => i !== index))
+  const handleCancel = () => {
+    resetForm()
+    onClose()
+  }
 
   const resetForm = () => {
     setErrorMessage('')
     reset()
     setEntregables([])
     setCriterios([])
-    setCurrentEntregable({ nombre: '', descripcion: '', identificadorObjet: 0, criteriosAcept: [] })
+    setCurrentEntregable({
+      nombre: '',
+      descripcion: '',
+      identificadorObjet: selectedObjetivo!.identificador,
+      criteriosAcept: [],
+    })
     setSelectedObjetivo(null)
     setSelectedProyecto(null)
     setView(1)
+    setValidationErrors(null) // Limpiar errores al reiniciar
   }
-
-  const handleCancel = () => {
-    resetForm()
-    onClose()
-  }
-
   const onSubmit: SubmitHandler<FormData> = async () => {
     setErrorMessage(null)
     setProjectError(null)
-
-    // Validar selección de proyecto
+    setValidationErrors(null)
     if (!selectedProyecto) {
       setProjectError('Debe seleccionar un proyecto.')
       return
     }
-
     try {
       if (entregables.length === 0 || entregables.some((e) => e.criteriosAcept.length === 0)) {
         alert('Debe haber al menos un entregable con criterios de aceptación.')
@@ -131,7 +206,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
 
       for (const e of entregables) {
         const payload = {
-          identificadorObjet: selectedObjetivo!,
+          identificadorObjet: selectedObjetivo!.identificador,
           nombre: e.nombre,
           descripcion: '',
           criteriosAcept: e.criteriosAcept,
@@ -142,14 +217,13 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         })
-
         if (response.status !== 201) {
           const responseBody = await response.json()
           setErrorMessage(responseBody.message || 'Error al crear el entregable.')
+          setValidationErrors(responseBody.errors || null)
           return
         }
       }
-
       onCreate(entregables)
       resetForm()
       onClose()
@@ -168,41 +242,46 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
           <>
             <h5 className="text-xl font-semibold text-center">Registrar Entregable(s)</h5>
             <hr className="border-[1.5px] my-2" />
-            <p className="text-sm my-2">Selecciona el proyecto y el objetivo asociado para el cual desear registrar los entregables.</p>
-            <div className="my-2">
-              <h2 className="pb-2 font-medium">Proyectos</h2>
-              <select
-                value={selectedProyecto ?? ''}
-                onChange={(e) => setSelectedProyecto(e.target.value)}
-                className="bg-gray-50 border text-gray-900 rounded-lg w-full p-2.5"
-              >
-                <option value="">Seleccione un proyecto</option>
-                <option value="Cocoa">ID - Cocoa</option>
-              </select>
-              {projectError && <div className="text-red-500 text-sm">{projectError}</div>}
-            </div>
+            <p className="text-sm my-2">Selecciona el proyecto y el objetivo asociado para el cual deseas registrar los entregables.</p>
+
+            <h2 className="pb-2 font-medium">Proyectos</h2>
+            <Autocomplete
+              id="proyecto-autocomplete"
+              options={proyectos}
+              value={selectedProyecto}
+              onChange={handleProyectoSelect}
+              renderInput={(params) => <TextField {...params} label="Selecciona un proyecto" variant="outlined" />}
+              className="mb-4"
+            />
+            {projectError && <div className="text-red-500 text-sm">{projectError}</div>}
 
             <h2 className="pb-2 font-medium">Objetivos</h2>
+            <Autocomplete
+              id="objetivo-autocomplete"
+              options={filteredObjetivos}
+              getOptionLabel={(option) => option.nombre}
+              value={selectedObjetivo}
+              onChange={handleObjetivoSelect}
+              renderInput={(params) => <TextField {...params} label="Selecciona un objetivo" variant="outlined" />}
+              disabled={!selectedProyecto}
+              className="mb-4"
+            />
+            {validationErrors?.['identificadorObjet'] && (
+              <div className="text-red-500 text-sm">{validationErrors['identificadorObjet'].join(', ')}</div>
+            )}
 
-            <div className="flex mb-4">
-              <select
-                value={selectedObjetivo ?? ''}
-                onChange={(e) => handleObjetivoSelect(Number(e.target.value))}
-                className="bg-gray-50 border text-gray-900 rounded-lg w-full p-2.5"
-              >
-                <option value="">Seleccione un objetivo</option>
-                {objetivos.map((obj) => (
-                  <option key={obj.identificador} value={obj.identificador}>
-                    {obj.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={handleCancel} className="button-secondary_outlined">
                 Cancelar
               </button>
-              <button type="button" onClick={() => setView(2)} className="button-primary" disabled={selectedObjetivo === null}>
+              <button
+                type="button"
+                onClick={() => {
+                  setView(2)
+                }}
+                className="button-primary"
+                disabled={!selectedObjetivo}
+              >
                 Siguiente
               </button>
             </div>
@@ -213,7 +292,9 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
           <>
             <h5 className="text-xl font-semibold text-center">Registrar Entregable(s)</h5>
             <hr className="border-[1.5px] my-2" />
-            <h5 className="text-base font-semibold">Entregables para el Objetivo {selectedObjetivo}</h5>
+            <h5 className="text-base font-semibold">
+              Entregables para el Objetivo{selectedObjetivo ? selectedObjetivo.nombre : 'No seleccionado'}
+            </h5>
             <h6>Entregable</h6>
             <input
               type="text"
@@ -222,6 +303,8 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
               value={currentEntregable.nombre}
               onChange={(e) => setCurrentEntregable({ ...currentEntregable, nombre: e.target.value })}
             />
+            {validationErrors?.['nombre'] && <div className="text-red-500 text-sm">{validationErrors['nombre'].join(', ')}</div>}
+
             <h6 className="text-base mb-2">Criterios de aceptación para Entregable *</h6>
             <div className="max-h-40 overflow-y-auto">
               {criterios.map((criterio, index) => (
@@ -233,6 +316,9 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                     onChange={(e) => updateCriterio(index, e.target.value)}
                     className="border text-gray-900 rounded-lg block w-full p-2.5 pr-8"
                   />
+                  {validationErrors?.[`criteriosAcept.${index}.descripcion`] && (
+                    <div className="text-red-500 text-sm">{validationErrors[`criteriosAcept.${index}.descripcion`].join(', ')}</div>
+                  )}
                   <img
                     src={IconClose}
                     alt="Close"
@@ -242,6 +328,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                 </div>
               ))}
             </div>
+            {errorMessage && <div className="text-red-500 text-sm text-center mb-2">{errorMessage}</div>}
             <div className="flex justify-center">
               <button type="button" onClick={addCriterio} className="button-primary mb-4">
                 + Nuevo Criterio
@@ -268,7 +355,9 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
           <>
             <h5 className="text-xl font-semibold text-center">Registrar Entregable(s)</h5>
             <hr className="border-[1.5px] my-2" />
-            <h5 className="text-base my-2 font-semibold">Entregables para el Objetivo {selectedObjetivo}</h5>
+            <h5 className="text-base my-2 font-semibold">
+              Entregables para el Objetivo {selectedObjetivo ? selectedObjetivo.nombre : 'No seleccionado'}
+            </h5>
 
             {entregables.map((e, index) => (
               <div key={index} className="flex items-center mb-2 relative">
@@ -288,7 +377,12 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
               <button
                 type="button"
                 onClick={() => {
-                  setCurrentEntregable({ nombre: '', descripcion: '', identificadorObjet: selectedObjetivo!, criteriosAcept: [] })
+                  setCurrentEntregable({
+                    nombre: '',
+                    descripcion: '',
+                    identificadorObjet: selectedObjetivo ? selectedObjetivo.identificador : 0,
+                    criteriosAcept: [],
+                  })
                   setView(3)
                 }}
                 className="button-primary mb-4"
