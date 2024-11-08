@@ -96,6 +96,13 @@ export const SelectorServices = () => {
 
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => navigate('/eliminar-plantillas')}
+      >
+        <p>Servicio de eliminación de plantillas</p>
+      </div>
+
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => openProjectModal()} // Abrir modal para selección de proyecto
       >
         <p>Servicio de generación de planillas de evaluación</p>
