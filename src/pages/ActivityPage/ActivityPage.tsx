@@ -1,11 +1,10 @@
-import { useEffect, useState, useCallback, SyntheticEvent } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Activity from './Components/Activity'
 import DialogActivity from './Components/DialogActivity'
 import { Dayjs } from 'dayjs'
 import { ActivityProps } from '../../interfaces/activity.interface'
 import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
 import { UserData } from '../../interfaces/user.interface'
-import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 import { createActivity, getActivities } from '../../services/activity.service'
 import { Alert, Snackbar, SnackbarCloseReason } from '@mui/material'
 import { Planificacion } from '../../interfaces/project.interface'
@@ -77,24 +76,27 @@ const ActivityPage = (): JSX.Element => {
     }
   }, [])
 
-  const handleAddNewActivity = useCallback(async (): Promise<any> => {
-    try {
-      if (selectedActivity) {
-        await createActivity({ ...selectedActivity })
-        setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
-        setIsDialogOpen(false)
-        setSelectedActivity(null)
-        setOpenSnackbar(true)
+  const handleAddNewActivity = useCallback(
+    async (identificadorObjet: number): Promise<unknown> => {
+      try {
+        if (selectedActivity) {
+          await createActivity({ ...selectedActivity, identificadorObjet: identificadorObjet })
+          setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
+          setIsDialogOpen(false)
+          setSelectedActivity(null)
+          setOpenSnackbar(true)
+        }
+        return false
+      } catch (error: unknown) {
+        return error
       }
-      return false
-    } catch (error: unknown) {
-      return error
-    }
-  }, [selectedActivity, activities.length])
+    },
+    [selectedActivity, activities.length]
+  )
 
   const handleAddActivityClick = () => {
     setSelectedActivity({
-      identificador: activities.length + 1,
+      identificador: 0,
       nombre: '',
       fechaInici: new Date(),
       fechaFin: new Date(),

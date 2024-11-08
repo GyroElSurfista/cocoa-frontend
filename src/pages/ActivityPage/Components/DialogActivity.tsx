@@ -4,7 +4,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
-import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
+import { ActivityErrors, ActivityProps, DialogActivityProps } from '../../../interfaces/activity.interface'
 import { useEffect, useState } from 'react'
 import { Planificacion } from '../../../interfaces/project.interface'
 import { getObjectivesFromPlanification, ObjectiveData } from '../../../services/objective.service'
@@ -18,6 +18,36 @@ const INITIAL_STATE_ERRORS = {
   objetivo: [''],
   proyecto: [''],
   resultados: [],
+}
+
+const isDefaultActivity = (activity: ActivityProps) => {
+  const defaultActivity = {
+    identificador: 0,
+    nombre: '',
+    fechaInici: new Date().toDateString(),
+    fechaFin: new Date().toDateString(),
+    descripcion: '',
+    responsable: null,
+    resultados: [''],
+    objetivo: '',
+    identificadorUsua: 1,
+    identificadorObjet: 0,
+    proyecto: '',
+  }
+
+  return (
+    activity.identificador === defaultActivity.identificador &&
+    activity.nombre === defaultActivity.nombre &&
+    activity.fechaInici.toDateString() === defaultActivity.fechaInici &&
+    activity.fechaFin.toDateString() === defaultActivity.fechaFin &&
+    activity.descripcion === defaultActivity.descripcion &&
+    activity.responsable === defaultActivity.responsable &&
+    JSON.stringify(activity.resultados) === JSON.stringify(defaultActivity.resultados) &&
+    activity.objetivo === defaultActivity.objetivo &&
+    activity.identificadorUsua === defaultActivity.identificadorUsua &&
+    activity.identificadorObjet === defaultActivity.identificadorObjet &&
+    activity.proyecto === defaultActivity.proyecto
+  )
 }
 
 const DialogActivity = ({
@@ -65,7 +95,7 @@ const DialogActivity = ({
           ...prevObjective,
           nombre: activity.objetivo,
         }))
-      } else {
+      } else if (isDefaultActivity(activity)) {
         inicializarAutocompletesDialogActivity()
       }
     }
@@ -138,12 +168,12 @@ const DialogActivity = ({
     setErrors(newErrors)
     const hasErrors = Object.values(newErrors).some((error) => {
       if (Array.isArray(error)) {
-        return error.some((err) => err) // Check each entry in arrays like resultados
+        return error.some((err) => err)
       }
-      return Boolean(error) // For single-value fields like nombre, descripcion, etc.
+      return Boolean(error)
     })
 
-    return !hasErrors // Return true if no errors, false otherwise
+    return !hasErrors
   }
 
   const handleAddResult = () => {
@@ -168,8 +198,8 @@ const DialogActivity = ({
   }
 
   const handleSave = async () => {
-    if (await validateFields()) {
-      const endpointErrors = await onSave()
+    if ((await validateFields()) && selectedObjective) {
+      const endpointErrors = await onSave(selectedObjective.identificador)
       if (endpointErrors) {
         if (endpointErrors.response.data.errors) setErrors({ ...errors, ...endpointErrors.response.data.errors })
         else if (
