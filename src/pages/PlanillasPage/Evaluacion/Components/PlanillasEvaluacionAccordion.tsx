@@ -29,7 +29,11 @@ interface Deliverable {
   identificadorObjet: number
 }
 
-export const PlanillasEvaluacionAccordion: React.FC = () => {
+interface PlanillasEvaluacionAccordionProps {
+  identificadorPlani: number
+}
+
+export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordionProps> = ({ identificadorPlani }) => {
   const [planillas, setPlanillas] = useState<Planilla[]>([])
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [deliverables, setDeliverables] = useState<Deliverable[]>([])
@@ -38,21 +42,25 @@ export const PlanillasEvaluacionAccordion: React.FC = () => {
 
   // Fetch de las planillas de seguimiento para todos los objetivos
   useEffect(() => {
+    console.log(identificadorPlani)
     const fetchAllPlanillas = async () => {
       try {
         const response = await fetch('https://cocoabackend.onrender.com/api/objetivos-con-planilla-evaluacion-generada')
         const data = await response.json()
-
-        // Filtrar solo los objetivos con evaluaciones disponibles
-        const filteredPlanillas = data.filter((planilla: Planilla) => planilla.evaluacion_objetivo.length > 0)
+        console.log(data)
+        // Filtrar solo los objetivos con evaluaciones disponibles y coincidentes con el identificadorPlani
+        const filteredPlanillas = data.filter(
+          (planilla: Planilla) => planilla.evaluacion_objetivo.length > 0 && planilla.identificadorPlani === identificadorPlani
+        )
         setPlanillas(filteredPlanillas)
+        console.log(planillas)
       } catch (error) {
         console.error('Error al cargar las planillas:', error)
       }
     }
 
     fetchAllPlanillas()
-  }, [])
+  }, [identificadorPlani])
 
   // Fetch deliverables for a specific objective
   const fetchDeliverables = async (identificadorObjet: number, fechaFin: string) => {
