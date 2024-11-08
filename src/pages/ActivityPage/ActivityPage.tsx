@@ -1,13 +1,14 @@
-import { useEffect, useState, useCallback, SyntheticEvent } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Activity from './Components/Activity'
 import DialogActivity from './Components/DialogActivity'
 import { Dayjs } from 'dayjs'
 import { ActivityProps } from '../../interfaces/activity.interface'
 import { getUsuariosGrupoEmpresa } from '../../services/grupoempresa.service'
 import { UserData } from '../../interfaces/user.interface'
-import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 import { createActivity, getActivities } from '../../services/activity.service'
 import { Alert, Snackbar, SnackbarCloseReason } from '@mui/material'
+import { Planificacion } from '../../interfaces/project.interface'
+import { getProjects } from '../../services/project.service'
 
 const ActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityProps[]>([])
@@ -15,7 +16,7 @@ const ActivityPage = (): JSX.Element => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
   const [responsables, setResponsables] = useState<string[]>([])
-  const [objetivos, setObjetivos] = useState<ObjectiveData[]>([])
+  const [proyectos, setProyectos] = useState<Planificacion[]>([])
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
 
   // Cargar actividades, responsables y objetivos solo una vez al montar el componente
@@ -23,7 +24,7 @@ const ActivityPage = (): JSX.Element => {
     const loadData = async () => {
       try {
         // Obtener actividades y convertir fechas a Date
-        const actividades = (await getActivities(1)).data.map((actividad) => ({
+        const actividades = (await getActivities(1)).data.data.map((actividad) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
@@ -35,9 +36,9 @@ const ActivityPage = (): JSX.Element => {
         const nombresUsuarios = usuarios.map((usuario: UserData) => usuario.name)
         setResponsables(nombresUsuarios)
 
-        // Obtener objetivos
-        const objetivosData = (await getObjectivesFromPlanification()).data
-        setObjetivos(objetivosData)
+        // Obtener proyectos
+        const proyectosData = (await getProjects()).data
+        setProyectos(proyectosData)
       } catch (error) {
         console.error('Error al cargar los datos', error)
       }
@@ -63,22 +64,6 @@ const ActivityPage = (): JSX.Element => {
     setSelectedActivity((prev) => (prev ? { ...prev, [name]: value } : null))
   }, [])
 
-  const handleNewObjectiveActivityChange = useCallback(
-    (_event: SyntheticEvent<Element, Event>, value: { identificadorObjet: number | undefined; nombre: string } | null) => {
-      console.log('value', value)
-      setSelectedActivity((prev) =>
-        prev
-          ? {
-              ...prev,
-              objetivo: value?.nombre === undefined ? '' : value.nombre,
-              identificadorObjet: value?.identificadorObjet,
-            }
-          : null
-      )
-    },
-    []
-  )
-
   const handleNewInitialDateActivityChange = useCallback((value: Dayjs | null) => {
     if (value) {
       setSelectedActivity((prev) => (prev ? { ...prev, fechaInici: value.toDate() } : null))
@@ -91,24 +76,27 @@ const ActivityPage = (): JSX.Element => {
     }
   }, [])
 
-  const handleAddNewActivity = useCallback(async (): Promise<any> => {
-    try {
-      if (selectedActivity) {
-        await createActivity({ ...selectedActivity })
-        setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
-        setIsDialogOpen(false)
-        setSelectedActivity(null)
-        setOpenSnackbar(true)
+  const handleAddNewActivity = useCallback(
+    async (identificadorObjet: number): Promise<unknown> => {
+      try {
+        if (selectedActivity) {
+          await createActivity({ ...selectedActivity, identificadorObjet: identificadorObjet })
+          setActivities((prevActivities) => [...prevActivities, { ...selectedActivity, identificador: activities.length + 1 }])
+          setIsDialogOpen(false)
+          setSelectedActivity(null)
+          setOpenSnackbar(true)
+        }
+        return false
+      } catch (error: unknown) {
+        return error
       }
-      return false
-    } catch (error: unknown) {
-      return error
-    }
-  }, [selectedActivity, activities.length])
+    },
+    [selectedActivity, activities.length]
+  )
 
   const handleAddActivityClick = () => {
     setSelectedActivity({
-      identificador: activities.length + 1,
+      identificador: 0,
       nombre: '',
       fechaInici: new Date(),
       fechaFin: new Date(),
@@ -165,12 +153,11 @@ const ActivityPage = (): JSX.Element => {
           onHide={handleDialogClose}
           onSave={handleAddNewActivity}
           onChange={handleNewActivityChange}
-          onChangeObjective={handleNewObjectiveActivityChange}
           onChangeInitialDate={handleNewInitialDateActivityChange}
           onChangeFinalDate={handleNewFinalDateActivityChange}
           isEditMode={isEditMode}
           responsables={responsables}
-          objetivos={objetivos}
+          proyectos={proyectos}
         />
 
         <Snackbar

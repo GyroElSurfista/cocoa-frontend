@@ -4,8 +4,51 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
-import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
+import { ActivityErrors, ActivityProps, DialogActivityProps } from '../../../interfaces/activity.interface'
 import { useEffect, useState } from 'react'
+import { Planificacion } from '../../../interfaces/project.interface'
+import { getObjectivesFromPlanification, ObjectiveData } from '../../../services/objective.service'
+
+const INITIAL_STATE_ERRORS = {
+  nombre: [''],
+  descripcion: [''],
+  responsable: [''],
+  fechaInici: [''],
+  fechaFin: [''],
+  objetivo: [''],
+  proyecto: [''],
+  resultados: [],
+}
+
+const isDefaultActivity = (activity: ActivityProps) => {
+  const defaultActivity = {
+    identificador: 0,
+    nombre: '',
+    fechaInici: new Date().toDateString(),
+    fechaFin: new Date().toDateString(),
+    descripcion: '',
+    responsable: null,
+    resultados: [''],
+    objetivo: '',
+    identificadorUsua: 1,
+    identificadorObjet: 0,
+    proyecto: '',
+  }
+
+  return (
+    activity.identificador === defaultActivity.identificador &&
+    activity.nombre === defaultActivity.nombre &&
+    activity.fechaInici.toDateString() === defaultActivity.fechaInici &&
+    activity.fechaFin.toDateString() === defaultActivity.fechaFin &&
+    activity.descripcion === defaultActivity.descripcion &&
+    activity.responsable === defaultActivity.responsable &&
+    JSON.stringify(activity.resultados) === JSON.stringify(defaultActivity.resultados) &&
+    activity.objetivo === defaultActivity.objetivo &&
+    activity.identificadorUsua === defaultActivity.identificadorUsua &&
+    activity.identificadorObjet === defaultActivity.identificadorObjet &&
+    activity.proyecto === defaultActivity.proyecto
+  )
+}
 
 const DialogActivity = ({
   activity,
@@ -13,22 +56,22 @@ const DialogActivity = ({
   onHide,
   onSave,
   onChange,
-  onChangeObjective,
   onChangeInitialDate,
   onChangeFinalDate,
   isEditMode,
   responsables,
-  objetivos,
+  proyectos,
 }: DialogActivityProps): JSX.Element => {
-  const [errors, setErrors] = useState<ActivityErrors>({
-    nombre: [''],
-    descripcion: [''],
-    responsable: [''],
-    fechaInici: [''],
-    fechaFin: [''],
-    objetivo: [''],
-    resultados: [],
-  })
+  const [objetivos, setObjetivos] = useState<ObjectiveData[] | null>(null)
+  const [selectedProject, setSelectedProject] = useState<Planificacion | null>(null)
+  const [selectedObjective, setSelectedObjective] = useState<ObjectiveData | null>(null)
+  const [errors, setErrors] = useState<ActivityErrors>(INITIAL_STATE_ERRORS)
+
+  const inicializarAutocompletesDialogActivity = (): void => {
+    setObjetivos(null)
+    setSelectedProject(null)
+    setSelectedObjective(null)
+  }
 
   useEffect(() => {
     if (activity) {
@@ -39,8 +82,22 @@ const DialogActivity = ({
         fechaInici: [''],
         fechaFin: [''],
         objetivo: [''],
+        proyecto: [''],
         resultados: [],
       })
+
+      if (activity.proyecto && activity.objetivo) {
+        setSelectedProject((prevProject) => ({
+          ...prevProject,
+          nombre: activity.proyecto,
+        }))
+        setSelectedObjective((prevObjective) => ({
+          ...prevObjective,
+          nombre: activity.objetivo,
+        }))
+      } else if (isDefaultActivity(activity)) {
+        inicializarAutocompletesDialogActivity()
+      }
     }
   }, [activity])
 
@@ -52,6 +109,7 @@ const DialogActivity = ({
       fechaInici: [''],
       fechaFin: [''],
       objetivo: [''],
+      proyecto: [''],
       resultados: Array(activity?.resultados?.length).fill(''),
     }
 
@@ -59,15 +117,11 @@ const DialogActivity = ({
     else if (activity?.nombre.length < 5) newErrors.nombre[0] = 'El título debe tener al menos 5 caracteres'
     else if (activity?.nombre.length > 50) newErrors.nombre[0] = 'El título no puede exceder 50 caracteres'
     else if (activity?.nombre.trim() === '') newErrors.nombre[0] = 'El título no puede contener solo espacios en blanco'
-    else if (activity?.nombre !== activity?.nombre.trim())
-      newErrors.nombre[0] = 'El título no puede contener espacios en blanco al principio o final'
 
     if (!activity?.descripcion || activity?.descripcion.length === 0) newErrors.descripcion[0] = 'La descripción es obligatoria'
     else if (activity?.descripcion.length < 5) newErrors.descripcion[0] = 'La descripción debe tener al menos 5 caracteres'
     else if (activity?.descripcion.length > 255) newErrors.descripcion[0] = 'La descripción no puede exceder 255 caracteres'
     else if (activity?.descripcion.trim() === '') newErrors.descripcion[0] = 'La descripción no puede contener solo espacios en blanco'
-    else if (activity?.descripcion !== activity?.descripcion.trim())
-      newErrors.descripcion[0] = 'La descripción no puede contener espacios en blanco al principio o final'
 
     if (!activity?.responsable || activity?.responsable.length === 0) {
       newErrors.responsable[0] = 'El responsable es obligatorio'
@@ -90,7 +144,11 @@ const DialogActivity = ({
       }
     }
 
-    if (!activity?.objetivo || activity?.objetivo.length === 0) {
+    if (!selectedProject) {
+      newErrors.proyecto[0] = 'El proyecto es obligatorio'
+    }
+
+    if (!selectedObjective) {
       newErrors.objetivo[0] = 'El objetivo es obligatorio'
     }
 
@@ -99,19 +157,18 @@ const DialogActivity = ({
       else if (resultado.length < 5) newErrors.resultados[index] = 'El resultado debe tener al menos 5 caracteres'
       else if (resultado.length > 255) newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
       else if (resultado.trim() === '') newErrors.resultados[index] = 'El resultado no puede contener solo espacios en blanco'
-      else if (resultado !== resultado.trim())
-        newErrors.resultados[index] = 'El resultado no puede contener espacios en blanco al principio o final'
+      resultado = resultado.trim()
     })
 
     setErrors(newErrors)
     const hasErrors = Object.values(newErrors).some((error) => {
       if (Array.isArray(error)) {
-        return error.some((err) => err) // Check each entry in arrays like resultados
+        return error.some((err) => err)
       }
-      return Boolean(error) // For single-value fields like nombre, descripcion, etc.
+      return Boolean(error)
     })
 
-    return !hasErrors // Return true if no errors, false otherwise
+    return !hasErrors
   }
 
   const handleAddResult = () => {
@@ -136,8 +193,8 @@ const DialogActivity = ({
   }
 
   const handleSave = async () => {
-    if (await validateFields()) {
-      const endpointErrors = await onSave()
+    if ((await validateFields()) && selectedObjective) {
+      const endpointErrors = await onSave(selectedObjective.identificador)
       if (endpointErrors) {
         if (endpointErrors.response.data.errors) setErrors({ ...errors, ...endpointErrors.response.data.errors })
         else if (
@@ -204,15 +261,7 @@ const DialogActivity = ({
             <Button
               onClick={() => {
                 onHide()
-                setErrors({
-                  nombre: [''],
-                  descripcion: [''],
-                  responsable: [''],
-                  fechaInici: [''],
-                  fechaFin: [''],
-                  objetivo: [''],
-                  resultados: [],
-                })
+                setErrors(INITIAL_STATE_ERRORS)
               }}
               className="text-[#1c1c1c] font-semibold mb-1"
             >
@@ -250,17 +299,32 @@ const DialogActivity = ({
           </LocalizationProvider>
           {errors.fechaFin[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.fechaFin[0]}</p>}
 
+          <h3 className="text-lg font-semibold mb-4">Proyecto asociado</h3>
+          <Autocomplete
+            disablePortal
+            options={proyectos.map((proyecto) => proyecto)}
+            getOptionLabel={(option) => option.nombre}
+            value={selectedProject}
+            renderInput={(params) => <TextField {...params} label="Proyecto" />}
+            onChange={async (_event, value) => {
+              setSelectedProject(value)
+              if (value) setObjetivos((await getObjectivesFromPlanification(value?.identificador)).data)
+              setSelectedObjective(null)
+            }}
+            disabled={!isEditMode}
+            size="small"
+          />
+          {errors.proyecto[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.proyecto[0]}</p>}
+
           <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
           <Autocomplete
             disablePortal
-            options={objetivos.map((objetivo) => {
-              return { identificadorObjet: objetivo.identificador, nombre: objetivo.nombre }
-            })}
+            options={objetivos ? objetivos.map((objetivo) => objetivo) : []}
             getOptionLabel={(option) => option.nombre}
-            value={{ identificadorObjet: activity.identificadorObjet, nombre: activity.objetivo }}
-            onChange={onChangeObjective}
+            value={selectedProject ? selectedObjective : null}
+            onChange={(_event, value) => setSelectedObjective(value)}
             renderInput={(params) => <TextField {...params} label="Objetivo" />}
-            disabled={!isEditMode}
+            disabled={!isEditMode || selectedProject === null || objetivos === null}
             size="small"
           />
           {errors.objetivo[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo[0]}</p>}
@@ -353,15 +417,7 @@ const DialogActivity = ({
                 <button
                   onClick={() => {
                     onHide()
-                    setErrors({
-                      nombre: [''],
-                      descripcion: [''],
-                      responsable: [''],
-                      fechaInici: [''],
-                      fechaFin: [''],
-                      objetivo: [''],
-                      resultados: [],
-                    })
+                    setErrors(INITIAL_STATE_ERRORS)
                   }}
                   className="button-secondary_outlined mx-1"
                 >
