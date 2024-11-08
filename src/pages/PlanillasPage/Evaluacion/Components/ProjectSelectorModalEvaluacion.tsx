@@ -56,9 +56,13 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
       <div className="bg-white w-[375px] max-w-lg p-6 rounded-[20px] shadow-lg">
-        <h5 className="text-xl font-semibold text-center">Selecciona un Proyecto</h5>
+        <h5 className="text-xl font-semibold text-center">Generar Planilla de Evaluación</h5>
         <hr className="border-[1.5px] mb-4 mt-4" />
+        <p>Selecciona el proyecto para generar planillas de evaluación a los objetivos correspondientes.</p>
 
+        <h6 className="flex font-medium mb-3">
+          Proyecto <p className="text-red-600">*</p>
+        </h6>
         <Autocomplete
           options={projects}
           getOptionLabel={(option) => option.nombrePlani}
@@ -66,16 +70,16 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
           onChange={(event, newValue) => setSelectedProject(newValue)}
           inputValue={inputValue}
           onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
-          renderInput={(params) => <TextField {...params} label="Selecciona un proyecto" variant="outlined" className="w-full mb-4" />}
+          renderInput={(params) => <TextField {...params} label="Nombre proyecto" variant="outlined" className="w-full mb-4" />}
         />
 
         <div className="mt-4 flex justify-end gap-2">
-          <Button variant="outlined" onClick={onClose}>
+          <button className="button-secondary_outlined" onClick={onClose}>
             Cancelar
-          </Button>
-          <Button variant="contained" color="primary" onClick={handleAccept} disabled={!selectedProject}>
+          </button>
+          <button className="button-primary" onClick={handleAccept} disabled={!selectedProject}>
             Aceptar
-          </Button>
+          </button>
         </div>
       </div>
     </div>
