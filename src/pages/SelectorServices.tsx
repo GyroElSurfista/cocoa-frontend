@@ -4,6 +4,7 @@ import ObservationPage from '../pages/SeguimientoPage/NewObservation/Observation
 import PlanillaEquipoPage from './PlanillasPage/Equipo/PlanillaEquipoPage'
 import SelectorPlanillaEquipoModal from './PlanillasPage/Equipo/Components/SelectorPlanillaEquipoModal'
 import { useNavigate } from 'react-router-dom'
+import ProjectSelectorModalEvaluacion from './PlanillasPage/Evaluacion/Components/ProjectSelectorModalEvaluacion'
 
 export const SelectorServices = () => {
   const [observations, setObservations] = useState<any[] | null>(null)
@@ -12,6 +13,10 @@ export const SelectorServices = () => {
   const [planillaDate, setPlanillaDate] = useState<string | null>(null)
   const [observartionPage, setObservationPage] = useState(false)
   const [teamPage, setTeamPage] = useState(false)
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
+
+  const openProjectModal = () => setIsProjectModalOpen(true)
+  const closeProjectModal = () => setIsProjectModalOpen(false)
 
   const navigate = useNavigate()
 
@@ -89,10 +94,19 @@ export const SelectorServices = () => {
         <p>Servicio de generacion de planillas de seguimiento semanal</p>
       </div>
 
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => openProjectModal()} // Abrir modal para selección de proyecto
+      >
+        <p>Servicio de generación de planillas de evaluación</p>
+      </div>
+
       {/* Renderizamos el modal de observaciones */}
       <SelectorObservationModal onRedirect={handleRedirectObservations} />
 
       <SelectorPlanillaEquipoModal onRedirect={handleRedirectTeams} />
+
+      <ProjectSelectorModalEvaluacion isOpen={isProjectModalOpen} onClose={closeProjectModal} />
     </div>
   )
 }
