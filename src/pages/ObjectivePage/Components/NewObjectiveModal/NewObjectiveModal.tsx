@@ -170,13 +170,11 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 id="objective"
                 {...register('objective', {
                   required: 'El objetivo es obligatorio',
-                  minLength: {
-                    value: 5,
-                    message: 'El objetivo debe tener al menos 5 caracteres',
-                  },
-                  maxLength: {
-                    value: 50,
-                    message: 'El objetivo no puede tener más de 50 caracteres',
+                  validate: (value) => {
+                    const trimmedValue = value.trim()
+                    if (trimmedValue.length < 5) return 'Debe tener al menos 5 caracteres no vacíos'
+                    if (trimmedValue.length > 50) return 'Debe tener como máximo 50 caracteres'
+                    return true
                   },
                 })}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -239,7 +237,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       }
       const createdObjective = await createObjective({
         identificadorPlani: selectedProject.identificador,
-        nombre: data.objective,
+        nombre: data.objective.trim(),
         fechaInici: data.iniDate,
         fechaFin: data.finDate,
         nombrePlani: data.nombrePlani,
@@ -315,12 +313,14 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   useEffect(() => {
     fetchProjects()
   }, [])
+
   useEffect(() => {
     if (valueP) {
       const value = parseFloat(valueP)
       if (!isNaN(value)) {
         if (value >= 0 && value <= 100) {
-          setEquivalence((value / 100) * planningCost) // Aplica el valor porcentual al costo de la planificación
+          const calculatedEquivalence = (value / 100) * planningCost
+          setEquivalence(parseFloat(calculatedEquivalence.toFixed(2))) // Limita a 2 decimales
         } else {
           setEquivalence(0)
         }
