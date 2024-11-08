@@ -6,6 +6,19 @@ import dayjs from 'dayjs'
 import { AccountCircle } from '@mui/icons-material'
 import { ActivityErrors, DialogActivityProps } from '../../../interfaces/activity.interface'
 import { useEffect, useState } from 'react'
+import { Planificacion } from '../../../interfaces/project.interface'
+import { getObjectivesFromPlanification, ObjectiveData } from '../../../services/objective.service'
+
+const INITIAL_STATE_ERRORS = {
+  nombre: [''],
+  descripcion: [''],
+  responsable: [''],
+  fechaInici: [''],
+  fechaFin: [''],
+  objetivo: [''],
+  proyecto: [''],
+  resultados: [],
+}
 
 const DialogActivity = ({
   activity,
@@ -13,23 +26,22 @@ const DialogActivity = ({
   onHide,
   onSave,
   onChange,
-  onChangeObjective,
   onChangeInitialDate,
   onChangeFinalDate,
   isEditMode,
   responsables,
-  objetivos,
   proyectos,
 }: DialogActivityProps): JSX.Element => {
-  const [errors, setErrors] = useState<ActivityErrors>({
-    nombre: [''],
-    descripcion: [''],
-    responsable: [''],
-    fechaInici: [''],
-    fechaFin: [''],
-    objetivo: [''],
-    resultados: [],
-  })
+  const [objetivos, setObjetivos] = useState<ObjectiveData[] | null>(null)
+  const [selectedProject, setSelectedProject] = useState<Planificacion | null>(null)
+  const [selectedObjective, setSelectedObjective] = useState<ObjectiveData | null>(null)
+  const [errors, setErrors] = useState<ActivityErrors>(INITIAL_STATE_ERRORS)
+
+  const inicializarAutocompletesDialogActivity = (): void => {
+    setObjetivos(null)
+    setSelectedProject(null)
+    setSelectedObjective(null)
+  }
 
   useEffect(() => {
     if (activity) {
@@ -40,8 +52,22 @@ const DialogActivity = ({
         fechaInici: [''],
         fechaFin: [''],
         objetivo: [''],
+        proyecto: [''],
         resultados: [],
       })
+
+      if (activity.proyecto && activity.objetivo) {
+        setSelectedProject((prevProject) => ({
+          ...prevProject,
+          nombre: activity.proyecto,
+        }))
+        setSelectedObjective((prevObjective) => ({
+          ...prevObjective,
+          nombre: activity.objetivo,
+        }))
+      } else {
+        inicializarAutocompletesDialogActivity()
+      }
     }
   }, [activity])
 
@@ -53,6 +79,7 @@ const DialogActivity = ({
       fechaInici: [''],
       fechaFin: [''],
       objetivo: [''],
+      proyecto: [''],
       resultados: Array(activity?.resultados?.length).fill(''),
     }
 
@@ -91,7 +118,11 @@ const DialogActivity = ({
       }
     }
 
-    if (!activity?.objetivo || activity?.objetivo.length === 0) {
+    if (!selectedProject) {
+      newErrors.proyecto[0] = 'El proyecto es obligatorio'
+    }
+
+    if (!selectedObjective) {
       newErrors.objetivo[0] = 'El objetivo es obligatorio'
     }
 
@@ -205,15 +236,7 @@ const DialogActivity = ({
             <Button
               onClick={() => {
                 onHide()
-                setErrors({
-                  nombre: [''],
-                  descripcion: [''],
-                  responsable: [''],
-                  fechaInici: [''],
-                  fechaFin: [''],
-                  objetivo: [''],
-                  resultados: [],
-                })
+                setErrors(INITIAL_STATE_ERRORS)
               }}
               className="text-[#1c1c1c] font-semibold mb-1"
             >
@@ -256,23 +279,27 @@ const DialogActivity = ({
             disablePortal
             options={proyectos.map((proyecto) => proyecto)}
             getOptionLabel={(option) => option.nombre}
+            value={selectedProject}
             renderInput={(params) => <TextField {...params} label="Proyecto" />}
+            onChange={async (_event, value) => {
+              setSelectedProject(value)
+              if (value) setObjetivos((await getObjectivesFromPlanification(value?.identificador)).data)
+              setSelectedObjective(null)
+            }}
             disabled={!isEditMode}
             size="small"
           />
-          {/* {errors.objetivo && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo}</p>} */}
+          {errors.proyecto[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.proyecto[0]}</p>}
 
           <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
           <Autocomplete
             disablePortal
-            options={objetivos.map((objetivo) => {
-              return { identificadorObjet: objetivo.identificador, nombre: objetivo.nombre }
-            })}
+            options={objetivos ? objetivos.map((objetivo) => objetivo) : []}
             getOptionLabel={(option) => option.nombre}
-            value={{ identificadorObjet: activity.identificadorObjet, nombre: activity.objetivo }}
-            onChange={onChangeObjective}
+            value={selectedProject ? selectedObjective : null}
+            onChange={(_event, value) => setSelectedObjective(value)}
             renderInput={(params) => <TextField {...params} label="Objetivo" />}
-            disabled={!isEditMode}
+            disabled={!isEditMode || selectedProject === null || objetivos === null}
             size="small"
           />
           {errors.objetivo[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo[0]}</p>}
@@ -365,15 +392,7 @@ const DialogActivity = ({
                 <button
                   onClick={() => {
                     onHide()
-                    setErrors({
-                      nombre: [''],
-                      descripcion: [''],
-                      responsable: [''],
-                      fechaInici: [''],
-                      fechaFin: [''],
-                      objetivo: [''],
-                      resultados: [],
-                    })
+                    setErrors(INITIAL_STATE_ERRORS)
                   }}
                   className="button-secondary_outlined mx-1"
                 >

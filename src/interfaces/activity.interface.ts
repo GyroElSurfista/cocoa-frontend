@@ -47,15 +47,10 @@ export type DialogActivityProps = {
   onHide: () => void
   onSave: () => Promise<boolean>
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onChangeObjective: (
-    event: SyntheticEvent<Element, Event>,
-    value: { identificadorObjet: number | undefined; nombre: string } | null
-  ) => void
   onChangeInitialDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   onChangeFinalDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   isEditMode: boolean
   responsables: string[]
-  objetivos: ObjectiveData[]
   proyectos: Planificacion[]
 }
 
@@ -66,6 +61,7 @@ export interface ActivityErrors {
   fechaInici: string[]
   fechaFin: string[]
   objetivo: string[]
+  proyecto: string[]
   resultados: string[]
 }
 

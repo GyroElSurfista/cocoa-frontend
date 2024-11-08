@@ -17,7 +17,6 @@ const ActivityPage = (): JSX.Element => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [isEditMode, setIsEditMode] = useState<boolean>(false)
   const [responsables, setResponsables] = useState<string[]>([])
-  const [objetivos, setObjetivos] = useState<ObjectiveData[]>([])
   const [proyectos, setProyectos] = useState<Planificacion[]>([])
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
 
@@ -37,10 +36,6 @@ const ActivityPage = (): JSX.Element => {
         const usuarios = (await getUsuariosGrupoEmpresa()).data
         const nombresUsuarios = usuarios.map((usuario: UserData) => usuario.name)
         setResponsables(nombresUsuarios)
-
-        // Obtener objetivos
-        const objetivosData = (await getObjectivesFromPlanification()).data
-        setObjetivos(objetivosData)
 
         // Obtener proyectos
         const proyectosData = (await getProjects()).data
@@ -69,21 +64,6 @@ const ActivityPage = (): JSX.Element => {
     const { name, value } = e.target
     setSelectedActivity((prev) => (prev ? { ...prev, [name]: value } : null))
   }, [])
-
-  const handleNewObjectiveActivityChange = useCallback(
-    (_event: SyntheticEvent<Element, Event>, value: { identificadorObjet: number | undefined; nombre: string } | null) => {
-      setSelectedActivity((prev) =>
-        prev
-          ? {
-              ...prev,
-              objetivo: value?.nombre === undefined ? '' : value.nombre,
-              identificadorObjet: value?.identificadorObjet,
-            }
-          : null
-      )
-    },
-    []
-  )
 
   const handleNewInitialDateActivityChange = useCallback((value: Dayjs | null) => {
     if (value) {
@@ -171,12 +151,10 @@ const ActivityPage = (): JSX.Element => {
           onHide={handleDialogClose}
           onSave={handleAddNewActivity}
           onChange={handleNewActivityChange}
-          onChangeObjective={handleNewObjectiveActivityChange}
           onChangeInitialDate={handleNewInitialDateActivityChange}
           onChangeFinalDate={handleNewFinalDateActivityChange}
           isEditMode={isEditMode}
           responsables={responsables}
-          objetivos={objetivos}
           proyectos={proyectos}
         />
 
