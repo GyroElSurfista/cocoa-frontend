@@ -32,6 +32,7 @@ const SeguimientoPage = () => {
   const cargarObjetivos = async () => {
     try {
       const response = await getObjectives()
+      console.log('objSegui', response.data)
       const objetivosFiltrados = response.data
         .map((obj: any) => ({
           identificador: obj.identificador,
@@ -40,6 +41,7 @@ const SeguimientoPage = () => {
           objective: obj.nombre,
           valueP: obj.valorPorce,
           planillasGener: obj.planillasGener,
+          nombrePlani: obj.nombrePlani,
         }))
         .filter((objetivo: Objective) => objetivo.planillasGener) // Filtrar solo los objetivos con planillasGener: true
 
@@ -59,7 +61,7 @@ const SeguimientoPage = () => {
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
 
       {objetivos.length > 0 ? (
-        objetivos.map((objetivo, index) => <ObjectiveTracker key={index} objective={objetivo} />)
+        objetivos.map((objetivo, index) => <ObjectiveTracker key={index} objective={objetivo} index={index} />)
       ) : (
         <p className="text-center font-semibold mt-4">No existen objetivos disponibles.</p>
       )}

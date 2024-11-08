@@ -6,6 +6,7 @@ interface NewPlanillaEvaluacionModalProps {
   isOpen: boolean
   onClose: () => void
   onPlanillasGenerated: () => void
+  identificadorPlani: number // Nuevo prop para filtrar objetivos
 }
 
 interface Objetivo {
@@ -15,41 +16,46 @@ interface Objetivo {
   fechaFin: string
   valorPorce: string
   planillasGener: boolean
+  planillaEvaluGener: boolean
+  identificadorPlani: number
 }
 
-const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({ isOpen, onClose, onPlanillasGenerated }) => {
+const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({
+  isOpen,
+  onClose,
+  onPlanillasGenerated,
+  identificadorPlani,
+}) => {
   const [objetivos, setObjetivos] = useState<Objetivo[]>([])
   const [selectedObjetivo, setSelectedObjetivo] = useState<Objetivo | null>(null)
   const [inputValue, setInputValue] = useState<string>('') // Para capturar el valor de texto
   const [apiError, setApiError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null) // Para el error de validación
 
-  // Fetch objetivos sin planilla generada y con entregables
+  // Fetch objetivos sin planilla generada y relacionados con el identificadorPlani
   useEffect(() => {
-    const fetchObjetivosSinPlanillaConEntregables = async () => {
+    const fetchObjetivosRelacionados = async () => {
+      console.log(identificadorPlani)
       try {
-        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos-sin-planilla-evaluacion-generada')
+        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
         if (!response.ok) throw new Error('Error al cargar los objetivos')
 
-        const objetivosData = await response.json()
-        const filteredObjetivos = await Promise.all(
-          objetivosData.map(async (objetivo: Objetivo) => {
-            const entregablesResponse = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${objetivo.identificador}/entregables`)
-            const entregables = await entregablesResponse.json()
+        const objetivosData: Objetivo[] = await response.json()
 
-            return entregables.length > 0 ? objetivo : null
-          })
+        // Filtrar objetivos según identificadorPlani y planillaEvaluGener === false
+        const filteredObjetivos = objetivosData.filter(
+          (objetivo) => objetivo.identificadorPlani === identificadorPlani && !objetivo.planillaEvaluGener
         )
 
-        setObjetivos(filteredObjetivos.filter(Boolean) as Objetivo[])
+        setObjetivos(filteredObjetivos)
       } catch (error) {
         console.error('Error fetching objetivos:', error)
         setApiError('No se pudieron cargar los objetivos.')
       }
     }
 
-    if (isOpen) fetchObjetivosSinPlanillaConEntregables()
-  }, [isOpen])
+    if (isOpen) fetchObjetivosRelacionados()
+  }, [isOpen, identificadorPlani])
 
   const handleAccept = async () => {
     // Validación: verificar si el nombre ingresado en `inputValue` coincide con algún nombre en `objetivos`
