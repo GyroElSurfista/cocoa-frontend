@@ -1,7 +1,6 @@
 import { Autocomplete, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { getObjectivesFromPlanification, getPlannings, ObjectiveData } from '../../../services/objective.service'
-import { formatDateToDMY } from '../../../utils/formatDate'
 import { verificarLlenadoObj } from '../../../services/planiEvaObj.service'
 import { useNavigate } from 'react-router-dom'
 
@@ -53,13 +52,20 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
     } catch (error) {
       console.log(error)
     }
-    // Proceed with your generate logic
   }
 
   const fetchProjects = async () => {
     try {
       const response = await getPlannings()
-      setProjects(response.data)
+      const today = new Date()
+
+      const validProjects = response.data.filter((project: Planning) => {
+        const startDate = new Date(project.fechaInici)
+        const endDate = new Date(project.fechaFin)
+        return startDate <= today && endDate >= today
+      })
+
+      setProjects(validProjects)
     } catch (error) {
       console.error('Error fetching projects:', error)
     }
@@ -87,8 +93,6 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
     }
   }, [selectedProject])
 
-  const today = new Date()
-
   if (!isOpen) return null
 
   return (
@@ -99,18 +103,15 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
             <h5 className="text-xl font-semibold">Llenar planilla de evaluación de Objetivo</h5>
           </div>
           <hr className="border-[1.5px] mb-4" />
-          <p className="pb-3">Selecciona el proyecto y el objetivo para el cual deseas generar la planilla de evaluación</p>
+          <p className="pb-3">
+            Selecciona el proyecto y el objetivo para el cual deseas llenar la planilla de evaluación (solo para proyectos en desarrollo).
+          </p>
           <div className="pb-2 font-medium">
             Proyecto <span className="text-red-500">*</span>
           </div>
           <Autocomplete
             options={projects}
-            getOptionLabel={(option) => `${option.nombre}: ${formatDateToDMY(option.fechaInici)} - ${formatDateToDMY(option.fechaFin)}`}
-            getOptionDisabled={(option) => {
-              const startDate = new Date(option.fechaInici)
-              const endDate = new Date(option.fechaFin)
-              return today < startDate || today > endDate
-            }}
+            getOptionLabel={(option) => `${option.nombre}`}
             value={selectedProject}
             onChange={(event, newValue) => {
               setSelectedProject(newValue)
