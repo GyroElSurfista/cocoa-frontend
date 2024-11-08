@@ -67,11 +67,11 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
               label="Seleccionar Parámetro"
               sx={{
                 '& .MuiInputBase-root': {
-                  fontSize: '0.9rem', // text-xs
-                  color: '#454545', // text-[#454545]
+                  fontSize: '0.9rem',
+                  color: '#454545',
                 },
                 '& .MuiInputLabel-root': {
-                  fontSize: '0.875rem', // text-sm
+                  fontSize: '0.875rem',
                 },
               }}
             />
@@ -80,7 +80,25 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
 
         <div className="flex items-center text-xl font-semibold w-1/5 justify-end">
           <span className="text-black mr-2.5 ">Puntaje: </span>
-          <TextField className="text-[#f60c2e] w-[25%]" size="small"></TextField>
+          <TextField
+            className="w-[40%]"
+            size="small"
+            defaultValue={0}
+            type="number"
+            sx={{
+              '& .MuiInputBase-input': {
+                color: '#f60c2e',
+              },
+            }}
+            onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+              const sanitizedValue = e.target.value.replace(/[+\-.]/g, '')
+              let numericValue = parseInt(sanitizedValue, 10)
+
+              if (isNaN(numericValue)) numericValue = 0
+              else if (numericValue > 100) numericValue = 100
+              e.target.value = numericValue.toString()
+            }}
+          />
         </div>
       </section>
 

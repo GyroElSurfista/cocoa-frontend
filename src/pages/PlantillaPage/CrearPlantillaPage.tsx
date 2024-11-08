@@ -76,7 +76,7 @@ const CrearPlantillaPage = (): JSX.Element => {
 
         <div className="text-xl font-semibold">
           <span className="text-black">Puntaje total: </span>
-          <span className="text-[#f60c2e] mr-2.5">90</span>
+          <span className="text-[#f60c2e] mr-2.5">{plantilla.puntaje}</span>
         </div>
       </section>
 
