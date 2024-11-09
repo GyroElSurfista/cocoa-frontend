@@ -11,14 +11,18 @@ import SelectorObservationModal from './pages/SeguimientoPage/NewObservation/Com
 import DeleteActivityPage from './pages/ActivityPage/DeleteActivityPage'
 import DeleteObservationPage from './pages/SeguimientoPage/NewObservation/Components/Delete/DeleteObservationPage'
 import EvaluacionPage from './pages/PlanillasPage/Evaluacion/EvaluacionPage'
+import SelectorServices from './pages/SelectorServices'
+import PlanillaEquipoPage from './pages/PlanillasPage/Equipo/PlanillaEquipoPage'
+import { PlantillaDeletePage } from './pages/Plantillas/Delete/PlantillaDeletePage'
 
 function App() {
   return (
     <>
       <Routes>
         <Route path="/" element={<Layout />}>
+          <Route path="servicios" element={<SelectorServices />} />
           <Route path="objetivos" element={<ObjectivePage />} />
-          <Route path="editar-observaciones" element={<SelectorObservationModal />} />
+          <Route path="eliminar-plantillas" element={<PlantillaDeletePage />} />
           <Route path="eliminar-observaciones" element={<DeleteObservationPage />} />
           <Route path="objetivos-entregables" element={<EntregablePage />} />
           <Route path="planilla-evaluacion" element={<EvaluacionPage />} />

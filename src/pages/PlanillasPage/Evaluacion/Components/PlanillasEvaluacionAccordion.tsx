@@ -29,7 +29,11 @@ interface Deliverable {
   identificadorObjet: number
 }
 
-export const PlanillasEvaluacionAccordion: React.FC = () => {
+interface PlanillasEvaluacionAccordionProps {
+  identificadorPlani: number
+}
+
+export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordionProps> = ({ identificadorPlani }) => {
   const [planillas, setPlanillas] = useState<Planilla[]>([])
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [deliverables, setDeliverables] = useState<Deliverable[]>([])
@@ -38,18 +42,25 @@ export const PlanillasEvaluacionAccordion: React.FC = () => {
 
   // Fetch de las planillas de seguimiento para todos los objetivos
   useEffect(() => {
+    console.log(identificadorPlani)
     const fetchAllPlanillas = async () => {
       try {
-        const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos-con-planilla-evaluacion-generada`)
+        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos-con-planilla-evaluacion-generada')
         const data = await response.json()
-        setPlanillas(data)
+        console.log(data)
+        // Filtrar solo los objetivos con evaluaciones disponibles y coincidentes con el identificadorPlani
+        const filteredPlanillas = data.filter(
+          (planilla: Planilla) => planilla.evaluacion_objetivo.length > 0 && planilla.identificadorPlani === identificadorPlani
+        )
+        setPlanillas(filteredPlanillas)
+        console.log(planillas)
       } catch (error) {
         console.error('Error al cargar las planillas:', error)
       }
     }
 
     fetchAllPlanillas()
-  }, [])
+  }, [identificadorPlani])
 
   // Fetch deliverables for a specific objective
   const fetchDeliverables = async (identificadorObjet: number, fechaFin: string) => {
@@ -77,14 +88,23 @@ export const PlanillasEvaluacionAccordion: React.FC = () => {
           <div key={planilla.identificador} className="bg-[#e0e3ff] rounded my-3">
             <div
               className="hover:bg-[#c6caff] w-full border rounded border-[#c6caff] p-4"
-              onClick={() => fetchDeliverables(planilla.evaluacion_objetivo[0].identificadorObjet, planilla.fechaFin)}
+              onClick={() => {
+                if (planilla.evaluacion_objetivo.length > 0) {
+                  fetchDeliverables(planilla.evaluacion_objetivo[0].identificadorObjet, planilla.fechaFin)
+                } else {
+                  console.error('No hay evaluaciones de objetivos disponibles para esta planilla.')
+                }
+              }}
             >
               <div className="flex flex-row w-full justify-between items-center">
                 <div className="w-auto border-r-2 pr-2 border-[#c6caff]">
                   <span className="text-center text-[#1c1c1c] text-lg font-semibold">
-                    Objetivo {planilla.evaluacion_objetivo[0].identificadorObjet}
+                    {planilla.evaluacion_objetivo && planilla.evaluacion_objetivo.length > 0
+                      ? `Objetivo ${planilla.evaluacion_objetivo[0].identificadorObjet}`
+                      : 'Sin objetivos'}
                   </span>
                 </div>
+
                 <span className="ml-1 text-gray-600 font-normal w-auto border-r-2 pr-2 border-[#c6caff]">
                   {planilla.evaluacion_objetivo.length > 0 ? planilla.nombre : 'Sin observaciones'}
                 </span>

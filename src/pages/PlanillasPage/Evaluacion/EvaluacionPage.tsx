@@ -1,9 +1,10 @@
 import NewPlanillaEvaluacionModal from './Components/NewPlanillaEvaluacionModal'
 import { PlanillasEvaluacionAccordion } from './Components/PlanillasEvaluacionAccordion'
 import React, { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Snackbar, SnackbarContent, SnackbarCloseReason } from '@mui/material'
 
-const EvaluacionPage = () => {
+const EvaluacionPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0) // Estado para forzar la recarga de los accordions
 
@@ -14,13 +15,14 @@ const EvaluacionPage = () => {
 
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
+  const location = useLocation()
+  const { identificadorPlani } = location.state || {}
 
   const handleShowSnackbar = (message: string, color: string) => {
     setSnackbarMessage(message)
     setSnackbarColor(color)
     setOpenSnackbar(true)
   }
-
   const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
     if (reason === 'clickaway') {
       return
@@ -41,18 +43,23 @@ const EvaluacionPage = () => {
 
       <div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
-        <PlanillasEvaluacionAccordion key={refreshKey} />
+        <PlanillasEvaluacionAccordion identificadorPlani={identificadorPlani} key={refreshKey} />
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
       </div>
 
       {/* Contenedor para centrar el botón */}
       <div className="flex justify-center">
         <button className="button-primary" onClick={openModal}>
-          Generar planilla
+          Generar Planillas
         </button>
       </div>
 
-      <NewPlanillaEvaluacionModal isOpen={isModalOpen} onClose={closeModal} onPlanillasGenerated={handlePlanillasGenerated} />
+      <NewPlanillaEvaluacionModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onPlanillasGenerated={handlePlanillasGenerated}
+        identificadorPlani={identificadorPlani}
+      />
 
       {/* Snackbar para mostrar mensajes */}
       <Snackbar

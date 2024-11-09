@@ -1,7 +1,6 @@
 import { DateValidationError, PickerChangeHandlerContext } from '@mui/x-date-pickers'
 import { Dayjs } from 'dayjs'
-import { ObjectiveData } from '../services/objective.service'
-import { SyntheticEvent } from 'react'
+import { Planificacion } from './project.interface'
 
 export type ActivityProps = {
   identificador: number
@@ -14,12 +13,16 @@ export type ActivityProps = {
   identificadorObjet: number
   resultados: string[]
   objetivo: string
+  proyecto: string
 }
 
 export type ActivityRowProps = {
   identificador: number
   index: number
   nombre: string
+  objetivo: string
+  proyecto: string
+  esEliminable: boolean
   fechaInici: Date
   fechaFin: Date
   responsable: string | null
@@ -40,26 +43,23 @@ export type DialogActivityProps = {
   activity: ActivityProps | null
   isVisible: boolean
   onHide: () => void
-  onSave: () => void
+  onSave: (identificadorObjet: number) => Promise<unknown>
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onChangeObjective: (
-    event: SyntheticEvent<Element, Event>,
-    value: { identificadorObjet: number | undefined; nombre: string } | null
-  ) => void
   onChangeInitialDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   onChangeFinalDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   isEditMode: boolean
   responsables: string[]
-  objetivos: ObjectiveData[]
+  proyectos: Planificacion[]
 }
 
 export interface ActivityErrors {
-  nombre: string
-  descripcion: string
-  responsable: string
-  fechaInici: string
-  fechaFin: string
-  objetivo: string
+  nombre: string[]
+  descripcion: string[]
+  responsable: string[]
+  fechaInici: string[]
+  fechaFin: string[]
+  objetivo: string[]
+  proyecto: string[]
   resultados: string[]
 }
 

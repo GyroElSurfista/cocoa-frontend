@@ -12,6 +12,15 @@ interface Activity {
   name: string
 }
 
+interface Observation {
+  id: number
+  observation: string
+  activities: Activity[]
+  selectedActivities: Activity[]
+  identificadorPlaniSegui: number
+  identificadorActiv: number
+}
+
 interface ObservationProps {
   observation: string
   observationId: number
@@ -20,6 +29,7 @@ interface ObservationProps {
   objectiveId: number
   planillaId: number
   selectedActivities: Activity[]
+  observations: Observation[] //
   onSave: (observation: string, activities: Activity[]) => void
 }
 
@@ -39,7 +49,8 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
   objectiveId,
   identificadorPlaniSegui,
   planillaId,
-  selectedActivities = [], // Valor predeterminado
+  selectedActivities = [],
+  observations, // Recibe el array de observaciones como prop
   onSave,
 }) => {
   const [editableObservation, setEditableObservation] = useState<string>(observation)
@@ -98,7 +109,20 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
       return
     }
 
-    // Actualizar observación con PATCH
+    // Verificar si ya existe una observación con el mismo nombre (excluyendo la que estamos editando)
+    const duplicateObservation = observations.find(
+      (obs) => obs.observation.trim() === editableObservation.trim() && obs.id !== observationId
+    )
+
+    if (duplicateObservation) {
+      setError('Ya existe una observación con el mismo nombre.')
+      return
+    }
+
+    // Si no hay duplicados, borrar el mensaje de error antes de intentar guardar
+    setError('') // Limpiar el mensaje de error si la validación es exitosa
+
+    // Actualizar observación si no hay duplicados
     try {
       const response = await fetch(`https://cocoabackend.onrender.com/api/observaciones`, {
         method: 'PATCH',
@@ -116,6 +140,7 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
       if (response.ok) {
         const updatedObservation = await response.json()
         console.log('Observación actualizada:', updatedObservation)
+        console.log(identificadorPlaniSegui)
         onSave(editableObservation, [selectedActivity])
         setIsEditing(false)
       } else {
@@ -130,7 +155,6 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
   const toggleEditing = () => {
     if (isEditing) {
       validateAndSave()
-      console.log(observation, observationId, objectiveId, planillaId, selectedActivities)
     } else {
       setIsEditing(true)
     }
@@ -174,7 +198,6 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
               MenuProps={MenuProps}
               inputProps={{ 'aria-label': 'Without label' }}
               sx={{
-                // Estilos solicitados
                 display: 'inline-flex',
                 padding: '5px',
                 alignItems: 'center',
@@ -183,7 +206,6 @@ const EditObservationAccordion: React.FC<ObservationProps> = ({
                 border: '0.5px solid var(--Port-Gore-300, #A4A7FD)',
                 background: 'var(--Port-Gore-100, #E0E3FF)',
                 fontSize: '12px',
-                // Altura reducida
                 height: '30px',
                 minHeight: '30px',
               }}
