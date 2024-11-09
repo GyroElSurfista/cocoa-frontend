@@ -11,3 +11,7 @@ export const enviarRevision = async (criteriosMarked: Array<number>, marked: boo
 export const verificarLlenadoObj = async (obj: number) => {
   return await axiosInstance.get(`/objetivos/${obj}/puede-ser-llenado`)
 }
+
+export const getObjectivesEvaluables = async (idPlanning: number) => {
+  return await axiosInstance.get(`/objetivos/evaluables/${idPlanning}`)
+}

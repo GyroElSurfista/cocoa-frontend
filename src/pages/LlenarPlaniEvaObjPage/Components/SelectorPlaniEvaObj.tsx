@@ -1,7 +1,7 @@
 import { Autocomplete, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { getObjectivesFromPlanification, getPlannings, ObjectiveData } from '../../../services/objective.service'
-import { verificarLlenadoObj } from '../../../services/planiEvaObj.service'
+import { getPlannings, ObjectiveData } from '../../../services/objective.service'
+import { getObjectivesEvaluables, verificarLlenadoObj } from '../../../services/planiEvaObj.service'
 import { useNavigate } from 'react-router-dom'
 
 interface Planning {
@@ -42,11 +42,10 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
       }
       if (selectedObjective.identificador) {
         const response = await verificarLlenadoObj(selectedObjective.identificador)
-        console.log(response.data)
         if (response.data.puedeSerLlenado) {
           navigate(`/planilla-evaluacion/${selectedObjective.identificador}`)
         } else {
-          setError('El objetivo seleccionado no puede ser llenado')
+          setError(response.data.mensaje)
         }
       }
     } catch (error) {
@@ -73,8 +72,8 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
 
   const fetchObjectives = async (idProject: number) => {
     try {
-      const response = await getObjectivesFromPlanification(idProject)
-      setObjectives(response.data)
+      const response = await getObjectivesEvaluables(idProject)
+      setObjectives(response.data.data)
     } catch (error) {
       console.error('Error fetching objectives for project:', error)
     }
@@ -88,8 +87,8 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
     if (selectedProject) {
       fetchObjectives(selectedProject.identificador)
     } else {
-      setObjectives([]) // Clear objectives if no project is selected
-      setSelectedObjective(null) // Reset selected objective
+      setObjectives([])
+      setSelectedObjective(null)
     }
   }, [selectedProject])
 

@@ -128,7 +128,6 @@ const LlenarPlaniEvaObjPage = () => {
       }, {} as CriteriaState)
       setCriteriaState(initialCriteriaState)
       setMarkedPercentage(calculateMarkedPercentage(initialCriteriaState))
-      console.log(markedPercentage)
     }
   }, [objective])
 
