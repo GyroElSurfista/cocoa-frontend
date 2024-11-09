@@ -18,8 +18,8 @@ type ActivityProps = {
 
 const Activity: React.FC<ActivityProps> = ({ orden, nombre, responsable, onClick, fechaInici, fechaFin, objetivo, proyecto }) => {
   return (
-    <div className="h-18 my-2 py-2 text-sm text-[#1c1c1c] overflow-hidden bg-[#eef0ff] cursor-pointer">
-      <div onClick={onClick} className="flex justify-between items-center mx-2">
+    <div onClick={onClick} className="h-18 my-2 py-2 text-sm text-[#1c1c1c] overflow-hidden bg-[#eef0ff] cursor-pointer">
+      <div className="flex justify-between items-center mx-2">
         {/* Sección izquierda con nombre y orden */}
         <div className="flex items-center flex-shrink-0 max-w-[30%]">
           <p className="whitespace-nowrap text-gray-700">Actividad {orden}</p>
@@ -29,7 +29,7 @@ const Activity: React.FC<ActivityProps> = ({ orden, nombre, responsable, onClick
 
         {/* Sección derecha con fechas, objetivo y responsable */}
         <div className="flex justify-end items-center md:space-x-6 w-full max-w-[70%]">
-          <p className="truncate text-gray-600 min-w-[150px] max-w-[150px]">Objetivo: {objetivo}</p>
+          {/* <p className="truncate text-gray-600 min-w-[150px] max-w-[150px]">Objetivo: {objetivo}</p> */}
 
           <div className="flex items-center">
             <span className="p-1 bg-[#c6caff] rounded-lg text-xs">{fechaInici.toLocaleDateString()}</span>

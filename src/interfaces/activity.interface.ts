@@ -1,7 +1,6 @@
 import { DateValidationError, PickerChangeHandlerContext } from '@mui/x-date-pickers'
 import { Dayjs } from 'dayjs'
-import { ObjectiveData } from '../services/objective.service'
-import { SyntheticEvent } from 'react'
+import { Planificacion } from './project.interface'
 
 export type ActivityProps = {
   identificador: number
@@ -44,17 +43,13 @@ export type DialogActivityProps = {
   activity: ActivityProps | null
   isVisible: boolean
   onHide: () => void
-  onSave: () => Promise<boolean>
+  onSave: (identificadorObjet: number) => Promise<unknown>
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onChangeObjective: (
-    event: SyntheticEvent<Element, Event>,
-    value: { identificadorObjet: number | undefined; nombre: string } | null
-  ) => void
   onChangeInitialDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   onChangeFinalDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   isEditMode: boolean
   responsables: string[]
-  objetivos: ObjectiveData[]
+  proyectos: Planificacion[]
 }
 
 export interface ActivityErrors {
@@ -64,6 +59,7 @@ export interface ActivityErrors {
   fechaInici: string[]
   fechaFin: string[]
   objetivo: string[]
+  proyecto: string[]
   resultados: string[]
 }
 
