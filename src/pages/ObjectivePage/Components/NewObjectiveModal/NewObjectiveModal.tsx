@@ -59,13 +59,15 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     if (activeStep > 0) {
       setActiveStep((prev) => prev - 1)
     }
+    setApiError(null)
   }
 
   const handleCancel = () => {
     setActiveStep(0)
     reset()
     onClose()
-    setErrorMessage('') // Clear the error message when canceling
+    setErrorMessage('')
+    setSelectedProject(null)
   }
 
   const renderStepContent = (step: number) => {
@@ -112,6 +114,10 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   {...register('iniDate', {
                     required: 'La fecha de inicio es obligatoria',
                     validate: {
+                      notPast: (value) => {
+                        const today = new Date().toISOString().split('T')[0] // Formato de fecha 'YYYY-MM-DD'
+                        return value >= today || 'La fecha de inicio no puede ser anterior a la fecha actual'
+                      },
                       beforeEndDate: (value) => {
                         const endDate = watch('finDate')
                         return (
@@ -135,6 +141,10 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   {...register('finDate', {
                     required: 'La fecha de fin es obligatoria',
                     validate: {
+                      notPast: (value) => {
+                        const today = new Date().toISOString().split('T')[0] // Formato de fecha 'YYYY-MM-DD'
+                        return value >= today || 'La fecha de fin no puede ser anterior a la fecha actual'
+                      },
                       afterStartDate: (value) => {
                         const startDate = watch('iniDate')
                         return (
@@ -160,13 +170,11 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 id="objective"
                 {...register('objective', {
                   required: 'El objetivo es obligatorio',
-                  minLength: {
-                    value: 5,
-                    message: 'El objetivo debe tener al menos 5 caracteres',
-                  },
-                  maxLength: {
-                    value: 50,
-                    message: 'El objetivo no puede tener más de 50 caracteres',
+                  validate: (value) => {
+                    const trimmedValue = value.trim()
+                    if (trimmedValue.length < 5) return 'Debe tener al menos 5 caracteres no vacíos'
+                    if (trimmedValue.length > 50) return 'Debe tener como máximo 50 caracteres'
+                    return true
                   },
                 })}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -229,7 +237,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       }
       const createdObjective = await createObjective({
         identificadorPlani: selectedProject.identificador,
-        nombre: data.objective,
+        nombre: data.objective.trim(),
         fechaInici: data.iniDate,
         fechaFin: data.finDate,
         nombrePlani: data.nombrePlani,
@@ -269,14 +277,14 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
           setActiveStep(1)
           setError('finDate', {
             type: 'manual',
-            message: errorData.errors.fechaFin.join(', '),
+            message: errorData.errors.fechaFin.join('. '),
           })
         }
         if (errorData.errors.nombre) {
           setActiveStep(1)
           setError('objective', {
             type: 'manual',
-            message: errorData.errors.nombre.join(', '),
+            message: errorData.errors.nombre.join('. '),
           })
         }
         if (errorData.errors.valorPorce) {
@@ -295,6 +303,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   const fetchProjects = async () => {
     try {
       const response = await getPlannings()
+      console.log('planificaciones', response.data)
       setProjects(response.data)
     } catch (error) {
       console.error('Error fetching projects', error)
@@ -304,11 +313,17 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   useEffect(() => {
     fetchProjects()
   }, [])
+
   useEffect(() => {
     if (valueP) {
       const value = parseFloat(valueP)
       if (!isNaN(value)) {
-        setEquivalence((value / 100) * planningCost) // Aplica el valor porcentual al costo de la planificación
+        if (value >= 0 && value <= 100) {
+          const calculatedEquivalence = (value / 100) * planningCost
+          setEquivalence(parseFloat(calculatedEquivalence.toFixed(2))) // Limita a 2 decimales
+        } else {
+          setEquivalence(0)
+        }
       } else {
         setEquivalence(0)
       }
