@@ -27,6 +27,7 @@ const LlenarPlaniEvaObjPage = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
   const [isSaveButtonVisible, setIsSaveButtonVisible] = useState(true)
+  const [markedPercentage, setMarkedPercentage] = useState(0)
 
   const { idObjetivo } = useParams()
 
@@ -41,13 +42,31 @@ const LlenarPlaniEvaObjPage = () => {
   }
 
   const handleToggleCriteria = (entregableId: number, criterioId: number) => {
-    setCriteriaState((prev) => ({
-      ...prev,
-      [entregableId]: {
-        ...prev[entregableId],
-        [criterioId]: !prev[entregableId][criterioId],
-      },
-    }))
+    setCriteriaState((prev) => {
+      const newState = {
+        ...prev,
+        [entregableId]: {
+          ...prev[entregableId],
+          [criterioId]: !prev[entregableId][criterioId],
+        },
+      }
+      setMarkedPercentage(calculateMarkedPercentage(newState)) // Update percentage on each toggle
+      return newState
+    })
+  }
+
+  const calculateMarkedPercentage = (criteria: CriteriaState): number => {
+    let totalCriteria = 0
+    let markedCriteria = 0
+
+    Object.values(criteria).forEach((criterios) => {
+      Object.values(criterios).forEach((isChecked) => {
+        totalCriteria++
+        if (isChecked) markedCriteria++
+      })
+    })
+
+    return totalCriteria > 0 ? (markedCriteria / totalCriteria) * 100 : 0
   }
 
   const handleSave = async () => {
@@ -58,15 +77,21 @@ const LlenarPlaniEvaObjPage = () => {
     )
 
     try {
-      console.log('Saving marked criteria:', markedCriteria)
-      const response = await enviarRevision(markedCriteria, true)
-      setIsModalOpen(false)
-      setSnackbarMessage(response.data.message)
-      setSnackbarColor('#D3FFD2')
-      setOpenSnackbar(true)
-      setIsSaveButtonVisible(false) // Hide button after successful save
-    } catch (error) {
+      if (idObjetivo) {
+        const response = await enviarRevision(markedCriteria, true, idObjetivo)
+        console.log('Saving marked criteria:', response.data)
+        setIsModalOpen(false)
+        setSnackbarMessage(response.data.message)
+        setSnackbarColor('#D3FFD2')
+        setOpenSnackbar(true)
+        setIsSaveButtonVisible(false)
+      }
+    } catch (error: any) {
       console.log('error Revision', error)
+      setIsModalOpen(false)
+      setSnackbarMessage(error.data.error)
+      setSnackbarColor('#')
+      setOpenSnackbar(true)
     }
   }
 
@@ -102,6 +127,8 @@ const LlenarPlaniEvaObjPage = () => {
         return acc
       }, {} as CriteriaState)
       setCriteriaState(initialCriteriaState)
+      setMarkedPercentage(calculateMarkedPercentage(initialCriteriaState))
+      console.log(markedPercentage)
     }
   }, [objective])
 
@@ -114,7 +141,7 @@ const LlenarPlaniEvaObjPage = () => {
       {objective?.entregables.map((entregable) => (
         <EntregableComponent key={entregable.identificador} entregable={entregable} onToggleCriteria={handleToggleCriteria} />
       ))}
-      <ConfirmationModal isOpen={isModalOpen} onClose={closeModal} onConfirm={handleSave} />
+      <ConfirmationModal isOpen={isModalOpen} onClose={closeModal} onConfirm={handleSave} porcentaje={markedPercentage} />
       <div className="flex justify-end py-2">
         {isSaveButtonVisible && (
           <button onClick={openModal} className="button-primary">

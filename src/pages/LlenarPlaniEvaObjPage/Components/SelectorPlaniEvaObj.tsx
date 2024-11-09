@@ -139,7 +139,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
               Cancelar
             </button>
             <button onClick={handleGenerate} className="button-primary">
-              Generar
+              Aceptar
             </button>
           </div>
         </div>
