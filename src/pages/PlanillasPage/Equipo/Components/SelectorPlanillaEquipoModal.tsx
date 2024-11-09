@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Autocomplete, TextField } from '@mui/material'
+import { Autocomplete, TextField, Snackbar } from '@mui/material'
 
 interface Objective {
   identificador: number
@@ -7,16 +7,25 @@ interface Objective {
   nombrePlani: string
 }
 
+interface Observacion {
+  identificador: number
+  descripcion: string
+  fecha: string
+  identificadorActivSegui: number
+}
+
+interface ActividadSeguimiento {
+  identificador: number
+  nombre: string
+  identificadorPlaniSegui: number
+  observacion: Observacion[]
+}
+
 interface Planilla {
   identificador: number
   fecha: string
-  observacion: {
-    identificador: number
-    descripcion: string
-    fecha: string
-    identificadorPlaniSegui: number
-    identificadorActiv: number
-  }[]
+  identificadorObjet: number
+  actividad_seguimiento: ActividadSeguimiento[]
 }
 
 interface SelectorObservationModalProps {
@@ -39,6 +48,7 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
   const [selectedPlanilla, setSelectedPlanilla] = useState<Planilla | null>(null)
   const [planillaInputValue, setPlanillaInputValue] = useState('')
   const [loadingPlanillas, setLoadingPlanillas] = useState(false)
+  const [planillaError, setPlanillaError] = useState(false)
 
   useEffect(() => {
     const fetchObjectives = async () => {
@@ -70,7 +80,7 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
           const response = await fetch(
             `https://cocoabackend.onrender.com/api/objetivos/${selectedObjective.identificador}/planillas-seguimiento`
           )
-          const data = await response.json()
+          const data: Planilla[] = await response.json()
           setPlanillas(data)
         } catch (error) {
           console.error('Error al cargar las planillas', error)
@@ -92,18 +102,22 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
   }
 
   const handleAccept = () => {
-    if (selectedObjective && selectedPlanilla) {
-      const observations = selectedPlanilla.observacion.map((obs) => ({
-        id: obs.identificador,
-        observation: obs.descripcion,
-        identificadorPlaniSegui: obs.identificadorPlaniSegui,
-        identificadorActiv: obs.identificadorActiv,
-        selectedActivities: [{ id: obs.identificadorActiv, name: `Actividad ${obs.identificadorActiv}` }],
-        activities: [],
-      }))
+    if (selectedObjective && selectedPlanilla && selectedPlanilla.fecha) {
+      const observations = selectedPlanilla.actividad_seguimiento.flatMap((activity) =>
+        activity.observacion.map((obs) => ({
+          id: obs.identificador,
+          observation: obs.descripcion,
+          identificadorActivSegui: obs.identificadorActivSegui,
+          selectedActivities: [{ id: obs.identificadorActivSegui, name: `Actividad ${obs.identificadorActivSegui}` }],
+          activities: [],
+        }))
+      )
 
       onRedirect(observations, selectedObjective.identificador, selectedPlanilla.fecha, selectedPlanilla.identificador)
       setShowObjectivePlanillaModal(false)
+      setPlanillaError(false)
+    } else {
+      setPlanillaError(true)
     }
   }
 
@@ -116,7 +130,6 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
         <div>Servicio de planilla de equipos</div>
       </div>
 
-      {/* Project Selection Modal */}
       {showProjectModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white w-[375px] max-w-lg p-6 rounded-[20px] shadow-lg">
@@ -149,7 +162,6 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
         </div>
       )}
 
-      {/* Objective and Planilla Selection Modal */}
       {showObjectivePlanillaModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white w-[375px] max-w-lg p-6 rounded-[20px] shadow-lg">
@@ -195,6 +207,8 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
                     label="Selecciona una planilla"
                     variant="outlined"
                     className="w-full mb-4"
+                    error={planillaError}
+                    helperText={planillaError ? 'Por favor, selecciona una planilla válida' : ''}
                     InputProps={{
                       ...params.InputProps,
                       endAdornment: (
@@ -220,6 +234,13 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
           </div>
         </div>
       )}
+
+      <Snackbar
+        open={planillaError}
+        autoHideDuration={3000}
+        onClose={() => setPlanillaError(false)}
+        message="Por favor, selecciona una planilla válida"
+      />
     </>
   )
 }
