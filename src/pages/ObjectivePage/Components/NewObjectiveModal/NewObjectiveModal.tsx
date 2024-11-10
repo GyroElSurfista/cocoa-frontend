@@ -32,6 +32,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     formState: { errors },
     watch,
     reset,
+    clearErrors,
   } = useForm<Objective>()
   const [apiError, setApiError] = useState<string | null>(null) // State to hold API error
   const [equivalence, setEquivalence] = useState<number>(0)
@@ -85,6 +86,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               onChange={(_, value) => {
                 setSelectedProject(value)
                 setPlanningCost(value?.costo || 0) // Establecer el costo del proyecto seleccionado
+                setErrorMessage('')
               }}
               renderInput={(params) => (
                 <TextField
@@ -113,6 +115,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   id="iniDate"
                   {...register('iniDate', {
                     required: 'La fecha de inicio es obligatoria',
+                    onChange: () => clearErrors('iniDate'),
                     validate: {
                       notPast: (value) => {
                         const today = new Date().toISOString().split('T')[0] // Formato de fecha 'YYYY-MM-DD'
@@ -140,6 +143,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   id="finDate"
                   {...register('finDate', {
                     required: 'La fecha de fin es obligatoria',
+                    onChange: () => clearErrors('finDate'),
                     validate: {
                       notPast: (value) => {
                         const today = new Date().toISOString().split('T')[0] // Formato de fecha 'YYYY-MM-DD'
@@ -170,6 +174,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 id="objective"
                 {...register('objective', {
                   required: 'El objetivo es obligatorio',
+                  onChange: () => clearErrors('objective'),
                   validate: (value) => {
                     const trimmedValue = value.trim()
                     if (trimmedValue.length < 5) return 'Debe tener al menos 5 caracteres no vacíos'
@@ -200,9 +205,10 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                     id="valueP"
                     {...register('valueP', {
                       required: 'El valor porcentual es obligatorio',
+                      onChange: () => clearErrors('valueP'),
                       pattern: {
                         value: /^(100(\.00?)?|[0-9]{1,2}(\.[0-9]{1,2})?)$/, // Valida entre 0 y 100 con hasta dos decimales
-                        message: 'Por favor, ingresa un número válido con hasta dos decimales',
+                        message: 'Por favor, ingresa un número válido entre 0 y 100 con hasta dos decimales',
                       },
                       validate: (value) => {
                         const numberValue = parseFloat(value)
@@ -317,7 +323,11 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   useEffect(() => {
     if (valueP) {
       const value = parseFloat(valueP)
-      if (!isNaN(value)) {
+
+      // Verificar si el valor tiene más de 2 decimales
+      const isTwoDecimalsOrLess = /^-?\d+(\.\d{1,2})?$/.test(valueP)
+
+      if (!isNaN(value) && isTwoDecimalsOrLess) {
         if (value >= 0 && value <= 100) {
           const calculatedEquivalence = (value / 100) * planningCost
           setEquivalence(parseFloat(calculatedEquivalence.toFixed(2))) // Limita a 2 decimales
