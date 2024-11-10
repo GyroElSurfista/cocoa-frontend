@@ -1,16 +1,39 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Entregable } from '../Models/planiEvaObj'
 
 interface EntregableComponentProps {
   entregable: Entregable
   onToggleCriteria: (entregableId: number, criterioId: number) => void
+  isEvaluationSaved: boolean
 }
 
-const EntregableComponent = ({ entregable, onToggleCriteria }: EntregableComponentProps) => {
+const EntregableComponent = ({ entregable, onToggleCriteria, isEvaluationSaved }: EntregableComponentProps) => {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [criteriaCheckedState, setCriteriaCheckedState] = useState<{ [key: number]: boolean }>({})
+
+  useEffect(() => {
+    // Initialize checked state based on `cumple` from `revision_criterio_entregable`
+    const initialCheckedState: { [key: number]: boolean } = {}
+    entregable.criterio_aceptacion_entregable.forEach((criterio) => {
+      const cumpleStatus = criterio.revision_criterio_entregable.some((revision) => revision.cumple)
+      initialCheckedState[criterio.identificador] = cumpleStatus
+    })
+    setCriteriaCheckedState(initialCheckedState)
+  }, [entregable])
 
   const toggleAccordion = () => {
     setIsExpanded((prev) => !prev)
+  }
+
+  const handleCheckboxChange = (criterioId: number) => {
+    if (!isEvaluationSaved) {
+      // Only allow toggling if evaluation is not saved
+      setCriteriaCheckedState((prev) => ({
+        ...prev,
+        [criterioId]: !prev[criterioId],
+      }))
+      onToggleCriteria(entregable.identificador, criterioId)
+    }
   }
 
   return (
@@ -44,7 +67,9 @@ const EntregableComponent = ({ entregable, onToggleCriteria }: EntregableCompone
                       <input
                         id={`checkbox-${entregable.identificador}-${criterio.identificador}`}
                         type="checkbox"
-                        onChange={() => onToggleCriteria(entregable.identificador, criterio.identificador)}
+                        checked={criteriaCheckedState[criterio.identificador] || false}
+                        onChange={() => handleCheckboxChange(criterio.identificador)}
+                        disabled={isEvaluationSaved} // Disable checkbox if evaluation is saved
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       />
                       <label htmlFor={`checkbox-${entregable.identificador}-${criterio.identificador}`} className="sr-only">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { enviarRevision, getEntregablesConCriterios } from '../../services/planiEvaObj.service'
+import { enviarRevision, getEntregablesConCriterios, verificarLlenadoObj } from '../../services/planiEvaObj.service'
 import { Entregable } from './Models/planiEvaObj'
 import EntregableComponent from './Components/EntregableComponent'
 import { useParams } from 'react-router-dom'
@@ -26,7 +26,7 @@ const LlenarPlaniEvaObjPage = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
-  const [isSaveButtonVisible, setIsSaveButtonVisible] = useState(true)
+  const [isEvaluationSaved, setIsEvaluationSaved] = useState<boolean>(false)
   const [markedPercentage, setMarkedPercentage] = useState(0)
 
   const { idObjetivo } = useParams()
@@ -42,6 +42,7 @@ const LlenarPlaniEvaObjPage = () => {
   }
 
   const handleToggleCriteria = (entregableId: number, criterioId: number) => {
+    if (isEvaluationSaved) return // Evita modificaciones si la evaluación está guardada
     setCriteriaState((prev) => {
       const newState = {
         ...prev,
@@ -50,7 +51,7 @@ const LlenarPlaniEvaObjPage = () => {
           [criterioId]: !prev[entregableId][criterioId],
         },
       }
-      setMarkedPercentage(calculateMarkedPercentage(newState)) // Update percentage on each toggle
+      setMarkedPercentage(calculateMarkedPercentage(newState))
       return newState
     })
   }
@@ -80,17 +81,18 @@ const LlenarPlaniEvaObjPage = () => {
       if (idObjetivo) {
         const response = await enviarRevision(markedCriteria, true, idObjetivo)
         console.log('Saving marked criteria:', response.data)
+        fetchObjective()
         setIsModalOpen(false)
         setSnackbarMessage(response.data.message)
         setSnackbarColor('#D3FFD2')
         setOpenSnackbar(true)
-        setIsSaveButtonVisible(false)
+        setIsEvaluationSaved(true) // Marca la evaluación como guardada después de guardar
       }
     } catch (error: any) {
       console.log('error Revision', error)
       setIsModalOpen(false)
       setSnackbarMessage(error.data.error)
-      setSnackbarColor('#')
+      setSnackbarColor('#FFCDD2')
       setOpenSnackbar(true)
     }
   }
@@ -110,6 +112,19 @@ const LlenarPlaniEvaObjPage = () => {
     }
   }
 
+  const verify = async () => {
+    if (objective) {
+      try {
+        const response = await verificarLlenadoObj(objective.identificador)
+        console.log('verify', response.data)
+
+        setIsEvaluationSaved(!response.data.puedeSerLlenado)
+      } catch (error) {
+        console.log('verify', error)
+      }
+    }
+  }
+
   useEffect(() => {
     fetchObjective()
   }, [])
@@ -119,7 +134,9 @@ const LlenarPlaniEvaObjPage = () => {
       const initialCriteriaState = objective.entregables.reduce((acc, entregable) => {
         acc[entregable.identificador] = entregable.criterio_aceptacion_entregable.reduce(
           (cAcc, criterio) => {
-            cAcc[criterio.identificador] = criterio.isChecked || false
+            // Check if any revision indicates the criterion is met
+            const isMet = criterio.revision_criterio_entregable.some((revision) => revision.cumple)
+            cAcc[criterio.identificador] = isMet
             return cAcc
           },
           {} as { [criterioId: number]: boolean }
@@ -128,6 +145,7 @@ const LlenarPlaniEvaObjPage = () => {
       }, {} as CriteriaState)
       setCriteriaState(initialCriteriaState)
       setMarkedPercentage(calculateMarkedPercentage(initialCriteriaState))
+      verify() // Verifica si la evaluación está guardada después de cargar el objetivo
     }
   }, [objective])
 
@@ -138,11 +156,16 @@ const LlenarPlaniEvaObjPage = () => {
       <p className="text-lg font-medium">Evaluación del Objetivo {objective?.nombre}</p>
       <hr className="mt-2 mb-8 border-[1.5px] border-[#c6caff]" />
       {objective?.entregables.map((entregable) => (
-        <EntregableComponent key={entregable.identificador} entregable={entregable} onToggleCriteria={handleToggleCriteria} />
+        <EntregableComponent
+          key={entregable.identificador}
+          entregable={entregable}
+          onToggleCriteria={handleToggleCriteria}
+          isEvaluationSaved={isEvaluationSaved}
+        />
       ))}
       <ConfirmationModal isOpen={isModalOpen} onClose={closeModal} onConfirm={handleSave} porcentaje={markedPercentage} />
       <div className="flex justify-end py-2">
-        {isSaveButtonVisible && (
+        {!isEvaluationSaved && (
           <button onClick={openModal} className="button-primary">
             Guardar Evaluación
           </button>

@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import SelectorObservationModal from '../pages/SeguimientoPage/NewObservation/Components/Selector/SelectorObservationModal'
+//import SelectorObservationModal from '../pages/SeguimientoPage/NewObservation/Components/Selector/SelectorObservationModal'
 import ObservationPage from '../pages/SeguimientoPage/NewObservation/ObservationPage'
 import PlanillaEquipoPage from './PlanillasPage/Equipo/PlanillaEquipoPage'
 import SelectorPlanillaEquipoModal from './PlanillasPage/Equipo/Components/SelectorPlanillaEquipoModal'
 import { useNavigate } from 'react-router-dom'
+import ProjectSelectorModalEvaluacion from './PlanillasPage/Evaluacion/Components/ProjectSelectorModalEvaluacion'
 import SelectorPlaniEvaObj from './LlenarPlaniEvaObjPage/Components/SelectorPlaniEvaObj'
 
 export const SelectorServices = () => {
@@ -13,6 +14,10 @@ export const SelectorServices = () => {
   const [planillaDate, setPlanillaDate] = useState<string | null>(null)
   const [observartionPage, setObservationPage] = useState(false)
   const [teamPage, setTeamPage] = useState(false)
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
+
+  const openProjectModal = () => setIsProjectModalOpen(true)
+  const closeProjectModal = () => setIsProjectModalOpen(false)
 
   const navigate = useNavigate()
 
@@ -21,12 +26,12 @@ export const SelectorServices = () => {
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
   // Función que maneja la redirección del modal
-  const handleRedirectObservations = (obs: any[], objectiveId: number, date: string) => {
-    setObservations(obs)
-    setObjectiveId(objectiveId)
-    setPlanillaDate(date)
-    setObservationPage(true)
-  }
+  // const handleRedirectObservations = (obs: any[], objectiveId: number, date: string) => {
+  //   setObservations(obs)
+  //   setObjectiveId(objectiveId)
+  //   setPlanillaDate(date)
+  //   setObservationPage(true)
+  // }
 
   const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number) => {
     console.log('Received planiId:', planiId) // Verificar el identificador de planilla recibido
@@ -94,10 +99,46 @@ export const SelectorServices = () => {
         <p>Servicio de generacion de planillas de seguimiento semanal</p>
       </div>
 
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => navigate('/eliminar-plantillas')}
+      >
+        <p>Servicio de eliminación de plantillas de evaluación de un objetivo</p>
+      </div>
+
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => openProjectModal()} // Abrir modal para selección de proyecto
+      >
+        <p>Servicio de generación de planillas de evaluación</p>
+      </div>
+
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => navigate('/crear-plantilla')}
+      >
+        <p>Servicio de creación de plantillas</p>
+      </div>
+
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => navigate('/eliminar-actividad')}
+      >
+        <p>Servicio de eliminación de actividades</p>
+      </div>
+
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => navigate('/crear-actividad')}
+      >
+        <p>Servicio de creación de actividades</p>
+      </div>
+
       {/* Renderizamos el modal de observaciones */}
-      <SelectorObservationModal onRedirect={handleRedirectObservations} />
 
       <SelectorPlanillaEquipoModal onRedirect={handleRedirectTeams} />
+
+      <ProjectSelectorModalEvaluacion isOpen={isProjectModalOpen} onClose={closeProjectModal} />
 
       <div className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer" onClick={openModal}>
         <div>Servicio de llenado de planilla de evaluacion de un objetivo</div>
