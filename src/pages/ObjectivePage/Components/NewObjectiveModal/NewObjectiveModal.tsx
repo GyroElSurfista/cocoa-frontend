@@ -23,6 +23,7 @@ interface Planning {
   costo: number
   identificadorGrupoEmpre: number
   diaRevis: string
+  sumavalorporce: number
 }
 const steps = ['Seleccionar un proyecto', 'Datos del objetivo', 'Valor porcentual del objetivo']
 
@@ -248,7 +249,12 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         return (
           <>
             <div className="pt-4">
-              <p className="pb-2">Agrega un valor porcentual a los entregables de este objetivo.</p>
+              <p className="pb-2">
+                Agrega un valor porcentual a los entregables de este objetivo.
+                {selectedProject && (
+                  <span className="text-sm text-gray-500">(Porcentaje disponible: {100 - selectedProject?.sumavalorporce}%)</span>
+                )}
+              </p>
               <div className="grid grid-cols-5 gap-4">
                 <div className="col-span-3">
                   <label htmlFor="valueP" className="block mb-1 text-base font-medium text-[#1c1c1c] dark:text-white">
@@ -265,9 +271,20 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                         value: /^(100(\.00?)?|[0-9]{1,2}(\.[0-9]{1,2})?)$/, // Valida entre 0 y 100 con hasta dos decimales
                         message: 'Por favor, ingresa un número válido entre 0 y 100 con hasta dos decimales',
                       },
-                      validate: (value) => {
-                        const numberValue = parseFloat(value)
-                        return numberValue > 0 && numberValue <= 100 ? true : 'El valor debe ser mayor a 0 y menor o igual a 100'
+                      validate: {
+                        validNumber: (value) => {
+                          const numberValue = parseFloat(value)
+                          return numberValue > 0 && numberValue <= 100 ? true : 'El valor debe ser mayor a 0 y menor o igual a 100'
+                        },
+                        lessThanTotal: (value) => {
+                          if (selectedProject) {
+                            const numberValue = parseFloat(value)
+                            return numberValue <= 100 - selectedProject.sumavalorporce
+                              ? true
+                              : 'El valor porcentual ingresado es mayor al porcentaje disponible'
+                          }
+                          return true
+                        },
                       },
                     })}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -431,15 +448,18 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         <hr className="border-[1.5px] mb-4" />
         <ObjectiveStepper activeStep={activeStep} renderStepContent={renderStepContent} />
         {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
-        <div className="mt-6 flex justify-between gap-2">
-          <button
-            onClick={handleBack}
-            className="text-gray-600 hover:border-gray-200 hover:border-2 p-2 hover:rounded"
-            disabled={activeStep === 0}
-          >
-            <ArrowBackIcon /> Atrás
-          </button>
-          <div>
+        <div className={`mt-6 flex justify-${activeStep !== 0 ? 'between' : 'end'} gap-2`}>
+          {activeStep !== 0 && (
+            <button
+              onClick={handleBack}
+              className="text-gray-600 hover:border-gray-200 hover:border-2 p-2 hover:rounded"
+              disabled={activeStep === 0}
+            >
+              <ArrowBackIcon /> Atrás
+            </button>
+          )}
+
+          <div className="">
             <button onClick={handleCancel} className="button-secondary_outlined mr-2">
               Cancelar
             </button>
