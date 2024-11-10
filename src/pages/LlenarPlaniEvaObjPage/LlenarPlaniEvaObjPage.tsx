@@ -67,7 +67,7 @@ const LlenarPlaniEvaObjPage = () => {
       })
     })
 
-    return totalCriteria > 0 ? (markedCriteria / totalCriteria) * 100 : 0
+    return totalCriteria > 0 ? parseFloat(((markedCriteria / totalCriteria) * 100).toFixed(2)) : 0
   }
 
   const handleSave = async () => {
