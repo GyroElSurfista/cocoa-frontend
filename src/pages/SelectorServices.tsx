@@ -5,6 +5,7 @@ import PlanillaEquipoPage from './PlanillasPage/Equipo/PlanillaEquipoPage'
 import SelectorPlanillaEquipoModal from './PlanillasPage/Equipo/Components/SelectorPlanillaEquipoModal'
 import { useNavigate } from 'react-router-dom'
 import ProjectSelectorModalEvaluacion from './PlanillasPage/Evaluacion/Components/ProjectSelectorModalEvaluacion'
+import SelectorPlaniEvaObj from './LlenarPlaniEvaObjPage/Components/SelectorPlaniEvaObj'
 
 export const SelectorServices = () => {
   const [observations, setObservations] = useState<any[] | null>(null)
@@ -20,6 +21,10 @@ export const SelectorServices = () => {
 
   const navigate = useNavigate()
 
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const openModal = () => setIsModalOpen(true)
+  const closeModal = () => setIsModalOpen(false)
   // Función que maneja la redirección del modal
   // const handleRedirectObservations = (obs: any[], objectiveId: number, date: string) => {
   //   setObservations(obs)
@@ -141,6 +146,11 @@ export const SelectorServices = () => {
       <SelectorPlanillaEquipoModal onRedirect={handleRedirectTeams} />
 
       <ProjectSelectorModalEvaluacion isOpen={isProjectModalOpen} onClose={closeProjectModal} />
+
+      <div className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer" onClick={openModal}>
+        <div>Servicio de llenado de planilla de evaluacion de un objetivo</div>
+      </div>
+      <SelectorPlaniEvaObj isOpen={isModalOpen} onClose={closeModal} />
     </div>
   )
 }

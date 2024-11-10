@@ -6,6 +6,8 @@ import { Autocomplete, TextField } from '@mui/material'
 import { getPlannings } from '../../../../services/objective.service'
 import { createObjective } from '../../../../services/objective.service'
 import { Objective } from '../../Models/objective'
+import dayjs from 'dayjs'
+import { formatDateToDMY } from '../../../../utils/formatDate'
 
 interface NewObjectiveModalProps {
   isOpen: boolean
@@ -21,6 +23,7 @@ interface Planning {
   costo: number
   identificadorGrupoEmpre: number
   diaRevis: string
+  sumavalorporce: number
 }
 const steps = ['Seleccionar un proyecto', 'Datos del objetivo', 'Valor porcentual del objetivo']
 
@@ -32,7 +35,8 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
     formState: { errors },
     watch,
     reset,
-  } = useForm<Objective>()
+    clearErrors,
+  } = useForm<Objective>({})
   const [apiError, setApiError] = useState<string | null>(null) // State to hold API error
   const [equivalence, setEquivalence] = useState<number>(0)
   const [planningCost, setPlanningCost] = useState<number>(0)
@@ -85,6 +89,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               onChange={(_, value) => {
                 setSelectedProject(value)
                 setPlanningCost(value?.costo || 0) // Establecer el costo del proyecto seleccionado
+                setErrorMessage('')
               }}
               renderInput={(params) => (
                 <TextField
@@ -102,6 +107,13 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       case 1:
         return (
           <>
+            <p className="pb-2">
+              Proyecto seleccionado:{' '}
+              <span className="">
+                {selectedProject?.nombre}. Inicia el {formatDateToDMY(selectedProject?.fechaInici)} y finaliza el{' '}
+                {formatDateToDMY(selectedProject?.fechaFin)}
+              </span>
+            </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="">
                 <label htmlFor="iniDate" className="block mb-1 text-md font-medium text-gray-900 dark:text-white">
@@ -113,9 +125,10 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   id="iniDate"
                   {...register('iniDate', {
                     required: 'La fecha de inicio es obligatoria',
+                    onChange: () => clearErrors('iniDate'),
                     validate: {
                       notPast: (value) => {
-                        const today = new Date().toISOString().split('T')[0] // Formato de fecha 'YYYY-MM-DD'
+                        const today = new Date().toISOString().split('T')[0]
                         return value >= today || 'La fecha de inicio no puede ser anterior a la fecha actual'
                       },
                       beforeEndDate: (value) => {
@@ -123,6 +136,26 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                         return (
                           !endDate || new Date(value) <= new Date(endDate) || 'La fecha de inicio no puede ser posterior a la fecha de fin'
                         )
+                      },
+                      withinProjectRange: (value) => {
+                        // Verificar si el proyecto está seleccionado
+                        if (!selectedProject) {
+                          return 'Debe seleccionar un proyecto primero.'
+                        }
+
+                        // Extraer las fechas de inicio y fin del proyecto
+                        const projectStart = new Date(selectedProject.fechaInici).toISOString().split('T')[0]
+                        const projectEnd = new Date(selectedProject.fechaFin).toISOString().split('T')[0]
+
+                        // Validar si la fecha seleccionada está dentro del rango del proyecto
+                        if (value < projectStart) {
+                          return 'La fecha de inicio no puede ser anterior a la fecha de inicio del proyecto seleccionado'
+                        }
+                        if (value >= projectEnd) {
+                          return 'La fecha de inicio no puede ser posterior o igual a la fecha de fin del proyecto seleccionado'
+                        }
+
+                        return true
                       },
                     },
                   })} // Asocia el campo a React Hook Form
@@ -140,6 +173,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                   id="finDate"
                   {...register('finDate', {
                     required: 'La fecha de fin es obligatoria',
+                    onChange: () => clearErrors('finDate'),
                     validate: {
                       notPast: (value) => {
                         const today = new Date().toISOString().split('T')[0] // Formato de fecha 'YYYY-MM-DD'
@@ -152,6 +186,32 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                           new Date(value) >= new Date(startDate) ||
                           'La fecha de fin no puede ser anterior a la fecha de inicio'
                         )
+                      },
+                      withinProjectRangeEndDate: (value) => {
+                        // Verificar si el proyecto está seleccionado
+                        if (!selectedProject) {
+                          return 'Debe seleccionar un proyecto primero.'
+                        }
+
+                        // Extraer las fechas de inicio y fin del proyecto
+                        const projectStart = new Date(selectedProject.fechaInici).toISOString().split('T')[0]
+                        const projectEnd = new Date(selectedProject.fechaFin).toISOString().split('T')[0]
+
+                        // Validar si la fecha de fin seleccionada está dentro del rango del proyecto
+                        if (value < projectStart) {
+                          return 'La fecha de fin no puede ser anterior a la fecha de inicio del proyecto seleccionado'
+                        }
+                        if (value > projectEnd) {
+                          return 'La fecha de fin no puede ser posterior a la fecha de fin del proyecto seleccionado'
+                        }
+
+                        // Validar que la fecha de fin no sea anterior a la fecha de inicio
+                        const startDate = new Date(selectedProject.fechaInici).toISOString().split('T')[0]
+                        if (value < startDate) {
+                          return 'La fecha de fin no puede ser anterior a la fecha de inicio'
+                        }
+
+                        return true // Si la validación pasa
                       },
                     },
                   })}
@@ -170,6 +230,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 id="objective"
                 {...register('objective', {
                   required: 'El objetivo es obligatorio',
+                  onChange: () => clearErrors('objective'),
                   validate: (value) => {
                     const trimmedValue = value.trim()
                     if (trimmedValue.length < 5) return 'Debe tener al menos 5 caracteres no vacíos'
@@ -188,7 +249,12 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         return (
           <>
             <div className="pt-4">
-              <p className="pb-2">Agrega un valor porcentual a los entregables de este objetivo.</p>
+              <p className="pb-2">
+                Agrega un valor porcentual a los entregables de este objetivo.
+                {selectedProject && (
+                  <span className="text-sm text-gray-500">(Porcentaje disponible: {100 - selectedProject?.sumavalorporce}%)</span>
+                )}
+              </p>
               <div className="grid grid-cols-5 gap-4">
                 <div className="col-span-3">
                   <label htmlFor="valueP" className="block mb-1 text-base font-medium text-[#1c1c1c] dark:text-white">
@@ -200,13 +266,25 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                     id="valueP"
                     {...register('valueP', {
                       required: 'El valor porcentual es obligatorio',
+                      onChange: () => clearErrors('valueP'),
                       pattern: {
                         value: /^(100(\.00?)?|[0-9]{1,2}(\.[0-9]{1,2})?)$/, // Valida entre 0 y 100 con hasta dos decimales
-                        message: 'Por favor, ingresa un número válido con hasta dos decimales',
+                        message: 'Por favor, ingresa un número válido entre 0 y 100 con hasta dos decimales',
                       },
-                      validate: (value) => {
-                        const numberValue = parseFloat(value)
-                        return numberValue > 0 && numberValue <= 100 ? true : 'El valor debe ser mayor a 0 y menor o igual a 100'
+                      validate: {
+                        validNumber: (value) => {
+                          const numberValue = parseFloat(value)
+                          return numberValue > 0 && numberValue <= 100 ? true : 'El valor debe ser mayor a 0 y menor o igual a 100'
+                        },
+                        lessThanTotal: (value) => {
+                          if (selectedProject) {
+                            const numberValue = parseFloat(value)
+                            return numberValue <= 100 - selectedProject.sumavalorporce
+                              ? true
+                              : 'El valor porcentual ingresado es mayor al porcentaje disponible'
+                          }
+                          return true
+                        },
                       },
                     })}
                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -235,6 +313,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         setApiError('Debe seleccionar un proyecto antes de continuar.')
         return
       }
+      console.log(data)
       const createdObjective = await createObjective({
         identificadorPlani: selectedProject.identificador,
         nombre: data.objective.trim(),
@@ -303,13 +382,22 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   const fetchProjects = async () => {
     try {
       const response = await getPlannings()
-      console.log('planificaciones', response.data)
-      setProjects(response.data)
+      const currentDate = dayjs()
+
+      // Filtrar solo las planificaciones que no están en curso
+      const filteredProjects = response.data.filter((project: Planning) => {
+        const startDate = dayjs(project.fechaInici)
+        const endDate = dayjs(project.fechaFin)
+
+        // Verifica si el proyecto está fuera del rango de fechas (antes de comenzar o ya terminó)
+        return currentDate.isBefore(startDate) || currentDate.isAfter(endDate)
+      })
+      console.log(filteredProjects)
+      setProjects(filteredProjects)
     } catch (error) {
       console.error('Error fetching projects', error)
     }
   }
-
   useEffect(() => {
     fetchProjects()
   }, [])
@@ -317,7 +405,11 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   useEffect(() => {
     if (valueP) {
       const value = parseFloat(valueP)
-      if (!isNaN(value)) {
+
+      // Verificar si el valor tiene más de 2 decimales
+      const isTwoDecimalsOrLess = /^-?\d+(\.\d{1,2})?$/.test(valueP)
+
+      if (!isNaN(value) && isTwoDecimalsOrLess) {
         if (value >= 0 && value <= 100) {
           const calculatedEquivalence = (value / 100) * planningCost
           setEquivalence(parseFloat(calculatedEquivalence.toFixed(2))) // Limita a 2 decimales
@@ -355,16 +447,19 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         </div>
         <hr className="border-[1.5px] mb-4" />
         <ObjectiveStepper activeStep={activeStep} renderStepContent={renderStepContent} />
-        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>} {/* Muestra el mensaje de error aquí */}
-        <div className="mt-6 flex justify-between gap-2">
-          <button
-            onClick={handleBack}
-            className="text-gray-600 hover:border-gray-200 hover:border-2 p-2 hover:rounded"
-            disabled={activeStep === 0}
-          >
-            <ArrowBackIcon /> Atrás
-          </button>
-          <div>
+        {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
+        <div className={`mt-6 flex justify-${activeStep !== 0 ? 'between' : 'end'} gap-2`}>
+          {activeStep !== 0 && (
+            <button
+              onClick={handleBack}
+              className="text-gray-600 hover:border-gray-200 hover:border-2 p-2 hover:rounded"
+              disabled={activeStep === 0}
+            >
+              <ArrowBackIcon /> Atrás
+            </button>
+          )}
+
+          <div className="">
             <button onClick={handleCancel} className="button-secondary_outlined mr-2">
               Cancelar
             </button>
