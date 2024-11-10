@@ -14,7 +14,7 @@ const formatDate = (dateString: string) => {
 const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({ objective, indexObj }) => {
   return (
     <div className="bg-[#e0e3ff] rounded my-3">
-      <div className="hover:bg-[#c6caff] w-full border rounded border-[#c6caff] p-4">
+      <div className="w-full border rounded border-[#c6caff] p-4">
         <div className="flex flex-row w-full justify-between items-center">
           <div className="w-auto border-r-2 pr-6 border-[#c6caff]">
             <span className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {indexObj}</span>
