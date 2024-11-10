@@ -1,23 +1,21 @@
 import { useState, useEffect } from 'react'
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
-import ObservationAccordion from './Components/ObservationAccordion'
-import { ButtonAddObservation } from './Components/ButtonAddObservation'
 import { RowInformationUser } from './Components/RowInformationUser'
 import axios from 'axios'
 import { SavePlanillaEquipoModal } from './Components/SavePlanillaEquipoModal'
-
-interface Activity {
-  id: number
-  name: string
-}
+import { EntregableDinamicoAccordion } from './Components/EntregableDinamicoAccordion'
+import { AddActivitiesObservations } from './Components/AddActivitiesObservations'
+import NewEntregableDinamicoModal from './Components/NewEntregableDinamicoModal'
 
 interface Observation {
-  id: number | null
-  observation: string
-  activities: Activity[]
-  selectedActivities: Activity[]
-  identificadorPlaniSegui?: number
-  identificadorActiv: number | null
+  identificador: number // Añadimos identificador
+  descripcion: string
+}
+
+interface Activity {
+  identificador: number
+  nombre: string
+  observaciones: Observation[] // Usamos el tipo Observation[]
 }
 
 interface User {
@@ -40,6 +38,23 @@ interface ObservationPageProps {
   onBack: () => void
 }
 
+interface Entregable {
+  identificador: number
+  nombre: string
+  descripcion: string | null
+  identificadorObjet: number
+  identificadorPlaniSegui?: number
+  dinamico?: boolean
+  fechaCreac?: string
+  criterio_aceptacion_entregable: CriterioAceptacion[]
+}
+
+interface CriterioAceptacion {
+  identificador: number
+  descripcion: string
+  identificadorEntre: number
+}
+
 const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   observations: initialObservations,
   objectiveId,
@@ -47,6 +62,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   planillaSeguiId,
   onBack,
 }) => {
+  const [entregables, setEntregables] = useState<Entregable[]>([])
   const [observations, setObservations] = useState<Observation[]>(initialObservations)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -55,8 +71,9 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   const [asistencias, setAsistencias] = useState<Record<number, { valor: boolean; identificadorMotiv: number | null }>>({})
   const [isReadOnly, setIsReadOnly] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [modalOpenEntregable, setModalOpenEntregable] = useState(false) // Estado para controlar el modal
 
-  // Función para obtener empresa y usuarios
   const fetchEmpresaYUsuarios = async (empresaId: number) => {
     try {
       const grupoResponse = await axios.get('https://cocoabackend.onrender.com/api/grupoEmpresas')
@@ -76,10 +93,23 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     }
   }
 
-  // Obtener empresa, usuarios y asistencias al montar el componente
   useEffect(() => {
-    fetchEmpresaYUsuarios(1) // Usamos el ID 1 por ahora
+    const fetchEntregables = async () => {
+      try {
+        const response = await axios.get(
+          `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${planillaDate}`
+        )
+        setEntregables(response.data.data)
+      } catch (error) {
+        console.error('Error al obtener entregables dinámicos:', error)
+      }
+    }
 
+    fetchEntregables()
+  }, [])
+
+  useEffect(() => {
+    fetchEmpresaYUsuarios(1)
     const fetchAsistencias = async () => {
       try {
         const response = await axios.get(`https://cocoabackend.onrender.com/api/asistencia?grupoEmpresaId=1&fecha=${planillaDate}`)
@@ -92,7 +122,6 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
 
         setAsistencias(asistenciaMap)
         setIsReadOnly(data.length > 0)
-        console.log(isReadOnly) // Si hay datos de asistencia, el modo es solo lectura
       } catch (error) {
         console.error('Error al obtener asistencias:', error)
       }
@@ -101,46 +130,70 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     fetchAsistencias()
   }, [planillaDate])
 
-  const handleAddObservation = () => {
-    const newObservation: Observation = {
-      id: null,
-      observation: '',
-      activities: [],
-      selectedActivities: [],
-      identificadorPlaniSegui: planillaSeguiId,
-      identificadorActiv: null,
+  // PlanillaEquipoPage.tsx
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const response = await axios.get(`https://cocoabackend.onrender.com/api/planilla-seguimiento/${planillaSeguiId}/actividades`)
+
+        // Transformamos los datos para asegurar que la estructura sea compatible con el componente
+        const transformedData = response.data.data.map((activity: any) => ({
+          ...activity,
+          observaciones: activity.observacion || [], // Renombramos "observacion" a "observaciones"
+        }))
+
+        setActivities(transformedData)
+      } catch (error) {
+        console.error('Error al obtener actividades:', error)
+      }
     }
-    setObservations([...observations, newObservation])
+
+    fetchActivities()
+  }, [planillaSeguiId])
+
+  const handleAddActivity = () => {
+    setActivities([
+      ...activities,
+      {
+        identificador: Date.now(), // Genera un identificador temporal único
+        nombre: '',
+        observaciones: [{ identificador: Date.now(), descripcion: '' }],
+      },
+    ])
   }
 
-  const handleSaveObservation = (observation: string, activities: Activity[]) => {
-    setSnackbarMessage('Observación agregada exitosamente')
-    setSnackbarOpen(true)
-  }
-
-  // Nueva función para manejar la eliminación de observaciones
-  const handleDeleteObservation = async (observationId: number) => {
+  const loadEntregables = async () => {
     try {
-      // Solicitud para eliminar la observación
-      await axios.delete(`https://cocoabackend.onrender.com/api/observaciones/${observationId}`)
-      // Actualizar el estado de las observaciones después de eliminar
-      setObservations((prevObservations) => prevObservations.filter((obs) => obs.id !== observationId))
-      setSnackbarMessage('Observación eliminada exitosamente')
-      setSnackbarOpen(true)
+      const response = await axios.get(
+        `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${planillaDate}`
+      )
+      setEntregables(response.data.data)
     } catch (error) {
-      console.log(observations)
-      console.error('Error al eliminar observación:', error)
-      setSnackbarMessage('Error al eliminar la observación')
-      setSnackbarOpen(true)
+      console.error('Error al obtener entregables dinámicos:', error)
     }
   }
 
-  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
-    if (reason === 'clickaway') return
-    setSnackbarOpen(false)
+  // Recarga los entregables tras registrar o editar un entregable
+  const handleEntregableCreatedOrUpdated = () => {
+    loadEntregables()
   }
 
-  // Manejar cambios del checkbox y motivo de asistencia
+  // Abre el modal para registrar un nuevo entregable
+  const openEntregableModal = () => {
+    setModalOpenEntregable(true)
+  }
+
+  // Cierra el modal después de crear un entregable y actualiza la lista
+  const handleCloseEntregableModal = () => {
+    setModalOpenEntregable(false)
+    handleEntregableCreatedOrUpdated()
+  }
+
+  useEffect(() => {
+    loadEntregables()
+  }, [planillaDate, objectiveId])
+
   const handleChangeAsistencia = (userId: number, valor: boolean, identificadorMotiv: number | null) => {
     setAsistencias((prevState) => ({
       ...prevState,
@@ -148,25 +201,55 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     }))
   }
 
-  // Función para guardar la planilla
+  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+    if (reason === 'clickaway') return
+    setSnackbarOpen(false)
+  }
+
+  const handleAddObservationToActivity = (activityIndex: number) => {
+    const newActivities = [...activities]
+    newActivities[activityIndex].observaciones.push({ identificador: Date.now(), descripcion: '' })
+    setActivities(newActivities)
+  }
+
+  const handleDeleteActivity = (activityIndex: number) => {
+    const newActivities = activities.filter((_, index) => index !== activityIndex)
+    setActivities(newActivities)
+  }
+
+  const handleDeleteObservation = (activityIndex: number, observationIndex: number) => {
+    const newActivities = [...activities]
+    newActivities[activityIndex].observaciones = newActivities[activityIndex].observaciones.filter((_, index) => index !== observationIndex)
+    setActivities(newActivities)
+  }
+
+  const handleActivityChange = (activityIndex: number, newValue: string) => {
+    const newActivities = [...activities]
+    newActivities[activityIndex].nombre = newValue
+    setActivities(newActivities)
+  }
+
+  const handleObservationChange = (activityIndex: number, observationIndex: number, newValue: string) => {
+    const newActivities = [...activities]
+    newActivities[activityIndex].observaciones[observationIndex].descripcion = newValue
+    setActivities(newActivities)
+  }
+
   const handleGuardarPlanilla = async () => {
     const solicitudes = usuarios.map(async (usuario) => {
       const asistencia = asistencias[usuario.id]
 
-      // Si el usuario tiene el checkbox marcado (asistencia) o seleccionó un motivo (inasistencia)
-      if (asistencia.valor && asistencia.identificadorMotiv === null) {
-        // Guardar asistencia
+      if (asistencia && asistencia.valor && asistencia.identificadorMotiv === null) {
         return axios.post('https://cocoabackend.onrender.com/api/asistencias-asistencia', {
           identificadorUsuar: usuario.id,
           fecha: planillaDate,
           valor: true,
         })
-      } else if (asistencia.identificadorMotiv !== null) {
-        // Guardar inasistencia con motivo
+      } else if (asistencia && asistencia.identificadorMotiv !== null) {
         return axios.post('https://cocoabackend.onrender.com/api/asistencias-inasistencia', {
           identificadorUsuar: usuario.id,
           fecha: planillaDate,
-          valor: false, // Asumimos que es una ausencia
+          valor: false,
           identificadorMotiv: asistencia.identificadorMotiv,
         })
       }
@@ -174,13 +257,23 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
 
     try {
       await Promise.all(solicitudes)
-      setSnackbarMessage('Asistencia guardada exitosamente')
+
+      for (const activity of activities) {
+        await axios.post('https://cocoabackend.onrender.com/api/actividad-seguimiento', {
+          nombre: activity.nombre,
+          identificadorPlaniSegui: planillaSeguiId,
+          observaciones: activity.observaciones,
+        })
+      }
+
+      setSnackbarMessage('Planilla y actividades guardadas exitosamente')
       setSnackbarOpen(true)
       setIsReadOnly(true)
-      fetchEmpresaYUsuarios(1) // Refrescar datos para reflejar el estado no editable
+      setModalOpen(false)
+      fetchEmpresaYUsuarios(1)
     } catch (error) {
-      console.error('Error al guardar asistencia:', error)
-      setSnackbarMessage('Error al guardar la asistencia')
+      console.error('Error al guardar asistencia o actividades:', error)
+      setSnackbarMessage('Error al guardar la planilla o actividades')
       setSnackbarOpen(true)
     }
   }
@@ -199,6 +292,9 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
           </button>
         )}
       </div>
+
+      {modalOpen && <SavePlanillaEquipoModal onConfirm={handleGuardarPlanilla} onCancel={() => setModalOpen(false)} />}
+
       <div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
         <h2 className="font-bold text-2xl">Asistencia</h2>
@@ -214,47 +310,53 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
               planillaDate={planillaDate}
               isReadOnly={isReadOnly}
               asistenciaData={asistencias[usuario.id]}
-              onChangeAsistencia={handleChangeAsistencia} // Prop para manejar cambios de asistencia
+              onChangeAsistencia={handleChangeAsistencia}
             />
           ))}
         </div>
-
-        <h2 className="font-bold text-2xl">Observaciones</h2>
+        <div className="flex justify-between">
+          <h2 className="font-bold text-2xl">Actividades de seguimiento</h2>
+          {!isReadOnly && (
+            <button onClick={handleAddActivity} className="button-primary">
+              + Nueva Actividad
+            </button>
+          )}
+        </div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
+        {activities.map((activity, activityIndex) => (
+          <AddActivitiesObservations
+            key={activity.identificador}
+            activity={activity}
+            activityIndex={activityIndex}
+            onActivityChange={handleActivityChange}
+            onAddObservation={() => handleAddObservationToActivity(activityIndex)}
+            onObservationChange={handleObservationChange}
+            onDeleteActivity={() => handleDeleteActivity(activityIndex)}
+            onDeleteObservation={(observationIndex) => handleDeleteObservation(activityIndex, observationIndex)}
+            isReadOnly={isReadOnly}
+          />
+        ))}
       </div>
 
-      {observations.length === 0 ? (
-        <p>No existen observaciones disponibles</p>
-      ) : (
-        observations.map((obs, index) => (
-          <ObservationAccordion
-            key={index}
-            observation={obs.observation}
-            observationId={obs.id}
-            identificadorPlaniSegui={planillaSeguiId ?? 0}
-            identificadorActiv={obs.identificadorActiv}
-            onSave={handleSaveObservation}
-            onDelete={handleDeleteObservation} // Nueva función para eliminar observaciones
-            selectedActivities={obs.selectedActivities}
-            isReadOnly={isReadOnly}
-            objectiveId={objectiveId}
-            existingObservations={observations.map((o) => o.observation)}
-          />
-        ))
-      )}
+      <h2 className="font-bold text-3xl">Entregables</h2>
+      <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
+      <EntregableDinamicoAccordion entregables={entregables} onEntregableUpdated={handleEntregableCreatedOrUpdated} />
 
-      {/* Mostrar el botón de añadir observación solo si no está en modo de solo lectura */}
-      {!isReadOnly && <ButtonAddObservation onAddObservation={handleAddObservation} />}
+      <NewEntregableDinamicoModal
+        isOpen={modalOpenEntregable}
+        onClose={handleCloseEntregableModal} // Cierra el modal y recarga la lista
+        onCreate={handleEntregableCreatedOrUpdated}
+        entregable={entregables}
+        objectiveId={objectiveId}
+        planillaSeguiId={planillaSeguiId}
+      />
 
-      {/* Modal de confirmación para guardar planilla */}
-      {modalOpen && (
-        <SavePlanillaEquipoModal
-          onConfirm={() => {
-            handleGuardarPlanilla()
-            setModalOpen(false)
-          }}
-          onCancel={() => setModalOpen(false)}
-        />
+      {!isReadOnly && (
+        <div className="flex justify-center items-center ">
+          <button onClick={() => setModalOpenEntregable(true)} className="button-primary">
+            + Nuevo Entregable
+          </button>
+        </div>
       )}
 
       <Snackbar
