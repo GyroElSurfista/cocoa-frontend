@@ -129,6 +129,13 @@ export const SelectorServices = () => {
         <p>Servicio de creación de actividades</p>
       </div>
 
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={() => navigate('/objetivos-entregables')}
+      >
+        <p>Servicio de entregables para un objetivo</p>
+      </div>
+
       {/* Renderizamos el modal de observaciones */}
 
       <SelectorPlanillaEquipoModal onRedirect={handleRedirectTeams} />
