@@ -183,8 +183,8 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                         const startDate = watch('iniDate')
                         return (
                           !startDate ||
-                          new Date(value) >= new Date(startDate) ||
-                          'La fecha de fin no puede ser anterior a la fecha de inicio'
+                          new Date(value) > new Date(startDate) ||
+                          'La fecha de fin no puede ser anterior o igual a la fecha de inicio'
                         )
                       },
                       withinProjectRangeEndDate: (value) => {
@@ -384,13 +384,12 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       const response = await getPlannings()
       const currentDate = dayjs()
 
-      // Filtrar solo las planificaciones que no están en curso
+      // Filter projects that have not yet started
       const filteredProjects = response.data.filter((project: Planning) => {
         const startDate = dayjs(project.fechaInici)
-        const endDate = dayjs(project.fechaFin)
 
-        // Verifica si el proyecto está fuera del rango de fechas (antes de comenzar o ya terminó)
-        return currentDate.isBefore(startDate) || currentDate.isAfter(endDate)
+        // Only include projects where the start date is in the future
+        return currentDate.isBefore(startDate)
       })
       console.log(filteredProjects)
       setProjects(filteredProjects)
@@ -398,6 +397,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       console.error('Error fetching projects', error)
     }
   }
+
   useEffect(() => {
     fetchProjects()
   }, [])
