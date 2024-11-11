@@ -16,7 +16,7 @@ export const PlantillaDeletePage = () => {
 
   return (
     <div className="mx-28">
-      <h1 className="font-bold text-3xl">Eliminar plantilla de evaluación de objetivo</h1>
+      <h1 className="font-bold text-3xl">Eliminar plantilla de evaluación final de proyecto</h1>
 
       <div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />

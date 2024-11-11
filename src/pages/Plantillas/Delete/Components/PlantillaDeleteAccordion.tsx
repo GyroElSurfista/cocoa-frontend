@@ -56,7 +56,13 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
               <div className="ml-auto flex flex-row items-center space-x-4">
                 <div className="flex items-center w-auto">
                   <span className="font-semibold text-sm mr-1">Creado el: </span>
-                  <span className="text-sm">{plantilla.fechaCreac}</span>
+                  <span className="text-sm">
+                    {new Date(plantilla.fechaCreac).toLocaleDateString('es-ES', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}
+                  </span>
                   {plantilla.usuario_cread && (
                     <span className="ml-3 flex items-center">
                       <img src={IconUser} alt="" className="w-8" />

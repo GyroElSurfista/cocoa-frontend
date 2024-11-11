@@ -66,7 +66,7 @@ export const NewPlantillaDeleteModal: React.FC<NewPlantillaDeleteModalProps> = (
               <img className="mx-auto" src={IconDanger} alt="Warning Icon" />
             </div>
             {eliminadoLogic && <p className="text-sm text-center">Esta plantilla ya fue usada para la evaluación de proyectos</p>}
-            <h5 className="text-xl font-semibold text-center">¿Está seguro de eliminar este objetivo?</h5>
+            <h5 className="text-xl font-semibold text-center">¿Estás seguro de eliminar esta plantilla de evaluación?</h5>
             <div className="flex justify-center gap-2 mt-4">
               <button onClick={handleCloseModal} className="button-secondary_outlined">
                 Cancelar
