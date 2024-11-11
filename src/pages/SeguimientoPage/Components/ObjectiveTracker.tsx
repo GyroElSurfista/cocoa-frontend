@@ -40,7 +40,10 @@ const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective, index })
         <div className="w-auto inline-flex justify-center border-l border-[#c6caff]">
           <p className="flex items-center justify-end pl-3 pr-2">
             Fechas:
-            <span className="bg-red-200 rounded-xl text-sm ml-1 p-1 text-gray-600 font-normal">{formatDateToDMY(objective.iniDate)}</span> -
+            <span className="bg-indigo-200 rounded-xl text-sm ml-1 p-1 text-gray-600 font-normal">
+              {formatDateToDMY(objective.iniDate)}
+            </span>{' '}
+            -
             <span className="bg-indigo-200 rounded-xl text-sm p-1 ml-1 text-gray-600 font-normal">
               {formatDateToDMY(objective.finDate)}
             </span>
