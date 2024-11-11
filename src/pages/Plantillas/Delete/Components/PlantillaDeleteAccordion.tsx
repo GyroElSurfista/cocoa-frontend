@@ -4,7 +4,7 @@ import { NewPlantillaDeleteModal } from './NewPlantillaDeleteModal'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import Slider from '@mui/material/Slider'
-import Plantillas from './../../../../interfaces/plantilla.interface'
+import * as Plantillas from './../../../../interfaces/plantilla.interface'
 
 interface PlantillaDeleteAccordionProps {
   onDeleteConfirm: () => void
@@ -52,7 +52,7 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
               <div className="w-auto border-r-2 pr-2 border-[#c6caff]">
                 <span className="text-center text-[#1c1c1c] text-lg font-semibold">Plantilla {index + 1}</span>
               </div>
-              <span className="ml-1 text-gray-600 font-normal w-auto">{plantilla.descripcion}</span>
+              <span className="ml-1 text-gray-600 font-normal w-auto">{plantilla.nombre}</span>
               <div className="ml-auto flex flex-row items-center space-x-4">
                 <div className="flex items-center w-auto">
                   <span className="font-semibold text-sm mr-1">Creado el: </span>
