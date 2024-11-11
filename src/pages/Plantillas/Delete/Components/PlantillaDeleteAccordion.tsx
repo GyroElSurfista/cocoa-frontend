@@ -31,7 +31,6 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
   }, [])
 
   const toggleExpand = (id: number) => {
-    // Cambia el estado de la plantilla específica
     setExpandedIds((prevExpandedIds) => ({
       ...prevExpandedIds,
       [id]: !prevExpandedIds[id],
@@ -55,7 +54,10 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
   return (
     <div>
       {plantillas.map((plantilla, index) => (
-        <div key={plantilla.identificador} className="bg-[#e0e3ff] rounded-xl my-3">
+        <div
+          key={plantilla.identificador}
+          className={`rounded-xl my-3 ${plantilla.usuario_cread.id !== 1 ? 'bg-[#E7E7E7]' : 'bg-[#e0e3ff]'}`}
+        >
           {/* Cabecera para expandir */}
           <div
             className="hover:bg-[#c6caff] w-full border rounded-xl border-[#c6caff] p-4 cursor-pointer"
@@ -87,11 +89,8 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                   <span className="flex items-center gap-2">
                     <b>Puntaje:</b>
                     <b className="text-red-600">{plantilla.puntaje}</b>
-                    <div
-                      className="p-2 flex items-center" // Alineación vertical para el ícono
-                      onClick={(e) => e.stopPropagation()} // Detiene la propagación
-                    >
-                      {plantilla.identificadorUsuar === 1 && (
+                    {plantilla.usuario_cread.id === 1 && (
+                      <div className="p-2 flex items-center" onClick={(e) => e.stopPropagation()}>
                         <NewPlantillaDeleteModal
                           plantillaId={plantilla.identificador}
                           eliminadoLogic={plantilla.eliminadoLogic}
@@ -100,8 +99,8 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                             onDeleteConfirm()
                           }}
                         />
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </span>
                 </div>
               </div>
@@ -134,7 +133,6 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                               </div>
                             ))}
                           </RadioGroup>
-                          {/* Esfera para mostrar rubrica.valorMaxim */}
                           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-[#C6CAFF]">
                             <span className="text-[#5736CC] font-semibold text-center text-lg">{rubrica.valorMaxim}</span>
                           </div>
@@ -155,7 +153,6 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                               </div>
                             ))}
                           </RadioGroup>
-                          {/* Esfera para mostrar rubrica.valorMaxim */}
                           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-[#C6CAFF]">
                             <span className="text-[#5736CC] font-semibold text-center text-lg">{rubrica.valorMaxim}</span>
                           </div>
@@ -163,20 +160,17 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                       )}
                       {rubrica.param_evalu.tipo === 'cuantitativo' && (
                         <div className="flex items-center space-x-4">
-                          {/* Valor mínimo del Slider */}
                           <span className="text-sm">{rubrica.param_evalu.valorMinim}</span>
                           <Slider
-                            value={sliderValues[rubrica.param_evalu.identificador] || rubrica.param_evalu.valorMinim} // Valor del slider correspondiente
-                            onChange={handleSliderChange(rubrica.param_evalu.identificador)} // Identificador único
+                            value={sliderValues[rubrica.param_evalu.identificador] || rubrica.param_evalu.valorMinim}
+                            onChange={handleSliderChange(rubrica.param_evalu.identificador)}
                             aria-labelledby="continuous-slider"
                             valueLabelDisplay="off"
                             className="w-72"
                             min={rubrica.param_evalu.valorMinim}
                             max={rubrica.param_evalu.valorMaxim}
                           />
-                          {/* Valor máximo del Slider */}
                           <span className="text-sm">{rubrica.param_evalu.valorMaxim}</span>
-                          {/* Esfera para mostrar el valor máximo */}
                           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-[#C6CAFF]">
                             <span className="text-[#5736CC] font-semibold text-center text-lg">{rubrica.valorMaxim}</span>
                           </div>
