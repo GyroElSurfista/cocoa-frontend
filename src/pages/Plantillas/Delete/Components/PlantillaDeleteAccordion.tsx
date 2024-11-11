@@ -12,9 +12,9 @@ interface PlantillaDeleteAccordionProps {
 
 export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> = ({ onDeleteConfirm }) => {
   const [plantillas, setPlantillas] = useState<Plantillas.Plantilla[]>([])
-  const [selectedValue, setSelectedValue] = useState('')
-  const [sliderValue, setSliderValue] = useState(50)
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [sliderValues, setSliderValues] = useState<{ [key: string]: number }>({})
+  const [selectedValues, setSelectedValues] = useState<{ [key: string]: string }>({})
+  const [expandedIds, setExpandedIds] = useState<{ [key: string]: boolean }>({})
 
   useEffect(() => {
     const fetchPlantillas = async () => {
@@ -30,16 +30,26 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
     fetchPlantillas()
   }, [])
 
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded)
+  const toggleExpand = (id: number) => {
+    // Cambia el estado de la plantilla específica
+    setExpandedIds((prevExpandedIds) => ({
+      ...prevExpandedIds,
+      [id]: !prevExpandedIds[id],
+    }))
   }
 
-  const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedValue(event.target.value)
+  const handleRadioChange = (id: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedValues((prevValues) => ({
+      ...prevValues,
+      [id]: event.target.value,
+    }))
   }
 
-  const handleSliderChange = (_event: Event, newValue: number | number[]) => {
-    setSliderValue(newValue as number)
+  const handleSliderChange = (id: number) => (_event: Event, newValue: number | number[]) => {
+    setSliderValues((prevValues) => ({
+      ...prevValues,
+      [id]: newValue as number,
+    }))
   }
 
   return (
@@ -47,7 +57,10 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
       {plantillas.map((plantilla, index) => (
         <div key={plantilla.identificador} className="bg-[#e0e3ff] rounded-xl my-3">
           {/* Cabecera para expandir */}
-          <div className="hover:bg-[#c6caff] w-full border rounded-xl border-[#c6caff] p-4 cursor-pointer" onClick={toggleExpand}>
+          <div
+            className="hover:bg-[#c6caff] w-full border rounded-xl border-[#c6caff] p-4 cursor-pointer"
+            onClick={() => toggleExpand(plantilla.identificador)}
+          >
             <div className="flex flex-row w-full justify-between items-center">
               <div className="w-auto border-r-2 pr-2 border-[#c6caff]">
                 <span className="text-center text-[#1c1c1c] text-lg font-semibold">Plantilla {index + 1}</span>
@@ -96,7 +109,7 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
           </div>
 
           {/* Contenido desplegable */}
-          {isExpanded && (
+          {expandedIds[plantilla.identificador] && (
             <section className="px-12 pb-1">
               {plantilla.rubricas.map((rubrica) => (
                 <div key={rubrica.criterio_evalu_final.identificador} className="border-black border my-[25px] rounded-lg">
@@ -108,7 +121,12 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                     <div className="flex items-center space-x-2">
                       {rubrica.param_evalu.nombre === 'Likert 3' && (
                         <div className="flex items-center space-x-4">
-                          <RadioGroup row value={selectedValue} onChange={handleRadioChange} className="flex space-x-4 px-4">
+                          <RadioGroup
+                            row
+                            value={selectedValues[rubrica.param_evalu.identificador] || ''}
+                            onChange={handleRadioChange(rubrica.param_evalu.identificador)}
+                            className="flex space-x-4 px-4"
+                          >
                             {rubrica.param_evalu.campos?.map((campo) => (
                               <div key={campo.identificador} className="flex flex-col items-center">
                                 <Radio value={campo.nombre} />
@@ -124,7 +142,12 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                       )}
                       {rubrica.param_evalu.nombre === 'Sí/NO' && (
                         <div className="flex items-center space-x-4">
-                          <RadioGroup row value={selectedValue} onChange={handleRadioChange} className="flex space-x-4 px-4">
+                          <RadioGroup
+                            row
+                            value={selectedValues[rubrica.param_evalu.identificador] || ''}
+                            onChange={handleRadioChange(rubrica.param_evalu.identificador)}
+                            className="flex space-x-4 px-4"
+                          >
                             {rubrica.param_evalu.campos?.map((campo) => (
                               <div key={campo.identificador} className="flex flex-col items-center">
                                 <Radio value={campo.nombre} />
@@ -140,19 +163,20 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                       )}
                       {rubrica.param_evalu.tipo === 'cuantitativo' && (
                         <div className="flex items-center space-x-4">
-                          {/* Slider con valores en las esquinas */}
+                          {/* Valor mínimo del Slider */}
                           <span className="text-sm">{rubrica.param_evalu.valorMinim}</span>
                           <Slider
-                            value={sliderValue}
-                            onChange={handleSliderChange}
+                            value={sliderValues[rubrica.param_evalu.identificador] || rubrica.param_evalu.valorMinim} // Valor del slider correspondiente
+                            onChange={handleSliderChange(rubrica.param_evalu.identificador)} // Identificador único
                             aria-labelledby="continuous-slider"
                             valueLabelDisplay="off"
                             className="w-72"
                             min={rubrica.param_evalu.valorMinim}
                             max={rubrica.param_evalu.valorMaxim}
                           />
+                          {/* Valor máximo del Slider */}
                           <span className="text-sm">{rubrica.param_evalu.valorMaxim}</span>
-                          {/* Esfera para mostrar rubrica.valorMaxim */}
+                          {/* Esfera para mostrar el valor máximo */}
                           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-[#C6CAFF]">
                             <span className="text-[#5736CC] font-semibold text-center text-lg">{rubrica.valorMaxim}</span>
                           </div>
