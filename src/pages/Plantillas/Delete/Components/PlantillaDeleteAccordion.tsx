@@ -38,7 +38,7 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
     setSelectedValue(event.target.value)
   }
 
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
+  const handleSliderChange = (_event: Event, newValue: number | number[]) => {
     setSliderValue(newValue as number)
   }
 
@@ -65,19 +65,24 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                   )}
                 </div>
                 <div className="w-auto border-l-2 pl-2 border-[#c6caff] flex items-center space-x-2">
-                  <span className="flex gap-2">
+                  <span className="flex items-center gap-2">
                     <b>Puntaje:</b>
                     <b className="text-red-600">{plantilla.puntaje}</b>
-                    {plantilla.identificadorUsuar === 1 && (
-                      <NewPlantillaDeleteModal
-                        plantillaId={plantilla.identificador}
-                        eliminadoLogic={plantilla.eliminadoLogic}
-                        onDeleteConfirm={() => {
-                          setPlantillas(plantillas.filter((p) => p.identificador !== plantilla.identificador))
-                          onDeleteConfirm()
-                        }}
-                      />
-                    )}
+                    <div
+                      className="p-2 flex items-center" // Alineación vertical para el ícono
+                      onClick={(e) => e.stopPropagation()} // Detiene la propagación
+                    >
+                      {plantilla.identificadorUsuar === 1 && (
+                        <NewPlantillaDeleteModal
+                          plantillaId={plantilla.identificador}
+                          eliminadoLogic={plantilla.eliminadoLogic}
+                          onDeleteConfirm={() => {
+                            setPlantillas(plantillas.filter((p) => p.identificador !== plantilla.identificador))
+                            onDeleteConfirm()
+                          }}
+                        />
+                      )}
+                    </div>
                   </span>
                 </div>
               </div>

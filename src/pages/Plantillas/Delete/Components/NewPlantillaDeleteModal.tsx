@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import Trash from './../../../../assets/trash.svg'
+import DeleteIcon from '@mui/icons-material/Delete'
 import IconDanger from './../../../../assets/ico-danger.svg'
 
-interface NewPlantillaDeleteModalProps {
+export interface NewPlantillaDeleteModalProps {
   plantillaId: number
   eliminadoLogic: boolean
   onDeleteConfirm: () => void
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 
 export const NewPlantillaDeleteModal: React.FC<NewPlantillaDeleteModalProps> = ({ plantillaId, eliminadoLogic, onDeleteConfirm }) => {
@@ -46,7 +47,16 @@ export const NewPlantillaDeleteModal: React.FC<NewPlantillaDeleteModalProps> = (
 
   return (
     <>
-      <img src={Trash} alt="Delete" onClick={handleDeleteClick} />
+      <DeleteIcon
+        onClick={handleDeleteClick}
+        sx={{
+          color: 'gray', // Color base
+          cursor: 'pointer',
+          '&:hover': {
+            color: 'red', // Color al hacer hover
+          },
+        }}
+      />
 
       {/* Modal inicial */}
       {isModalOpen && (
