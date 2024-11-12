@@ -16,7 +16,6 @@ import PlanillaEquipoPage from './pages/PlanillasPage/Equipo/PlanillaEquipoPage'
 import CrearPlantillaPage from './pages/PlantillaPage/CrearPlantillaPage'
 import { PlantillaDeletePage } from './pages/Plantillas/Delete/PlantillaDeletePage'
 import LlenarPlaniEvaObjPage from './pages/LlenarPlaniEvaObjPage/LlenarPlaniEvaObjPage'
-import CrearPlantillaPage from './pages/PlantillaPage/CrearPlantillaPage'
 
 function App() {
   return (
@@ -37,7 +36,6 @@ function App() {
           <Route path="eliminar-actividad" element={<DeleteActivityPage />}></Route>
           <Route path="crear-plantilla" element={<CrearPlantillaPage />}></Route>
           <Route path="planilla-evaluacion/:idObjetivo" element={<LlenarPlaniEvaObjPage />}></Route>
-          <Route path="crear-plantilla" element={<CrearPlantillaPage />}></Route>
         </Route>
       </Routes>
     </>
