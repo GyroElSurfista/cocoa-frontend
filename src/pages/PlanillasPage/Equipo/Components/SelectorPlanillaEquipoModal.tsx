@@ -29,7 +29,7 @@ interface Planilla {
 }
 
 interface SelectorObservationModalProps {
-  onRedirect: (observations: any[], objectiveId: number, planillaDate: string, planiId: number) => void
+  onRedirect: (observations: any[], objectiveId: number, planillaDate: string, planiId: number, objectiveName: string) => void
 }
 
 export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationModalProps) => {
@@ -113,7 +113,13 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
         }))
       )
 
-      onRedirect(observations, selectedObjective.identificador, selectedPlanilla.fecha, selectedPlanilla.identificador)
+      onRedirect(
+        observations,
+        selectedObjective.identificador,
+        selectedPlanilla.fecha,
+        selectedPlanilla.identificador,
+        selectedObjective.nombre
+      )
       setShowObjectivePlanillaModal(false)
       setPlanillaError(false)
     } else {
