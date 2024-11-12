@@ -45,6 +45,7 @@ export type DialogActivityProps = {
   onHide: () => void
   onSave: (identificadorObjet: number) => Promise<unknown>
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onChangeProjectOrObjective: (propierty: string, value: string) => void
   onChangeInitialDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   onChangeFinalDate: (value: Dayjs | null, context: PickerChangeHandlerContext<DateValidationError>) => void
   isEditMode: boolean

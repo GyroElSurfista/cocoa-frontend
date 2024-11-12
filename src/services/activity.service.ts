@@ -20,7 +20,7 @@ export const getActivities = (idGrupoEmpresa: number): AxiosPromise<ActivityProp
 }
 
 export const getActivitiesByObjective = (idObjetivo: number): AxiosPromise<ActivityProps[]> => {
-  return axiosInstance.get(`/objetivos/${idObjetivo}/actividades`)
+  return axiosInstance.get(`/objetivos/${idObjetivo}/actividades-con-resultados`)
 }
 
 export const searchActivitiesWithoutObjective = (nameActivity: string, idPlanificacion: number): AxiosPromise<ActivityRowProps[]> => {

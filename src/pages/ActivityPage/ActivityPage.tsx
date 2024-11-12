@@ -76,6 +76,12 @@ const ActivityPage = (): JSX.Element => {
     }
   }, [])
 
+  const handleChangeProjectOrObjective = (propierty: string, value: string) => {
+    if (value) {
+      setSelectedActivity((prev) => (prev ? { ...prev, [propierty]: value } : null))
+    }
+  }
+
   const handleAddNewActivity = useCallback(
     async (identificadorObjet: number): Promise<unknown> => {
       try {
@@ -153,6 +159,7 @@ const ActivityPage = (): JSX.Element => {
           onHide={handleDialogClose}
           onSave={handleAddNewActivity}
           onChange={handleNewActivityChange}
+          onChangeProjectOrObjective={handleChangeProjectOrObjective}
           onChangeInitialDate={handleNewInitialDateActivityChange}
           onChangeFinalDate={handleNewFinalDateActivityChange}
           isEditMode={isEditMode}
