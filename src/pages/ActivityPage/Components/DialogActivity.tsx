@@ -56,6 +56,7 @@ const DialogActivity = ({
   onHide,
   onSave,
   onChange,
+  onChangeProjectOrObjective,
   onChangeInitialDate,
   onChangeFinalDate,
   isEditMode,
@@ -114,14 +115,14 @@ const DialogActivity = ({
     }
 
     if (!activity?.nombre || activity?.nombre.length === 0) newErrors.nombre[0] = 'El título es obligatorio'
-    else if (activity?.nombre.length < 5) newErrors.nombre[0] = 'El título debe tener al menos 5 caracteres'
-    else if (activity?.nombre.length > 50) newErrors.nombre[0] = 'El título no puede exceder 50 caracteres'
     else if (activity?.nombre.trim() === '') newErrors.nombre[0] = 'El título no puede contener solo espacios en blanco'
+    else if (activity?.nombre.trim().length < 5) newErrors.nombre[0] = 'El título debe tener al menos 5 caracteres'
+    else if (activity?.nombre.trim().length > 50) newErrors.nombre[0] = 'El título no puede exceder 50 caracteres'
 
     if (!activity?.descripcion || activity?.descripcion.length === 0) newErrors.descripcion[0] = 'La descripción es obligatoria'
-    else if (activity?.descripcion.length < 5) newErrors.descripcion[0] = 'La descripción debe tener al menos 5 caracteres'
-    else if (activity?.descripcion.length > 255) newErrors.descripcion[0] = 'La descripción no puede exceder 255 caracteres'
     else if (activity?.descripcion.trim() === '') newErrors.descripcion[0] = 'La descripción no puede contener solo espacios en blanco'
+    else if (activity?.descripcion.trim().length < 5) newErrors.descripcion[0] = 'La descripción debe tener al menos 5 caracteres'
+    else if (activity?.descripcion.trim().length > 255) newErrors.descripcion[0] = 'La descripción no puede exceder 255 caracteres'
 
     if (!activity?.responsable || activity?.responsable.length === 0) {
       newErrors.responsable[0] = 'El responsable es obligatorio'
@@ -140,7 +141,7 @@ const DialogActivity = ({
       const fechaInici = dayjs(activity?.fechaInici)
       const fechaFin = dayjs(activity?.fechaFin)
       if (fechaInici.toDate() >= fechaFin.toDate()) {
-        newErrors.fechaInici[0] = 'La fecha de inicio no puede ser mayor o igual a la fecha de fin'
+        newErrors.fechaInici[0] = 'La fecha de inicio no puede ser posterior o igual a la fecha de fin'
       }
     }
 
@@ -154,9 +155,9 @@ const DialogActivity = ({
 
     activity?.resultados?.forEach((resultado, index) => {
       if (!resultado || resultado.length === 0) newErrors.resultados[index] = 'El resultado es obligatorio'
-      else if (resultado.length < 5) newErrors.resultados[index] = 'El resultado debe tener al menos 5 caracteres'
-      else if (resultado.length > 255) newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
       else if (resultado.trim() === '') newErrors.resultados[index] = 'El resultado no puede contener solo espacios en blanco'
+      else if (resultado.trim().length < 5) newErrors.resultados[index] = 'El resultado debe tener al menos 5 caracteres'
+      else if (resultado.trim().length > 255) newErrors.resultados[index] = 'El resultado no puede exceder 255 caracteres'
       resultado = resultado.trim()
     })
 
@@ -270,7 +271,45 @@ const DialogActivity = ({
           </div>
           <hr className="border-[1.5px] border-[#c6caff]" />
 
-          <h3 className="text-lg font-semibold my-4">Duración</h3>
+          <h3 className="text-lg font-semibold my-4">Proyecto asociado</h3>
+          <Autocomplete
+            disablePortal
+            options={proyectos.map((proyecto) => proyecto)}
+            getOptionLabel={(option) => option.nombre}
+            value={selectedProject}
+            renderInput={(params) => <TextField {...params} label="Proyecto" />}
+            onChange={async (_event, value) => {
+              setSelectedProject(value)
+              if (value) {
+                setObjetivos((await getObjectivesFromPlanification(value.identificador)).data)
+                onChangeProjectOrObjective('proyecto', value.nombre)
+              }
+              setSelectedObjective(null)
+            }}
+            disabled={!isEditMode}
+            size="small"
+          />
+          {errors.proyecto[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.proyecto[0]}</p>}
+
+          <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
+          <Autocomplete
+            disablePortal
+            options={objetivos ? objetivos.map((objetivo) => objetivo) : []}
+            getOptionLabel={(option) => option.nombre}
+            value={selectedProject ? selectedObjective : null}
+            onChange={(_event, value) => {
+              if (value) {
+                setSelectedObjective(value)
+                onChangeProjectOrObjective('objetivo', value.nombre)
+              }
+            }}
+            renderInput={(params) => <TextField {...params} label="Objetivo" />}
+            disabled={!isEditMode || selectedProject === null || objetivos === null}
+            size="small"
+          />
+          {errors.objetivo[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo[0]}</p>}
+
+          <h3 className="text-lg font-semibold mb-4">Duración</h3>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               name="fechaInici"
@@ -298,36 +337,6 @@ const DialogActivity = ({
             />
           </LocalizationProvider>
           {errors.fechaFin[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.fechaFin[0]}</p>}
-
-          <h3 className="text-lg font-semibold mb-4">Proyecto asociado</h3>
-          <Autocomplete
-            disablePortal
-            options={proyectos.map((proyecto) => proyecto)}
-            getOptionLabel={(option) => option.nombre}
-            value={selectedProject}
-            renderInput={(params) => <TextField {...params} label="Proyecto" />}
-            onChange={async (_event, value) => {
-              setSelectedProject(value)
-              if (value) setObjetivos((await getObjectivesFromPlanification(value?.identificador)).data)
-              setSelectedObjective(null)
-            }}
-            disabled={!isEditMode}
-            size="small"
-          />
-          {errors.proyecto[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.proyecto[0]}</p>}
-
-          <h3 className="text-lg font-semibold mb-4">Objetivo asociado</h3>
-          <Autocomplete
-            disablePortal
-            options={objetivos ? objetivos.map((objetivo) => objetivo) : []}
-            getOptionLabel={(option) => option.nombre}
-            value={selectedProject ? selectedObjective : null}
-            onChange={(_event, value) => setSelectedObjective(value)}
-            renderInput={(params) => <TextField {...params} label="Objetivo" />}
-            disabled={!isEditMode || selectedProject === null || objetivos === null}
-            size="small"
-          />
-          {errors.objetivo[0] && <p className="text-red-600 text-xs mb-2 pl-3">{errors.objetivo[0]}</p>}
 
           <h3 className="text-lg font-semibold mb-2">Descripción</h3>
           <TextField
