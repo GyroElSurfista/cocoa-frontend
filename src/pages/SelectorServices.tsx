@@ -12,6 +12,7 @@ export const SelectorServices = () => {
   const [objectiveId, setObjectiveId] = useState<number | null>(null)
   const [planiSeguiId, setplaniSeguiId] = useState<number | null>(null)
   const [planillaDate, setPlanillaDate] = useState<string | null>(null)
+  const [objectiveName, setObjectiveName] = useState<string | null>(null)
   const [observartionPage, setObservationPage] = useState(false)
   const [teamPage, setTeamPage] = useState(false)
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
@@ -33,12 +34,13 @@ export const SelectorServices = () => {
   //   setObservationPage(true)
   // }
 
-  const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number) => {
+  const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number, objectiveName: string) => {
     console.log('Received planiId:', planiId) // Verificar el identificador de planilla recibido
     setObservations(obs)
     setObjectiveId(objectiveId)
     setPlanillaDate(date)
-    setplaniSeguiId(planiId) // Almacenar el ID de planilla de seguimiento
+    setplaniSeguiId(planiId)
+    setObjectiveName(objectiveName) // Almacenar el ID de planilla de seguimiento
     setTeamPage(true)
   }
 
@@ -59,7 +61,7 @@ export const SelectorServices = () => {
       />
     )
   }
-  if (observations && objectiveId && planillaDate && teamPage && planiSeguiId !== null) {
+  if (observations && objectiveId && planillaDate && teamPage && objectiveName && planiSeguiId !== null) {
     // Si todos los datos están presentes y `planiSeguiId` no es null, renderizamos `PlanillaEquipoPage`
     return (
       <PlanillaEquipoPage
@@ -67,6 +69,7 @@ export const SelectorServices = () => {
         objectiveId={objectiveId}
         planillaDate={planillaDate}
         planillaSeguiId={planiSeguiId} // Ya estamos seguros de que no es `null`
+        objectiveName={objectiveName}
         onBack={() => {
           // Si volvemos desde la página de observaciones, restablecemos todo
           setObservations(null)
