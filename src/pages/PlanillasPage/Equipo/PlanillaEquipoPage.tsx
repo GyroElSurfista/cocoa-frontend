@@ -35,6 +35,7 @@ interface ObservationPageProps {
   objectiveId: number
   planillaDate: string
   planillaSeguiId?: number
+  objectiveName: string
   onBack: () => void
 }
 
@@ -55,15 +56,8 @@ interface CriterioAceptacion {
   identificadorEntre: number
 }
 
-const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
-  observations: initialObservations,
-  objectiveId,
-  planillaDate,
-  planillaSeguiId,
-  onBack,
-}) => {
+const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({ objectiveId, planillaDate, planillaSeguiId, objectiveName, onBack }) => {
   const [entregables, setEntregables] = useState<Entregable[]>([])
-  const [observations, setObservations] = useState<Observation[]>(initialObservations)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [usuarios, setUsuarios] = useState<User[]>([])
@@ -271,6 +265,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
       setIsReadOnly(true)
       setModalOpen(false)
       fetchEmpresaYUsuarios(1)
+      console.log(objectiveName)
     } catch (error) {
       console.error('Error al guardar asistencia o actividades:', error)
       setSnackbarMessage('Error al guardar la planilla o actividades')
@@ -284,7 +279,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
       <div className="flex justify-between">
         <h2 className="font-bold text-2xl">
-          <button onClick={onBack}>Objetivo {objectiveId}</button> {'>'} Planilla #{planillaDate}
+          <button onClick={onBack}>{objectiveName}</button> {'>'} Planilla #{planillaDate}
         </h2>
         {!isReadOnly && (
           <button onClick={() => setModalOpen(true)} className="button-primary">

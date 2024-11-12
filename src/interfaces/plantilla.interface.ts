@@ -1,4 +1,5 @@
-interface Rubrica {
+// Exporta cada interfaz
+export interface Rubrica {
   valorMaxim: number
   criterio_evalu_final: {
     identificador: number
@@ -22,7 +23,7 @@ interface Rubrica {
   }
 }
 
-interface Plantilla {
+export interface Plantilla {
   identificador: number
   nombre: string
   descripcion: string
@@ -31,9 +32,10 @@ interface Plantilla {
   eliminadoLogic: boolean
   identificadorUsuar: number
   rubricas: Rubrica[]
+  usuario_cread: UsuarioCreador
 }
 
-interface Usuario {
+export interface Usuario {
   id: number
   name: string
   identificadorPerso: number
@@ -41,8 +43,13 @@ interface Usuario {
   identificadorRol: number
 }
 
-interface GrupoEmpresa {
+export interface GrupoEmpresa {
   identificador: number
   nombreLargo: string
   nombreCorto: string
+}
+
+export interface UsuarioCreador {
+  id: number
+  name: string
 }
