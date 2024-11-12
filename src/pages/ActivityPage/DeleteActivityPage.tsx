@@ -1,28 +1,18 @@
-import { Alert, Autocomplete, Checkbox, Snackbar, SnackbarCloseReason, TextField } from '@mui/material'
+import { Alert, Checkbox, Snackbar, SnackbarCloseReason } from '@mui/material'
 import ActivityRowDelete from './Components/ActivityRowDelete'
 import DeleteIcon from '@mui/icons-material/Delete'
 import SearchIcon from '@mui/icons-material/Search'
 import ReplayIcon from '@mui/icons-material/Replay'
-import { SyntheticEvent, useEffect, useState } from 'react'
-import {
-  deleteManyActivities,
-  getActivities,
-  getActivitiesByObjective,
-  searchActivitiesWithObjective,
-  searchActivitiesWithoutObjective,
-} from '../../services/activity.service'
+import { useEffect, useState } from 'react'
+import { deleteManyActivities, getActivities, searchActivitiesWithoutObjective } from '../../services/activity.service'
 import { ActivityRowProps } from '../../interfaces/activity.interface'
-import { getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 import ModalConfirmation from '../../components/ModalConfirmation'
 
 const DeleteActivityPage = (): JSX.Element => {
   const [activities, setActivities] = useState<ActivityRowProps[]>([])
-  const [objectives, setObjectives] = useState<ObjectiveData[]>([])
-  const [selectedObjective, setSelectedObjective] = useState<ObjectiveData | null>(null) // Almacenar el objetivo seleccionado
   const [selectedActivities, setSelectedActivities] = useState<number[]>([])
   const [searchNotFound, setSearchNotFound] = useState<boolean>(false)
   const [searchTerm, setSearchTerm] = useState<string>('') // Almacenar el término de búsqueda
-  const [resetKey, setResetKey] = useState<number>(0)
   const [open, setOpen] = useState<boolean>(false)
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false)
   const [noErrors, setNoErrors] = useState<boolean>(true)
@@ -35,34 +25,15 @@ const DeleteActivityPage = (): JSX.Element => {
     try {
       let actividades
       if (searchTerm === '' || searchTerm === undefined) {
-        // Si no hay término de búsqueda
-        if (selectedObjective) {
-          // Si solo hay un objetivo seleccionado
-          actividades = (await getActivitiesByObjective(selectedObjective.identificador)).data.map((actividad) => ({
-            ...actividad,
-            fechaInici: new Date(actividad.fechaInici),
-            fechaFin: new Date(actividad.fechaFin),
-          }))
-        } else {
-          // Si no hay búsqueda ni objetivo, obtener todas las actividades
-          actividades = (await getActivities(1)).data.data.map((actividad) => ({
-            ...actividad,
-            fechaInici: new Date(actividad.fechaInici),
-            fechaFin: new Date(actividad.fechaFin),
-          }))
-        }
-      } else if (selectedObjective) {
-        // Si hay un objetivo y también una búsqueda
-        actividades = (await searchActivitiesWithObjective(searchTerm, selectedObjective.identificador, 1)).data.map(
-          (actividad: ActivityRowProps) => ({
-            ...actividad,
-            fechaInici: new Date(actividad.fechaInici),
-            fechaFin: new Date(actividad.fechaFin),
-          })
-        )
+        // Si no hay búsqueda ni objetivo, obtener todas las actividades
+        actividades = (await getActivities(1)).data.data.map((actividad) => ({
+          ...actividad,
+          fechaInici: new Date(actividad.fechaInici),
+          fechaFin: new Date(actividad.fechaFin),
+        }))
       } else {
         // Si solo hay búsqueda pero no hay objetivo
-        actividades = (await searchActivitiesWithoutObjective(searchTerm, 1)).data.map((actividad: ActivityRowProps) => ({
+        actividades = (await searchActivitiesWithoutObjective(searchTerm, 1)).data.data.map((actividad: ActivityRowProps) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
@@ -92,7 +63,6 @@ const DeleteActivityPage = (): JSX.Element => {
       setSelectedActivities([]) // Desmarcar todos
     } else {
       const allActivityIds = activities.filter((actividad) => actividad.esEliminable).map((actividad) => actividad.identificador)
-      console.log(allActivityIds)
       setSelectedActivities(allActivityIds as number[]) // Marcar todos los eliminables
     }
   }
@@ -112,16 +82,9 @@ const DeleteActivityPage = (): JSX.Element => {
     setOpenSnackbar(true)
   }
 
-  // Función para manejar la selección de un objetivo
-  const handleObjectiveSelect = async (_event: SyntheticEvent<Element, Event>, value: ObjectiveData | null) => {
-    setSelectedObjective(value)
-  }
-
   const handleReset = async () => {
     setSearchTerm('')
-    setSelectedObjective(null)
     setSearchNotFound(false)
-    setResetKey((prevKey) => prevKey + 1)
     const actividades = (await getActivities(1)).data.data.map((actividad) => ({
       ...actividad,
       fechaInici: new Date(actividad.fechaInici),
@@ -147,8 +110,6 @@ const DeleteActivityPage = (): JSX.Element => {
           fechaFin: new Date(actividad.fechaFin),
         }))
         setActivities(actividades)
-        const objetivos = (await getObjectivesFromPlanification(1)).data
-        setObjectives(objetivos)
       } catch (error) {
         console.error('Error al cargar los datos', error)
       }
@@ -162,7 +123,7 @@ const DeleteActivityPage = (): JSX.Element => {
       <div className="flex justify-between items-end mb-2">
         <h2 className="text-black text-2xl font-semibold">Eliminar actividades</h2>
         <div className="flex items-center">
-          <SearchIcon className="mx-2 cursor-pointer" fontSize="small" onClick={handleSearch} />
+          <SearchIcon className="hover:fill-blue-400 mx-2 cursor-pointer" fontSize="small" onClick={handleSearch} />
           <div className="rounded-[10px] border border-[#888888] p-0.5">
             <form>
               <input
@@ -176,19 +137,7 @@ const DeleteActivityPage = (): JSX.Element => {
             </form>
           </div>
 
-          <label className="mx-2">Filtrar:</label>
-          <Autocomplete
-            key={resetKey}
-            disablePortal
-            options={objectives}
-            getOptionLabel={(option) => option.nombre}
-            value={selectedObjective || null}
-            onChange={handleObjectiveSelect}
-            renderInput={(params) => <TextField {...params} label="Objetivo" />}
-            className="w-48"
-            size="small"
-          />
-          <ReplayIcon fontSize="small" className="mx-2 cursor-pointer" onClick={handleReset} />
+          <ReplayIcon fontSize="small" className="hover:fill-blue-400 mx-2 cursor-pointer" onClick={handleReset} />
         </div>
       </div>
 
