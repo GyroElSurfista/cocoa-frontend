@@ -1,55 +1,62 @@
-// Exporta cada interfaz
-export interface Rubrica {
-  valorMaxim: number
-  criterio_evalu_final: {
+export interface CriterioEvaluacionFinal {
+  identificador: number
+  nombre: string
+  descripcion: string
+}
+
+export type ParametroEvaluacionFinal = ParametroCualitativo | ParametroCuantitativo
+
+export interface ParametroEvaluacion {
+  identificador: number
+  nombre: string
+  tipo: string
+}
+
+export interface ParametroCualitativo extends ParametroEvaluacion {
+  tipo: 'cualitativo'
+  campos: {
     identificador: number
     nombre: string
-    descripcion: string
-  }
-  param_evalu: {
-    identificador: number
-    nombre: string
-    tipo: string
-    valorMaxim?: number
-    valorMinim?: number
-    cantidadInter?: number
-    campos?: Array<{
-      identificador: number
-      nombre: string
-      orden: number
-      valorPorce: string
-      identificadorParamEvaluCuali: number
-    }>
-  }
+    orden: number
+    valorPorce: number
+    identificadorParamEvaluCuali: number
+  }[]
+}
+
+export interface ParametroCuantitativo extends ParametroEvaluacion {
+  tipo: 'cuantitativo'
+  valorMinim: number
+  cantidadInter: number
+}
+
+export interface CrearPlantillaEvaluacionFinal {
+  nombre: string
+  descripcion: string
+  puntaje: number // Es la suma de puntaje de todas las rúbricas
+  rubricas: {
+    identificadorCriteEvaluFinal: number
+    identificadorParamEvalu: number
+    valorMaxim: number // Es el puntaje de cada rúbrica
+  }[]
 }
 
 export interface Plantilla {
   identificador: number
-  nombre: string
-  descripcion: string
-  puntaje: number
-  fechaCreac: string
-  eliminadoLogic: boolean
-  identificadorUsuar: number
-  rubricas: Rubrica[]
-  usuario_cread: UsuarioCreador
-}
+  nombre: string // Es parte de crear plantilla
+  descripcion: string // Es parte de crear plantilla
+  puntaje: number // Es parte de crear plantilla
+  fechaCreac: string // Debería ser Date
+  eliminadoLogic: true | false
+  identificadorUsuar: number // Es el mismo valor que el ID de usuario_cread
+  rubricas: {
+    // Es parte de crear plantilla
+    criterio_evalu_final: CriterioEvaluacionFinal
+    param_evalu: ParametroCualitativo | ParametroCualitativo
+    valorMaxim: number
+  }[]
 
-export interface Usuario {
-  id: number
-  name: string
-  identificadorPerso: number
-  identificadorGrupoEmpre: number
-  identificadorRol: number
-}
-
-export interface GrupoEmpresa {
-  identificador: number
-  nombreLargo: string
-  nombreCorto: string
-}
-
-export interface UsuarioCreador {
-  id: number
-  name: string
+  usuario_cread: {
+    id: number
+    name: string
+  }
 }
