@@ -113,7 +113,7 @@ export const SelectorServices = () => {
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => openProjectModal()} // Abrir modal para selección de proyecto
       >
-        <p>Servicio de generación de planillas de evaluación</p>
+        <p>Servicio de generación de planillas de evaluación de un objetivo</p>
       </div>
 
       <div

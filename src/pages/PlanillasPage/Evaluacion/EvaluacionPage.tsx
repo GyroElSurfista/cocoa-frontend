@@ -16,7 +16,7 @@ const EvaluacionPage: React.FC = () => {
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
   const location = useLocation()
-  const { identificadorPlani } = location.state || {}
+  const { identificadorPlani, nombrePlani } = location.state || {}
 
   const handleShowSnackbar = (message: string, color: string) => {
     setSnackbarMessage(message)
@@ -43,7 +43,7 @@ const EvaluacionPage: React.FC = () => {
 
       <div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
-        <PlanillasEvaluacionAccordion identificadorPlani={identificadorPlani} key={refreshKey} />
+        <PlanillasEvaluacionAccordion identificadorPlani={identificadorPlani} nombrePlani={nombrePlani} key={refreshKey} />
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
       </div>
 

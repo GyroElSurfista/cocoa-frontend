@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
-import Button from '@mui/material/Button'
 import { useNavigate } from 'react-router-dom'
 
 interface Project {
@@ -28,10 +27,12 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
         const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
         const data = await response.json()
 
-        // Filtrar nombres únicos de `nombrePlani`
+        // Filtra los proyectos para que solo incluya aquellos que contengan "(en curso)" en el nombre
         const uniqueProjects = Array.from(
           new Map(
-            data.map((item: any) => [item.nombrePlani, { identificadorPlani: item.identificadorPlani, nombrePlani: item.nombrePlani }])
+            data
+              .filter((item: any) => item.nombrePlani.includes('(en curso)'))
+              .map((item: any) => [item.nombrePlani, { identificadorPlani: item.identificadorPlani, nombrePlani: item.nombrePlani }])
           ).values()
         )
 
@@ -46,8 +47,15 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
 
   const handleAccept = () => {
     if (selectedProject) {
-      navigate('/planilla-evaluacion', { state: { identificadorPlani: selectedProject.identificadorPlani } })
+      navigate('/planilla-evaluacion', {
+        state: {
+          identificadorPlani: selectedProject.identificadorPlani,
+          nombrePlani: selectedProject.nombrePlani,
+        },
+      })
       onClose()
+    } else {
+      console.error('No se ha seleccionado un proyecto')
     }
   }
 
