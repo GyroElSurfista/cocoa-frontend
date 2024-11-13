@@ -33,9 +33,10 @@ const CrearPlantillaPage = (): JSX.Element => {
               criterios={criteriosResponse.data}
               parametros={parametrosResponse.data}
               quitRubrica={quitRubrica}
+              setRubricas={setRubricas}
             />
           ),
-          data: { identificadorParamEvalu: parametrosResponse.data[0].identificador, identificadorCriteEvaluFinal: null, valorMaxim: 10 },
+          data: { identificadorParamEvalu: parametrosResponse.data[0].identificador, identificadorCriteEvaluFinal: null, valorMaxim: 0 },
         }
 
         setRubricas([initialRubrica])
@@ -51,35 +52,35 @@ const CrearPlantillaPage = (): JSX.Element => {
     fetchData()
   }, [])
 
+  useEffect(() => {
+    setPlantilla((prevPlantilla) => ({
+      ...prevPlantilla,
+      puntaje: rubricas.reduce((total, rubrica) => total + rubrica.data.valorMaxim, 0),
+    }))
+  }, [rubricas])
+
   const addRubrica = () => {
     const newRubrica = {
       id: rubricaCounter,
       component: (
-        <RubricaItem key={rubricaCounter} index={rubricaCounter} criterios={criterios} parametros={parametros} quitRubrica={quitRubrica} />
+        <RubricaItem
+          key={rubricaCounter}
+          index={rubricaCounter}
+          criterios={criterios}
+          parametros={parametros}
+          quitRubrica={quitRubrica}
+          setRubricas={setRubricas}
+        />
       ),
-      data: { identificadorParamEvalu: parametros[0].identificador, identificadorCriteEvaluFinal: null, valorMaxim: 10 },
+      data: { identificadorParamEvalu: parametros[0].identificador, identificadorCriteEvaluFinal: null, valorMaxim: 0 },
     }
 
     setRubricas((prevRubricas) => [...prevRubricas, newRubrica])
-    setPlantilla((prevPlantilla) => ({
-      ...prevPlantilla,
-      puntaje: prevPlantilla.puntaje + newRubrica.data.valorMaxim,
-    }))
     setRubricaCounter((prevCounter) => prevCounter + 1)
-    console.log(rubricas)
   }
 
   const quitRubrica = (id: number) => {
-    setRubricas((prevRubricas) =>
-      prevRubricas.filter((rubrica) => {
-        if (rubrica.id !== id) return rubrica
-        else
-          setPlantilla((prevPlantilla) => ({
-            ...prevPlantilla,
-            puntaje: prevPlantilla.puntaje - rubrica.data.valorMaxim,
-          }))
-      })
-    )
+    setRubricas((prevRubricas) => prevRubricas.filter((rubrica) => rubrica.id !== id))
   }
 
   return (
@@ -108,9 +109,7 @@ const CrearPlantillaPage = (): JSX.Element => {
 
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
 
-      <h2 onClick={() => console.log(rubricas)} className="text-2xl font-semibold text-black mt-2">
-        Criterios de Evaluación
-      </h2>
+      <h2 className="text-2xl font-semibold text-black mt-2">Criterios de Evaluación</h2>
 
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
 

@@ -1,6 +1,6 @@
 import { Autocomplete, Box, Slider, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { CriterioEvaluacionFinal, ParametroEvaluacionFinal } from '../../../interfaces/plantilla.interface'
+import { CriterioEvaluacionFinal, ParametroEvaluacionFinal, Rubrica } from '../../../interfaces/plantilla.interface'
 import DeleteIcon from '@mui/icons-material/Delete'
 
 interface RubricaItemProps {
@@ -8,9 +8,18 @@ interface RubricaItemProps {
   criterios: CriterioEvaluacionFinal[]
   parametros: ParametroEvaluacionFinal[]
   quitRubrica: (index: number) => void
+  setRubricas: (
+    value: React.SetStateAction<
+      {
+        id: number
+        component: JSX.Element
+        data: Rubrica
+      }[]
+    >
+  ) => void
 }
 
-const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemProps): JSX.Element => {
+const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas }: RubricaItemProps): JSX.Element => {
   const [selectedCriterio, setSelectedCriterio] = useState<CriterioEvaluacionFinal | null>(null)
   const [selectedParametro, setSelectedParametro] = useState<ParametroEvaluacionFinal>(parametros[0] || null)
 
@@ -29,7 +38,16 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
           className="bg-[#e0e3ff] w-3/5"
           size="small"
           getOptionLabel={(criterio) => criterio.nombre}
-          onChange={(_event, newValue) => setSelectedCriterio(newValue)}
+          onChange={(_event, newValue) => {
+            setSelectedCriterio(newValue)
+            setRubricas((prevRubricas) =>
+              prevRubricas.map((rubrica) =>
+                rubrica.id === index
+                  ? { ...rubrica, data: { ...rubrica.data, identificadorCriteEvaluFinal: newValue?.identificador ?? null } }
+                  : rubrica
+              )
+            )
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -55,7 +73,23 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
           getOptionLabel={(parametro) => parametro.nombre}
           value={selectedParametro}
           disableClearable
-          onChange={(_event, newValue) => setSelectedParametro(newValue)}
+          onChange={(_event, newValue) => {
+            setSelectedParametro(newValue)
+            setRubricas((prevRubricas) =>
+              prevRubricas.map((rubrica) =>
+                rubrica.id === index
+                  ? {
+                      ...rubrica,
+                      data: {
+                        ...rubrica.data,
+                        identificadorParamEvalu: newValue.identificador,
+                        valorMaxim: newValue.tipo === 'cuantitativo' ? newValue.valorMaxim : rubrica.data.valorMaxim,
+                      },
+                    }
+                  : rubrica
+              )
+            )
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -74,9 +108,7 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
         />
 
         <div className="flex items-center text-xl font-semibold w-1/5 justify-end">
-          <span onClick={() => console.log(index)} className="text-black mr-2.5 ">
-            Puntaje:{' '}
-          </span>
+          <span className="text-black mr-2.5 ">Puntaje: </span>
           {selectedParametro.tipo === 'cualitativo' ? (
             <TextField
               className="w-[40%]"
@@ -95,6 +127,12 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
                 if (isNaN(numericValue)) numericValue = 0
                 else if (numericValue > 100) numericValue = 100
                 e.target.value = numericValue.toString()
+
+                setRubricas((prevRubricas) =>
+                  prevRubricas.map((rubrica) =>
+                    rubrica.id === index ? { ...rubrica, data: { ...rubrica.data, valorMaxim: numericValue } } : rubrica
+                  )
+                )
               }}
             />
           ) : (
