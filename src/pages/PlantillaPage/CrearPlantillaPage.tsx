@@ -1,5 +1,10 @@
 import { CircularProgress, TextField } from '@mui/material'
-import { CrearPlantillaEvaluacionFinal, CriterioEvaluacionFinal, ParametroEvaluacionFinal } from '../../interfaces/plantilla.interface'
+import {
+  CrearPlantillaEvaluacionFinal,
+  CriterioEvaluacionFinal,
+  ParametroEvaluacionFinal,
+  Rubrica,
+} from '../../interfaces/plantilla.interface'
 import { useEffect, useState } from 'react'
 import { getAllCriteriosEvaluacion } from '../../services/criterio.service'
 import { getAllParametrosEvaluacion } from '../../services/parametro.service'
@@ -9,8 +14,8 @@ const CrearPlantillaPage = (): JSX.Element => {
   const [criterios, setCriterios] = useState<CriterioEvaluacionFinal[]>([])
   const [parametros, setParametros] = useState<ParametroEvaluacionFinal[]>([])
   const [plantilla, setPlantilla] = useState<CrearPlantillaEvaluacionFinal>({ nombre: '', descripcion: '', puntaje: 0, rubricas: [] })
-  const [rubricas, setRubricas] = useState<{ id: number; component: JSX.Element }[]>([])
-  const [rubricaCounter, setRubricaCounter] = useState<number>(0) // Contador de rubricas
+  const [rubricas, setRubricas] = useState<{ id: number; component: JSX.Element; data: Rubrica }[]>([])
+  const [rubricaCounter, setRubricaCounter] = useState<number>(1) // Contador de rubricas
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,21 +24,25 @@ const CrearPlantillaPage = (): JSX.Element => {
         setCriterios(criteriosResponse.data)
         setParametros(parametrosResponse.data)
 
-        setRubricaCounter((prevCounter) => prevCounter + 1) // Incrementa el contador
-        setRubricas([
-          {
-            id: 0,
-            component: (
-              <RubricaItem
-                key={0}
-                index={0}
-                criterios={criteriosResponse.data}
-                parametros={parametrosResponse.data}
-                quitRubrica={quitRubrica}
-              />
-            ),
-          },
-        ])
+        const initialRubrica = {
+          id: 0,
+          component: (
+            <RubricaItem
+              key={0}
+              index={0}
+              criterios={criteriosResponse.data}
+              parametros={parametrosResponse.data}
+              quitRubrica={quitRubrica}
+            />
+          ),
+          data: { identificadorParamEvalu: parametrosResponse.data[0].identificador, identificadorCriteEvaluFinal: null, valorMaxim: 10 },
+        }
+
+        setRubricas([initialRubrica])
+        setPlantilla((prevPlantilla) => ({
+          ...prevPlantilla,
+          puntaje: initialRubrica.data.valorMaxim,
+        }))
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -43,24 +52,41 @@ const CrearPlantillaPage = (): JSX.Element => {
   }, [])
 
   const addRubrica = () => {
-    setRubricaCounter((prevCounter) => prevCounter + 1) // Incrementa el contador
-    const id = rubricaCounter
-    setRubricas((prevRubricas) => [
-      ...prevRubricas,
-      {
-        id,
-        component: <RubricaItem key={id} index={id} criterios={criterios} parametros={parametros} quitRubrica={quitRubrica} />,
-      },
-    ])
+    const newRubrica = {
+      id: rubricaCounter,
+      component: (
+        <RubricaItem key={rubricaCounter} index={rubricaCounter} criterios={criterios} parametros={parametros} quitRubrica={quitRubrica} />
+      ),
+      data: { identificadorParamEvalu: parametros[0].identificador, identificadorCriteEvaluFinal: null, valorMaxim: 10 },
+    }
+
+    setRubricas((prevRubricas) => [...prevRubricas, newRubrica])
+    setPlantilla((prevPlantilla) => ({
+      ...prevPlantilla,
+      puntaje: prevPlantilla.puntaje + newRubrica.data.valorMaxim,
+    }))
+    setRubricaCounter((prevCounter) => prevCounter + 1)
+    console.log(rubricas)
   }
 
   const quitRubrica = (id: number) => {
-    setRubricas((prevRubricas) => prevRubricas.filter((rubrica) => rubrica.id !== id))
+    setRubricas((prevRubricas) =>
+      prevRubricas.filter((rubrica) => {
+        if (rubrica.id !== id) return rubrica
+        else
+          setPlantilla((prevPlantilla) => ({
+            ...prevPlantilla,
+            puntaje: prevPlantilla.puntaje - rubrica.data.valorMaxim,
+          }))
+      })
+    )
   }
 
   return (
     <>
-      <h1 className="text-4xl font-semibold text-black">Crear plantilla de Evaluación Final</h1>
+      <h1 onClick={() => console.log(rubricas)} className="text-4xl font-semibold text-black">
+        Crear plantilla de Evaluación Final
+      </h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
       <div className="flex justify-end">
         <button className="button-primary mt-2.5">Crear plantilla</button>
@@ -82,7 +108,9 @@ const CrearPlantillaPage = (): JSX.Element => {
 
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
 
-      <h2 className="text-2xl font-semibold text-black mt-2">Criterios de Evaluación</h2>
+      <h2 onClick={() => console.log(rubricas)} className="text-2xl font-semibold text-black mt-2">
+        Criterios de Evaluación
+      </h2>
 
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
 

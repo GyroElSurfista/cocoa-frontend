@@ -20,11 +20,6 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
     }
   }, [parametros])
 
-  const handleDelete = (event: React.MouseEvent<SVGSVGElement, MouseEvent>): void => {
-    event.stopPropagation()
-    quitRubrica(index)
-  }
-
   return (
     <>
       <section className="flex items-center justify-between w-full">
@@ -79,26 +74,32 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
         />
 
         <div className="flex items-center text-xl font-semibold w-1/5 justify-end">
-          <span className="text-black mr-2.5 ">Puntaje: </span>
-          <TextField
-            className="w-[40%]"
-            size="small"
-            defaultValue={0}
-            type="number"
-            sx={{
-              '& .MuiInputBase-input': {
-                color: '#f60c2e',
-              },
-            }}
-            onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-              const sanitizedValue = e.target.value.replace(/[+\-.]/g, '')
-              let numericValue = parseInt(sanitizedValue, 10)
+          <span onClick={() => console.log(index)} className="text-black mr-2.5 ">
+            Puntaje:{' '}
+          </span>
+          {selectedParametro.tipo === 'cualitativo' ? (
+            <TextField
+              className="w-[40%]"
+              size="small"
+              defaultValue={0}
+              type="number"
+              sx={{
+                '& .MuiInputBase-input': {
+                  color: '#f60c2e',
+                },
+              }}
+              onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                const sanitizedValue = e.target.value.replace(/[+\-.]/g, '')
+                let numericValue = parseInt(sanitizedValue, 10)
 
-              if (isNaN(numericValue)) numericValue = 0
-              else if (numericValue > 100) numericValue = 100
-              e.target.value = numericValue.toString()
-            }}
-          />
+                if (isNaN(numericValue)) numericValue = 0
+                else if (numericValue > 100) numericValue = 100
+                e.target.value = numericValue.toString()
+              }}
+            />
+          ) : (
+            <span className="text-[#f60c2e] text-xl font-semibold">{selectedParametro.valorMaxim}</span>
+          )}
         </div>
       </section>
 
@@ -125,7 +126,7 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
                   defaultValue={selectedParametro?.valorMinim}
                   marks
                   min={selectedParametro?.valorMinim}
-                  max={selectedParametro?.cantidadInter}
+                  max={selectedParametro?.valorMaxim}
                   valueLabelDisplay="auto"
                   sx={{
                     color: '#b0b0b0', // Color grisáceo personalizado
@@ -144,7 +145,7 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica }: RubricaItemP
             )}
           </div>
           <DeleteIcon
-            onClick={handleDelete}
+            onClick={(_e) => quitRubrica(index)}
             fontSize="large"
             className="fill-[#f60c2e] hover:bg-red-100  hover:rounded-full cursor-pointer p-1"
           />
