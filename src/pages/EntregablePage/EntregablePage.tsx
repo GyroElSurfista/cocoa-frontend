@@ -4,31 +4,15 @@ import { Snackbar, SnackbarContent, SnackbarCloseReason } from '@mui/material'
 import { useLocation, NavLink } from 'react-router-dom'
 import NewEntregableModal from './Components/NewEntregableModal'
 import EntregableAccordion from './Components/EntregableAccordion'
-
-interface Entregable {
-  identificador?: number
-  nombre: string
-  descripcion: string
-  identificadorObjet: number
-}
-
-interface Objetivo {
-  identificador: number
-  nombre: string
-  fechaInici: string
-  fechaFin: string
-  valorPorce: string
-  planillasGener: boolean
-  identificadorPlani: number
-}
+import * as Entregables from './../../interfaces/entregable.interface'
 
 const EntregablePage = () => {
   const location = useLocation()
   const { identificadorObjet } = location.state || {}
 
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [entregables, setEntregables] = useState<Entregable[]>([])
-  const [availableObjetivos, setAvailableObjetivos] = useState<Objetivo[]>([])
+  const [entregables, setEntregables] = useState<Entregables.Entregable[]>([])
+  const [availableObjetivos, setAvailableObjetivos] = useState<Entregables.Objetivo[]>([])
 
   // Estados para controlar el Snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false)
@@ -76,7 +60,7 @@ const EntregablePage = () => {
   }
 
   // Maneja la creación del entregable en tiempo real
-  const handleCreateEntregable = async (newEntregables: Entregable[]) => {
+  const handleCreateEntregable = async (newEntregables: Entregables.Entregable[]) => {
     // Aquí actualizamos el estado local inmediatamente después de guardar el entregable
     setEntregables([...entregables, ...newEntregables])
 
