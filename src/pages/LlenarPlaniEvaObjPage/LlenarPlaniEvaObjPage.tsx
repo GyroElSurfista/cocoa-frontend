@@ -101,6 +101,7 @@ const LlenarPlaniEvaObjPage = () => {
     try {
       if (idObjetivo) {
         const response = await getEntregablesConCriterios(idObjetivo)
+        console.log(response.data)
         setObjective({
           identificador: response.data.identificador,
           nombre: response.data.nombre,
