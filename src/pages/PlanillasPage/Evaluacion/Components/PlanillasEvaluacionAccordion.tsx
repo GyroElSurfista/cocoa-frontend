@@ -83,7 +83,7 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
   return (
     <div>
       {planillas.length > 0 ? (
-        planillas.map((planilla) => (
+        planillas.map((planilla, index) => (
           <div key={planilla.identificador} className="bg-[#e0e3ff] rounded my-3">
             <div
               className="hover:bg-[#c6caff] w-full border rounded border-[#c6caff] p-4"
@@ -92,9 +92,7 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
               <div className="flex flex-row w-full justify-between items-center">
                 <div className="w-auto border-r-2 pr-2 border-[#c6caff]">
                   <span className="text-center text-[#1c1c1c] text-lg font-semibold">
-                    {planilla.evaluacion_objetivo.length > 0
-                      ? `Objetivo ${planilla.evaluacion_objetivo[0].identificadorObjet}`
-                      : 'Sin objetivos'}
+                    {planilla.evaluacion_objetivo.length > 0 ? `Objetivo ${index + 1}` : 'Sin objetivos'}
                   </span>
                 </div>
 

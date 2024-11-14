@@ -111,13 +111,6 @@ export const SelectorServices = () => {
 
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
-        onClick={() => openProjectModal()} // Abrir modal para selección de proyecto
-      >
-        <p>Servicio de generación de planillas de evaluación de un objetivo</p>
-      </div>
-
-      <div
-        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => navigate('/crear-plantilla')}
       >
         <p>Servicio de creación de plantillas</p>
@@ -147,6 +140,14 @@ export const SelectorServices = () => {
       {/* Renderizamos el modal de observaciones */}
 
       <SelectorPlanillaEquipoModal onRedirect={handleRedirectTeams} />
+
+      {/* Servicio para abrir modal de generación */}
+      <div
+        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        onClick={openProjectModal}
+      >
+        <p>Servicio de generación de planillas de evaluación de un objetivo</p>
+      </div>
 
       <ProjectSelectorModalEvaluacion isOpen={isProjectModalOpen} onClose={closeProjectModal} />
 

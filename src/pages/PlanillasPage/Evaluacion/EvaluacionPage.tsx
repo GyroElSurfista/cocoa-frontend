@@ -1,40 +1,30 @@
-import NewPlanillaEvaluacionModal from './Components/NewPlanillaEvaluacionModal'
-import { PlanillasEvaluacionAccordion } from './Components/PlanillasEvaluacionAccordion'
-import React, { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
 import { Snackbar, SnackbarContent, SnackbarCloseReason } from '@mui/material'
+import { useLocation } from 'react-router-dom'
+import { PlanillasEvaluacionAccordion } from './Components/PlanillasEvaluacionAccordion'
 
 const EvaluacionPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0) // Estado para forzar la recarga de los accordions
+  const [refreshKey, setRefreshKey] = useState(0)
 
   // Estado para el control del snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
 
-  const openModal = () => setIsModalOpen(true)
-  const closeModal = () => setIsModalOpen(false)
   const location = useLocation()
-  const { identificadorPlani, nombrePlani } = location.state || {}
+  const { identificadorPlani, nombrePlani, success, message } = location.state || {}
 
-  const handleShowSnackbar = (message: string, color: string) => {
-    setSnackbarMessage(message)
-    setSnackbarColor(color)
-    setOpenSnackbar(true)
-  }
-  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
-    if (reason === 'clickaway') {
-      return
+  useEffect(() => {
+    if (message) {
+      setSnackbarMessage(message)
+      setSnackbarColor(success ? '#D3FFD2' : '#FFD3D3')
+      setOpenSnackbar(true)
     }
-    setOpenSnackbar(false)
-  }
+  }, [message, success])
 
-  // Función que actualiza la clave de recarga y cierra el modal
-  const handlePlanillasGenerated = () => {
-    setRefreshKey((prevKey) => prevKey + 1) // Incrementa la clave para forzar la recarga
-    handleShowSnackbar('Generación de planilla exitosa.', '#D3FFD2')
-    closeModal()
+  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+    if (reason === 'clickaway') return
+    setOpenSnackbar(false)
   }
 
   return (
@@ -47,21 +37,6 @@ const EvaluacionPage: React.FC = () => {
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
       </div>
 
-      {/* Contenedor para centrar el botón */}
-      <div className="flex justify-center">
-        <button className="button-primary" onClick={openModal}>
-          Generar Planillas
-        </button>
-      </div>
-
-      <NewPlanillaEvaluacionModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onPlanillasGenerated={handlePlanillasGenerated}
-        identificadorPlani={identificadorPlani}
-      />
-
-      {/* Snackbar para mostrar mensajes */}
       <Snackbar
         open={openSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
