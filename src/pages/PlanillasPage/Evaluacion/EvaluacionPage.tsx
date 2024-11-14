@@ -12,7 +12,7 @@ const EvaluacionPage: React.FC = () => {
   const [snackbarColor, setSnackbarColor] = useState('')
 
   const location = useLocation()
-  const { identificadorPlani, nombrePlani, success, message } = location.state || {}
+  const { identificadorPlani, nombrePlani, success, message, fechaEvaluFinalGener } = location.state || {}
 
   useEffect(() => {
     if (message) {
@@ -29,9 +29,24 @@ const EvaluacionPage: React.FC = () => {
 
   return (
     <div className="mx-28">
-      <h1 className="font-bold text-3xl">Generar planillas de evaluacion</h1>
+      <h1 className="font-bold text-3xl">Generar planillas de evaluación de objetivos</h1>
 
       <div>
+        <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
+        <div className="flex justify-between">
+          <h2 className="font-semibold text-2xl">Planillas de evaluación de objetivos del Proyecto {nombrePlani}</h2>
+          <div className="flex items-center justify-center text-center">
+            <h2 className="text-[19.2px] mr-2">Generado el:</h2>
+            <span className="text-[19.2px] text-[#462FA4] leading-normal pt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+              {new Date(fechaEvaluFinalGener).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </span>
+          </div>
+        </div>
+
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
         <PlanillasEvaluacionAccordion identificadorPlani={identificadorPlani} nombrePlani={nombrePlani} key={refreshKey} />
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
