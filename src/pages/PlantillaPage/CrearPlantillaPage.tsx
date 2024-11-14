@@ -9,6 +9,32 @@ import { useEffect, useState } from 'react'
 import { getAllCriteriosEvaluacion } from '../../services/criterio.service'
 import { getAllParametrosEvaluacion } from '../../services/parametro.service'
 import RubricaItem from './Components/RubricaItem'
+import { FieldErrors, Resolver, useForm } from 'react-hook-form'
+
+const resolver: Resolver<CrearPlantillaEvaluacionFinal> = async (values) => {
+  const errors: FieldErrors<CrearPlantillaEvaluacionFinal> = {}
+
+  if (!values.nombre || values.nombre.trim() === '')
+    errors.nombre = {
+      type: 'required',
+      message: 'El nombre de la plantilla es obligatorio',
+    }
+  else if (values.nombre.trim().length < 5)
+    errors.nombre = {
+      type: 'minLength',
+      message: 'El nombre de la plantilla debe tener al menos 5 caracteres',
+    }
+  else if (values.nombre.trim().length > 50)
+    errors.nombre = {
+      type: 'maxLength',
+      message: 'El nombre de la plantilla no puede exceder los 50 caracteres',
+    }
+
+  return {
+    values: Object.keys(errors).length === 0 ? values : {},
+    errors,
+  }
+}
 
 const CrearPlantillaPage = (): JSX.Element => {
   const [criterios, setCriterios] = useState<CriterioEvaluacionFinal[]>([])
@@ -16,6 +42,13 @@ const CrearPlantillaPage = (): JSX.Element => {
   const [plantilla, setPlantilla] = useState<CrearPlantillaEvaluacionFinal>({ nombre: '', descripcion: '', puntaje: 0, rubricas: [] })
   const [rubricas, setRubricas] = useState<{ id: number; component: JSX.Element; data: Rubrica }[]>([])
   const [rubricaCounter, setRubricaCounter] = useState<number>(1) // Contador de rubricas
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<CrearPlantillaEvaluacionFinal>({ resolver, mode: 'onChange' })
+  const onSubmit = handleSubmit((data) => console.log(data))
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,13 +117,15 @@ const CrearPlantillaPage = (): JSX.Element => {
   }
 
   return (
-    <>
+    <form onSubmit={onSubmit}>
       <h1 onClick={() => console.log(rubricas)} className="text-4xl font-semibold text-black">
         Crear plantilla de Evaluación Final
       </h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
       <div className="flex justify-end">
-        <button className="button-primary mt-2.5">Crear plantilla</button>
+        <button type="submit" disabled={!isValid} className="button-primary mt-2.5 disabled:bg-zinc-200 disabled:text-black">
+          Crear plantilla
+        </button>
       </div>
 
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
@@ -98,7 +133,14 @@ const CrearPlantillaPage = (): JSX.Element => {
       <section className="flex items-center justify-between">
         <div className="flex flex-col">
           <label className="text-black text-xl font-semibold">Nombre de plantilla</label>
-          <TextField className="w-96 mt-1" placeholder="Nombre de plantilla" size="small"></TextField>
+          <TextField
+            className="w-96 mt-1"
+            placeholder="Nombre de plantilla"
+            size="small"
+            {...register('nombre')}
+            error={Boolean(errors.nombre)}
+            helperText={errors?.nombre?.message}
+          ></TextField>
         </div>
 
         <div className="text-xl font-semibold">
@@ -124,11 +166,11 @@ const CrearPlantillaPage = (): JSX.Element => {
       </section>
 
       <div className="flex justify-center">
-        <button onClick={addRubrica} className="button-primary my-2.5">
+        <button type="button" onClick={addRubrica} className="button-primary my-2.5">
           + Nuevo Criterio
         </button>
       </div>
-    </>
+    </form>
   )
 }
 
