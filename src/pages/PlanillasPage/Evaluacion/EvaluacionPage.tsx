@@ -1,67 +1,57 @@
-import NewPlanillaEvaluacionModal from './Components/NewPlanillaEvaluacionModal'
-import { PlanillasEvaluacionAccordion } from './Components/PlanillasEvaluacionAccordion'
-import React, { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
 import { Snackbar, SnackbarContent, SnackbarCloseReason } from '@mui/material'
+import { useLocation } from 'react-router-dom'
+import { PlanillasEvaluacionAccordion } from './Components/PlanillasEvaluacionAccordion'
 
 const EvaluacionPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0) // Estado para forzar la recarga de los accordions
+  const [refreshKey, setRefreshKey] = useState(0)
 
   // Estado para el control del snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
 
-  const openModal = () => setIsModalOpen(true)
-  const closeModal = () => setIsModalOpen(false)
   const location = useLocation()
-  const { identificadorPlani } = location.state || {}
+  const { identificadorPlani, nombrePlani, success, message, fechaEvaluFinalGener } = location.state || {}
 
-  const handleShowSnackbar = (message: string, color: string) => {
-    setSnackbarMessage(message)
-    setSnackbarColor(color)
-    setOpenSnackbar(true)
-  }
-  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
-    if (reason === 'clickaway') {
-      return
+  useEffect(() => {
+    if (message) {
+      setSnackbarMessage(message)
+      setSnackbarColor(success ? '#D3FFD2' : '#FFD3D3')
+      setOpenSnackbar(true)
     }
-    setOpenSnackbar(false)
-  }
+  }, [message, success])
 
-  // Función que actualiza la clave de recarga y cierra el modal
-  const handlePlanillasGenerated = () => {
-    setRefreshKey((prevKey) => prevKey + 1) // Incrementa la clave para forzar la recarga
-    handleShowSnackbar('Generación de planilla exitosa.', '#D3FFD2')
-    closeModal()
+  const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+    if (reason === 'clickaway') return
+    setOpenSnackbar(false)
   }
 
   return (
     <div className="mx-28">
-      <h1 className="font-bold text-3xl">Generar planillas de evaluacion</h1>
+      <h1 className="font-bold text-3xl">Generar planillas de evaluación de objetivos</h1>
 
       <div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
-        <PlanillasEvaluacionAccordion identificadorPlani={identificadorPlani} key={refreshKey} />
+        <div className="flex justify-between">
+          <h2 className="font-semibold text-2xl">Planillas de evaluación de objetivos del Proyecto {nombrePlani}</h2>
+          <div className="flex items-center justify-center text-center">
+            <h2 className="text-[19.2px] mr-2">Generado el:</h2>
+            <span className="text-[19.2px] text-[#462FA4] leading-normal pt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
+              {new Date(fechaEvaluFinalGener).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </span>
+          </div>
+        </div>
+
+        <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
+        <PlanillasEvaluacionAccordion identificadorPlani={identificadorPlani} nombrePlani={nombrePlani} key={refreshKey} />
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
       </div>
 
-      {/* Contenedor para centrar el botón */}
-      <div className="flex justify-center">
-        <button className="button-primary" onClick={openModal}>
-          Generar Planillas
-        </button>
-      </div>
-
-      <NewPlanillaEvaluacionModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onPlanillasGenerated={handlePlanillasGenerated}
-        identificadorPlani={identificadorPlani}
-      />
-
-      {/* Snackbar para mostrar mensajes */}
       <Snackbar
         open={openSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}

@@ -1,18 +1,7 @@
 import React, { useState } from 'react'
+import * as Entregables from './../../../interfaces/entregable.interface'
 
-interface EntregableAccordionProps {
-  entregable: Entregable
-  indexEntregable: number
-}
-
-interface Entregable {
-  identificador?: number // Hacer identificador opcional
-  nombre: string
-  descripcion: string
-  identificadorObjet: number
-}
-
-const EntregableAccordion: React.FC<EntregableAccordionProps> = ({ entregable }) => {
+const EntregableAccordion: React.FC<Entregables.EntregableAccordionProps> = ({ entregable }) => {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleAccordion = () => {
