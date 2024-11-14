@@ -46,7 +46,6 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
       const checkResponse = await fetch(`https://cocoabackend.onrender.com/api/objetivos-sin-planilla-evaluacion-generada`)
       const checkData = await checkResponse.json()
       const pendingObjectives = checkData.filter((obj: any) => obj.identificadorPlani === projectId)
-      console.log(pendingObjectives)
       if (pendingObjectives.length === 0) {
         navigate('/planilla-evaluacion', {
           state: {
