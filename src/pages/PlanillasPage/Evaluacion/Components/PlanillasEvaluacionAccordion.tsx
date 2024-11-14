@@ -92,25 +92,18 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
               <div className="flex flex-row w-full justify-between items-center">
                 <div className="w-auto border-r-2 pr-2 border-[#c6caff]">
                   <span className="text-center text-[#1c1c1c] text-lg font-semibold">
-                    {planilla.evaluacion_objetivo.length > 0 ? `Objetivo ${index + 1}` : 'Sin objetivos'}
+                    {planilla.evaluacion_objetivo.length > 0 ? `Planilla ${index + 1}` : 'Sin objetivos'}
                   </span>
                 </div>
 
-                <span className="ml-1 text-gray-600 font-normal w-auto border-r-2 pr-2 border-[#c6caff]">
+                <span className=" flex ml-1 text-gray-600 font-normal w-auto border-r-2 pr-2 border-[#c6caff]">
+                  <p className="mr-1 font-bold text-black">Objetivo:</p>
                   {planilla.evaluacion_objetivo.length > 0 ? planilla.nombre : 'Sin observaciones'}
                 </span>
 
                 <div className="ml-auto flex flex-row items-center space-x-4">
                   <div className="w-auto border-l-2 pl-2 border-[#c6caff]">
-                    <span>Fecha Inicio: </span>
-                    <span className="bg-[#C6CAFF] rounded px-1 text-sm">
-                      {new Date(planilla.fechaInici).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}
-                    </span>
-                    <span> - </span>
+                    <span className="mr-1">Fecha fin: </span>
                     <span className="bg-[#C6CAFF] rounded px-1 text-sm">
                       {new Date(planilla.fechaFin).toLocaleDateString('es-ES', {
                         day: '2-digit',
@@ -120,9 +113,6 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
                     </span>
                   </div>
                   <div className="w-auto border-l-2 pl-2 border-[#c6caff] flex items-center space-x-2">
-                    <span>
-                      <b>{nombrePlani}</b>
-                    </span>
                     <div>
                       <img src={Drop} alt="dropdown icon" />
                     </div>
@@ -133,8 +123,9 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
             {/* Dropdown content */}
             {expandedPlanilla === planilla.identificador && (
               <div className="py-4 bg-[#E0E3FF] rounded-b-md px-14">
-                <span className="font-bold text-base">
-                  Fecha de evaluación:
+                <span className="flex font-bold text-base">
+                  <p className="mr-1">Fecha de evaluación:</p>
+
                   {new Date(planilla.fechaFin).toLocaleDateString('es-ES', {
                     day: '2-digit',
                     month: '2-digit',
