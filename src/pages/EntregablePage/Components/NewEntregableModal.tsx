@@ -6,37 +6,25 @@ import IconClose from '../../../assets/icon-close.svg'
 import IconBack from '../../../assets/icon-back.svg'
 import IconEdit from '../../../assets/icon-edit.svg'
 import IconTrash from '../../../assets/trash.svg'
+import * as Entregables from './../../../interfaces/entregable.interface'
+import { Entregable } from '../../../interfaces/entregable.interface'
 
 // Tipos
 interface NewEntregableModalProps {
   isOpen: boolean
   onClose: () => void
-  onCreate: (newEntregable: Entregable[]) => void
+  onCreate: (newEntregable: Entregables.Entregable[]) => void
 }
 
-interface Objetivo {
-  identificador: number
-  nombre: string
-  nombrePlani: string
-}
-
-interface Entregable {
-  identificador?: number
-  nombre: string
-  descripcion: string
-  identificadorObjet: number
-  criteriosAcept: { descripcion: string }[]
-}
-
-interface FormData {
+export interface FormData {
   objetivoId: number
 }
 
 const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose, onCreate }) => {
   const { register, handleSubmit, setValue, reset } = useForm<FormData>()
   const [view, setView] = useState<number>(1)
-  const [objetivos, setObjetivos] = useState<Objetivo[]>([])
-  const [filteredObjetivos, setFilteredObjetivos] = useState<Objetivo[]>([])
+  const [objetivos, setObjetivos] = useState<Entregables.Objetivo[]>([])
+  const [filteredObjetivos, setFilteredObjetivos] = useState<Entregables.Objetivo[]>([])
   const [proyectos, setProyectos] = useState<string[]>([])
   const [entregables, setEntregables] = useState<Entregable[]>([])
   const [currentEntregable, setCurrentEntregable] = useState<Entregable>({
@@ -46,7 +34,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     criteriosAcept: [],
   })
   const [criterios, setCriterios] = useState<string[]>([])
-  const [selectedObjetivo, setSelectedObjetivo] = useState<Objetivo | null>(null)
+  const [selectedObjetivo, setSelectedObjetivo] = useState<Entregables.Objetivo | null>(null)
   const [selectedProyecto, setSelectedProyecto] = useState<string | null>(null)
   const [editIndex, setEditIndex] = useState<number | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -61,21 +49,26 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     try {
       const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
       const data = await response.json()
+
+      // Filtrar proyectos que solo tienen "(sin iniciar)"
+      const proyectosUnicosSinIniciar: string[] = Array.from(
+        new Set(data.filter((item: any) => item.nombrePlani.includes('(sin iniciar)')).map((item: any) => item.nombrePlani))
+      )
+      // Actualizar estados
       setObjetivos(data)
-      const proyectosUnicos: string[] = Array.from(new Set(data.map((obj: Objetivo) => obj.nombrePlani)))
-      setProyectos(proyectosUnicos)
+      setProyectos(proyectosUnicosSinIniciar)
     } catch (error) {
       console.error('Error fetching objetivos:', error)
     }
   }, [])
 
-  const handleProyectoSelect = (event: any, newProyecto: string | null) => {
+  const handleProyectoSelect = (_event: any, newProyecto: string | null) => {
     setSelectedProyecto(newProyecto)
     setSelectedObjetivo(null)
     setFilteredObjetivos(newProyecto ? objetivos.filter((obj) => obj.nombrePlani === newProyecto) : [])
   }
 
-  const handleObjetivoSelect = (event: React.SyntheticEvent, newObjetivo: Objetivo | null) => {
+  const handleObjetivoSelect = (_event: React.SyntheticEvent, newObjetivo: Entregables.Objetivo | null) => {
     setSelectedObjetivo(newObjetivo)
     if (newObjetivo) setValue('objetivoId', newObjetivo.identificador)
   }
@@ -152,7 +145,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setCurrentEntregable({
       nombre: '',
       descripcion: '',
-      identificadorObjet: selectedObjetivo!.identificador,
+      identificadorObjet: selectedObjetivo!.identificador || 1,
       criteriosAcept: [],
     })
     setCriterios([])
@@ -182,7 +175,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setCurrentEntregable({
       nombre: '',
       descripcion: '',
-      identificadorObjet: selectedObjetivo!.identificador,
+      identificadorObjet: selectedObjetivo?.identificador || 0,
       criteriosAcept: [],
     })
     setSelectedObjetivo(null)
@@ -206,7 +199,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
 
       for (const e of entregables) {
         const payload = {
-          identificadorObjet: selectedObjetivo!.identificador,
+          identificadorObjet: selectedObjetivo?.identificador || 0,
           nombre: e.nombre,
           descripcion: '',
           criteriosAcept: e.criteriosAcept,
