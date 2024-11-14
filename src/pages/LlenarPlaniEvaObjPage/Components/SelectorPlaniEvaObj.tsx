@@ -43,7 +43,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
       if (selectedObjective.identificador) {
         const response = await verificarLlenadoObj(selectedObjective.identificador)
         if (response.data.puedeSerLlenado) {
-          navigate(`/planilla-evaluacion/${selectedObjective.identificador}`)
+          navigate(`/planilla-evaluacion/${selectedObjective.identificador}`, { state: { project: `${selectedProject.nombre}` } })
         } else {
           setError(response.data.mensaje)
         }
@@ -112,7 +112,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
             options={projects}
             getOptionLabel={(option) => `${option.nombre}`}
             value={selectedProject}
-            onChange={(event, newValue) => {
+            onChange={(_, newValue) => {
               setSelectedProject(newValue)
               setError(null) // Clear error when a valid selection is made
             }}
@@ -125,7 +125,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
             options={objectives}
             getOptionLabel={(option) => option.nombre} // Adjusted to "nombre" assuming "objective" was incorrect
             value={selectedObjective}
-            onChange={(event, newValue) => {
+            onChange={(_, newValue) => {
               setSelectedObjective(newValue)
               setError(null) // Clear error when a valid selection is made
             }}
