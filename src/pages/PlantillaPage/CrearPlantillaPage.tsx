@@ -10,6 +10,7 @@ import { getAllCriteriosEvaluacion } from '../../services/criterio.service'
 import { getAllParametrosEvaluacion } from '../../services/parametro.service'
 import RubricaItem from './Components/RubricaItem'
 import { FieldErrors, Resolver, useForm } from 'react-hook-form'
+import { createPlantillaEvaluacionFinal } from '../../services/plantilla.service'
 
 const resolver: Resolver<CrearPlantillaEvaluacionFinal> = async (values) => {
   const errors: FieldErrors<CrearPlantillaEvaluacionFinal> = {}
@@ -54,8 +55,25 @@ const CrearPlantillaPage = (): JSX.Element => {
     handleSubmit,
     formState: { errors, isValid },
   } = useForm<CrearPlantillaEvaluacionFinal>({ resolver, mode: 'onChange' })
-  const onSubmit = handleSubmit(() => {
-    if (plantilla.rubricas.find((rubrica) => rubrica.identificadorCriteEvaluFinal === null)) return (errors.rubricas = { type: 'required' })
+  const onSubmit = handleSubmit(async (data) => {
+    console.log(
+      await createPlantillaEvaluacionFinal({
+        ...plantilla,
+        nombre: data.nombre.trim(),
+        rubricas: rubricas.map((rubrica) => {
+          const parametro = parametros.find((parametro) => rubrica.data.identificadorParamEvalu === parametro.identificador)
+
+          // Verificar si el parámetro es cualitativo
+          if (parametro && parametro.tipo === 'cualitativo') {
+            return rubrica.data
+          } else {
+            // Retornar `rubrica.data` sin el valor máximo
+            const { valorMaxim, ...rubricaSinValorMaxim } = rubrica.data
+            return rubricaSinValorMaxim
+          }
+        }),
+      })
+    )
   })
 
   const handleChangeCriterios = (identificadorCriteEvaluFinal: number) => {
@@ -107,9 +125,7 @@ const CrearPlantillaPage = (): JSX.Element => {
 
   return (
     <form onSubmit={onSubmit}>
-      <h1 onClick={() => console.log(rubricas)} className="text-4xl font-semibold text-black">
-        Crear plantilla de Evaluación Final
-      </h1>
+      <h1 className="text-4xl font-semibold text-black">Crear plantilla de Evaluación Final</h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
       <div className="flex justify-end">
         <button
