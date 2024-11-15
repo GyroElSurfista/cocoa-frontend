@@ -7,19 +7,19 @@ interface RubricaItemProps {
   index: number
   criterios: CriterioEvaluacionFinal[]
   parametros: ParametroEvaluacionFinal[]
-  quitRubrica: (index: number) => void
+  quitRubrica: (index: number, selectedCriterio: CriterioEvaluacionFinal | null) => void
   setRubricas: (
     value: React.SetStateAction<
       {
         id: number
-        component: JSX.Element
         data: Rubrica
       }[]
     >
   ) => void
+  changeCriterios: (identificadorCriteEvaluFinal: number) => void
 }
 
-const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas }: RubricaItemProps): JSX.Element => {
+const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, changeCriterios }: RubricaItemProps): JSX.Element => {
   const [selectedCriterio, setSelectedCriterio] = useState<CriterioEvaluacionFinal | null>(null)
   const [selectedParametro, setSelectedParametro] = useState<ParametroEvaluacionFinal>(parametros[0] || null)
 
@@ -47,6 +47,7 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas }:
                   : rubrica
               )
             )
+            if (newValue) changeCriterios(newValue.identificador)
           }}
           renderInput={(params) => (
             <TextField
@@ -183,7 +184,7 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas }:
             )}
           </div>
           <DeleteIcon
-            onClick={(_e) => quitRubrica(index)}
+            onClick={(_e) => quitRubrica(index, selectedCriterio)}
             fontSize="large"
             className="fill-[#f60c2e] hover:bg-red-100  hover:rounded-full cursor-pointer p-1"
           />

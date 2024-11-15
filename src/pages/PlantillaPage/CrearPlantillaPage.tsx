@@ -37,10 +37,16 @@ const resolver: Resolver<CrearPlantillaEvaluacionFinal> = async (values) => {
 }
 
 const CrearPlantillaPage = (): JSX.Element => {
+  const [originalCriterios, setOriginalCriterios] = useState<CriterioEvaluacionFinal[]>([])
   const [criterios, setCriterios] = useState<CriterioEvaluacionFinal[]>([])
   const [parametros, setParametros] = useState<ParametroEvaluacionFinal[]>([])
   const [plantilla, setPlantilla] = useState<CrearPlantillaEvaluacionFinal>({ nombre: '', descripcion: '', puntaje: 0, rubricas: [] })
-  const [rubricas, setRubricas] = useState<{ id: number; component: JSX.Element; data: Rubrica }[]>([])
+  const [rubricas, setRubricas] = useState<{ id: number; data: Rubrica }[]>([
+    {
+      id: 0,
+      data: { identificadorCriteEvaluFinal: null, identificadorParamEvalu: parametros[0]?.identificador, valorMaxim: 0 },
+    },
+  ])
   const [rubricaCounter, setRubricaCounter] = useState<number>(1) // Contador de rubricas
 
   const {
@@ -50,33 +56,17 @@ const CrearPlantillaPage = (): JSX.Element => {
   } = useForm<CrearPlantillaEvaluacionFinal>({ resolver, mode: 'onChange' })
   const onSubmit = handleSubmit((data) => console.log(data))
 
+  const handleChangeCriterios = (identificadorCriteEvaluFinal: number) => {
+    setCriterios(originalCriterios.filter((criterio) => criterio.identificador !== identificadorCriteEvaluFinal))
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [criteriosResponse, parametrosResponse] = await Promise.all([getAllCriteriosEvaluacion(), getAllParametrosEvaluacion()])
+        setOriginalCriterios(criteriosResponse.data)
         setCriterios(criteriosResponse.data)
         setParametros(parametrosResponse.data)
-
-        const initialRubrica = {
-          id: 0,
-          component: (
-            <RubricaItem
-              key={0}
-              index={0}
-              criterios={criteriosResponse.data}
-              parametros={parametrosResponse.data}
-              quitRubrica={quitRubrica}
-              setRubricas={setRubricas}
-            />
-          ),
-          data: { identificadorParamEvalu: parametrosResponse.data[0].identificador, identificadorCriteEvaluFinal: null, valorMaxim: 0 },
-        }
-
-        setRubricas([initialRubrica])
-        setPlantilla((prevPlantilla) => ({
-          ...prevPlantilla,
-          puntaje: initialRubrica.data.valorMaxim,
-        }))
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -95,16 +85,6 @@ const CrearPlantillaPage = (): JSX.Element => {
   const addRubrica = () => {
     const newRubrica = {
       id: rubricaCounter,
-      component: (
-        <RubricaItem
-          key={rubricaCounter}
-          index={rubricaCounter}
-          criterios={criterios}
-          parametros={parametros}
-          quitRubrica={quitRubrica}
-          setRubricas={setRubricas}
-        />
-      ),
       data: { identificadorParamEvalu: parametros[0].identificador, identificadorCriteEvaluFinal: null, valorMaxim: 0 },
     }
 
@@ -112,8 +92,9 @@ const CrearPlantillaPage = (): JSX.Element => {
     setRubricaCounter((prevCounter) => prevCounter + 1)
   }
 
-  const quitRubrica = (id: number) => {
+  const quitRubrica = (id: number, selectedCriterio: CriterioEvaluacionFinal | null) => {
     setRubricas((prevRubricas) => prevRubricas.filter((rubrica) => rubrica.id !== id))
+    if (selectedCriterio) setCriterios((prevCriterios) => [...prevCriterios, selectedCriterio])
   }
 
   return (
@@ -157,7 +138,17 @@ const CrearPlantillaPage = (): JSX.Element => {
 
       <section className="mt-4 space-y-6">
         {criterios.length > 0 && parametros.length > 0 ? (
-          rubricas.map((rubrica) => rubrica.component)
+          rubricas.map((rubrica) => (
+            <RubricaItem
+              key={rubrica.id}
+              index={rubrica.id}
+              criterios={criterios}
+              parametros={parametros}
+              quitRubrica={quitRubrica}
+              setRubricas={setRubricas}
+              changeCriterios={handleChangeCriterios}
+            />
+          ))
         ) : (
           <div className="flex justify-center items-center h-16">
             <CircularProgress />
