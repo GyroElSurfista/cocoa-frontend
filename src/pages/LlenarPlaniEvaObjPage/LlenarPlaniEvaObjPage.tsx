@@ -2,15 +2,18 @@ import { useEffect, useState } from 'react'
 import { enviarRevision, getEntregablesConCriterios, verificarLlenadoObj } from '../../services/planiEvaObj.service'
 import { Entregable } from './Models/planiEvaObj'
 import EntregableComponent from './Components/EntregableComponent'
-import { useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import ConfirmationModal from './Components/ConfirmationModal'
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
 import IconDanger from '../../assets/ico-danger.svg'
+import { formatDateToDMY } from '../../utils/formatDate'
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
 
 interface Objective {
   identificador: number
   nombre: string
   entregables: Array<Entregable>
+  fechaFin: string
 }
 
 type CriteriaState = {
@@ -30,6 +33,8 @@ const LlenarPlaniEvaObjPage = () => {
   const [markedPercentage, setMarkedPercentage] = useState(0)
 
   const { idObjetivo } = useParams()
+  const location = useLocation()
+  const { project } = location.state || {}
 
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
@@ -101,10 +106,12 @@ const LlenarPlaniEvaObjPage = () => {
     try {
       if (idObjetivo) {
         const response = await getEntregablesConCriterios(idObjetivo)
+        console.log(response.data)
         setObjective({
           identificador: response.data.identificador,
           nombre: response.data.nombre,
           entregables: response.data.entregable,
+          fechaFin: response.data.fechaFin,
         })
       }
     } catch (error) {
@@ -151,16 +158,28 @@ const LlenarPlaniEvaObjPage = () => {
 
   return (
     <div className="px-10">
-      <h3 className="font-semibold text-3xl">Llenar planilla de evaluación de objetivo</h3>
+      <h3 className="font-semibold text-4xl">Llenar planilla de evaluación de objetivo</h3>
       <hr className="my-2 border-[1.5px] border-[#c6caff]" />
-      <p className="text-lg font-medium">Evaluación del Objetivo {objective?.nombre}</p>
+      <div className="flex flex-row justify-between items-center">
+        <div className="flex flex-row items-center">
+          <p className="text-xl font-semibold">
+            Proyecto {project} <KeyboardArrowRightIcon />
+          </p>
+          <p className="text-lg font-semibold">Evaluación del Objetivo {objective?.nombre}</p>
+        </div>
+        <p className="font-semibold text-lg">
+          Fecha:
+          <span className="text-[#462fa4] text-lg"> {formatDateToDMY(objective?.fechaFin)}</span>
+        </p>
+      </div>
       <hr className="mt-2 mb-8 border-[1.5px] border-[#c6caff]" />
-      {objective?.entregables.map((entregable) => (
+      {objective?.entregables.map((entregable, index) => (
         <EntregableComponent
           key={entregable.identificador}
           entregable={entregable}
           onToggleCriteria={handleToggleCriteria}
           isEvaluationSaved={isEvaluationSaved}
+          index={index}
         />
       ))}
       <ConfirmationModal isOpen={isModalOpen} onClose={closeModal} onConfirm={handleSave} porcentaje={markedPercentage} />
