@@ -9,6 +9,7 @@ export interface Entregable {
 export interface EntregableAccordionProps {
   entregable: Entregable
   indexEntregable: number
+  objetivoIds: string[]
 }
 
 export interface Objetivo {
