@@ -22,6 +22,7 @@ interface RubricaItemProps {
 const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, changeCriterios }: RubricaItemProps): JSX.Element => {
   const [selectedCriterio, setSelectedCriterio] = useState<CriterioEvaluacionFinal | null>(null)
   const [selectedParametro, setSelectedParametro] = useState<ParametroEvaluacionFinal>(parametros[0] || null)
+  const [errorNoSelectedCriterio, setErrorNoSelectedCriterio] = useState<boolean>(false)
 
   useEffect(() => {
     if (parametros.length > 0) {
@@ -35,7 +36,7 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, c
         <Autocomplete
           disablePortal
           options={criterios}
-          className="bg-[#e0e3ff] w-3/5"
+          className="w-3/5"
           size="small"
           getOptionLabel={(criterio) => criterio.nombre}
           onChange={(_event, newValue) => {
@@ -47,19 +48,30 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, c
                   : rubrica
               )
             )
-            if (newValue) changeCriterios(newValue.identificador)
+            if (newValue) {
+              changeCriterios(newValue.identificador)
+              setErrorNoSelectedCriterio(false)
+            } else {
+              setErrorNoSelectedCriterio(true)
+            }
           }}
           renderInput={(params) => (
             <TextField
               {...params}
               label="Seleccionar Criterio"
+              error={errorNoSelectedCriterio}
+              helperText={errorNoSelectedCriterio ? 'Selecciona un criterio de aceptación' : null}
               sx={{
                 '& .MuiInputBase-root': {
                   fontSize: '0.9rem', // text-xs
                   color: '#454545', // text-[#454545]
+                  background: '#e0e3ff',
                 },
                 '& .MuiInputLabel-root': {
                   fontSize: '0.875rem', // text-sm
+                },
+                '& .MuiFormHelperText-root': {
+                  maxHeight: '0px', // Altura mínima para evitar saltos
                 },
               }}
             />

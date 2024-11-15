@@ -54,7 +54,9 @@ const CrearPlantillaPage = (): JSX.Element => {
     handleSubmit,
     formState: { errors, isValid },
   } = useForm<CrearPlantillaEvaluacionFinal>({ resolver, mode: 'onChange' })
-  const onSubmit = handleSubmit((data) => console.log(data))
+  const onSubmit = handleSubmit(() => {
+    if (plantilla.rubricas.find((rubrica) => rubrica.identificadorCriteEvaluFinal === null)) return (errors.rubricas = { type: 'required' })
+  })
 
   const handleChangeCriterios = (identificadorCriteEvaluFinal: number) => {
     setCriterios(originalCriterios.filter((criterio) => criterio.identificador !== identificadorCriteEvaluFinal))
@@ -67,6 +69,12 @@ const CrearPlantillaPage = (): JSX.Element => {
         setOriginalCriterios(criteriosResponse.data)
         setCriterios(criteriosResponse.data)
         setParametros(parametrosResponse.data)
+        setRubricas([
+          {
+            id: 0,
+            data: { identificadorCriteEvaluFinal: null, identificadorParamEvalu: parametrosResponse.data[0].identificador, valorMaxim: 0 },
+          },
+        ])
       } catch (error) {
         console.error('Error fetching data:', error)
       }
@@ -104,7 +112,15 @@ const CrearPlantillaPage = (): JSX.Element => {
       </h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
       <div className="flex justify-end">
-        <button type="submit" disabled={!isValid} className="button-primary mt-2.5 disabled:bg-zinc-200 disabled:text-black">
+        <button
+          type="submit"
+          disabled={
+            !isValid ||
+            Boolean(rubricas.find((rubrica) => rubrica.data.identificadorCriteEvaluFinal === null)) ||
+            Boolean(rubricas.length === 0)
+          }
+          className="button-primary mt-2.5 disabled:bg-zinc-200 disabled:text-black"
+        >
           Crear plantilla
         </button>
       </div>
@@ -137,6 +153,11 @@ const CrearPlantillaPage = (): JSX.Element => {
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
 
       <section className="mt-4 space-y-6">
+        {rubricas.length === 0 && (
+          <p className="text-[#f60c2e] text-lg text-center">
+            Debes tener al menos un criterio para poder crear una plantilla de evaluación final
+          </p>
+        )}
         {criterios.length > 0 && parametros.length > 0 ? (
           rubricas.map((rubrica) => (
             <RubricaItem
