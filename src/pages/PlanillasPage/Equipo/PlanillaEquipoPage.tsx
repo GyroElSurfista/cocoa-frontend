@@ -36,6 +36,7 @@ interface ObservationPageProps {
   planillaDate: string
   planillaSeguiId?: number
   objectiveName: string
+  fechas: string[]
   onBack: () => void
 }
 
@@ -56,7 +57,14 @@ interface CriterioAceptacion {
   identificadorEntre: number
 }
 
-const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({ objectiveId, planillaDate, planillaSeguiId, objectiveName, onBack }) => {
+const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
+  objectiveId,
+  planillaDate,
+  planillaSeguiId,
+  objectiveName,
+  fechas,
+  onBack,
+}) => {
   const [entregables, setEntregables] = useState<Entregable[]>([])
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -88,19 +96,26 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({ objectiveId, plani
   }
 
   useEffect(() => {
-    const fetchEntregables = async () => {
+    const fetchAndStoreEntregables = async () => {
+      const allEntregables: any[] = [] // Para almacenar todos los entregables
+
       try {
-        const response = await axios.get(
-          `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${planillaDate}`
-        )
-        setEntregables(response.data.data)
+        for (const fecha of planillaDate) {
+          const response = await axios.get(
+            `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${fecha}`
+          )
+          const entregables = response.data.data
+          allEntregables.push(...entregables) // Agrega los entregables obtenidos
+        }
+
+        setEntregables(allEntregables) // Actualiza el estado con todos los entregables obtenidos
       } catch (error) {
         console.error('Error al obtener entregables dinámicos:', error)
       }
     }
 
-    fetchEntregables()
-  }, [])
+    fetchAndStoreEntregables()
+  }, [objectiveId, planillaDate])
 
   useEffect(() => {
     fetchEmpresaYUsuarios(1)
@@ -335,7 +350,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({ objectiveId, plani
 
       <h2 className="font-bold text-3xl">Entregables</h2>
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
-      <EntregableDinamicoAccordion entregables={entregables} onEntregableUpdated={handleEntregableCreatedOrUpdated} />
+      <EntregableDinamicoAccordion entregables={entregables} onEntregableUpdated={handleEntregableCreatedOrUpdated} fechas={fechas} />
 
       <NewEntregableDinamicoModal
         isOpen={modalOpenEntregable}
@@ -344,6 +359,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({ objectiveId, plani
         entregable={entregables}
         objectiveId={objectiveId}
         planillaSeguiId={planillaSeguiId}
+        fechas={fechas}
       />
 
       {!isReadOnly && (
