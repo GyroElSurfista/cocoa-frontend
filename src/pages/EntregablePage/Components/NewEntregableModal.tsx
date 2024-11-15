@@ -25,12 +25,14 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
   const [view, setView] = useState<number>(1)
   const [filteredObjetivos, setFilteredObjetivos] = useState<Entregables.Objetivo[]>([])
   const [entregables, setEntregables] = useState<Entregable[]>([])
-  const [currentEntregable, setCurrentEntregable] = useState<Entregable>({
+  const [currentEntregable, setCurrentEntregable] = useState<Entregables.Entregable>({
     nombre: '',
     descripcion: '',
     identificadorObjet: 0,
     criteriosAcept: [],
+    criterio_aceptacion_entregable: [],
   })
+
   const [criterios, setCriterios] = useState<string[]>([''])
   const [selectedObjetivo, setSelectedObjetivo] = useState<Entregables.Objetivo | null>(null)
   const [editIndex, setEditIndex] = useState<number | null>(null)
@@ -222,10 +224,14 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
 
   const resetEntregableForm = () => {
     setCurrentEntregable({
+      identificador: 0, // Valor inicial predeterminado
       nombre: '',
       descripcion: '',
-      identificadorObjet: selectedObjetivo?.identificador || 0,
-      criteriosAcept: [],
+      dinamico: false, // Valor predeterminado
+      fechaCreac: new Date().toISOString(), // Fecha actual como valor inicial
+      identificadorObjet: selectedObjetivo ? selectedObjetivo.identificador : 0,
+      criteriosAcept: [], // Mantén esto si aún es necesario para compatibilidad
+      criterio_aceptacion_entregable: [], // Array vacío como valor inicial
     })
     setCriterios([''])
     setValidationErrors({})
@@ -234,7 +240,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setGeneralError('')
   }
 
-  const removeCriterio = (index) => {
+  const removeCriterio = (index: number) => {
     const updatedCriterios = [...criterios]
     updatedCriterios.splice(index, 1)
     setCriterios(updatedCriterios)
@@ -248,7 +254,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
   const handleEditEntregable = (index: number) => {
     const entregableToEdit = entregables[index]
     setCurrentEntregable(entregableToEdit)
-    setCriterios(entregableToEdit.criteriosAcept.map((c) => c.descripcion))
+    setCriterios(entregableToEdit.criteriosAcept.map((c: any) => c.descripcion))
     setEditIndex(index)
     setView(3)
     setValidationErrors(null)
@@ -265,10 +271,14 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setEntregables([])
     setCriterios([])
     setCurrentEntregable({
+      identificador: 0, // Valor inicial predeterminado
       nombre: '',
       descripcion: '',
-      identificadorObjet: selectedObjetivo?.identificador || 0,
-      criteriosAcept: [],
+      dinamico: false, // Valor predeterminado
+      fechaCreac: new Date().toISOString(), // Fecha actual como valor inicial
+      identificadorObjet: selectedObjetivo ? selectedObjetivo.identificador : 0,
+      criteriosAcept: [], // Mantén esto si aún es necesario para compatibilidad
+      criterio_aceptacion_entregable: [], // Array vacío como valor inicial
     })
     setSelectedObjetivo(null)
     setView(1)
@@ -455,10 +465,14 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                 type="button"
                 onClick={() => {
                   setCurrentEntregable({
+                    identificador: 0, // Valor inicial predeterminado
                     nombre: '',
                     descripcion: '',
+                    dinamico: false, // Valor predeterminado
+                    fechaCreac: new Date().toISOString(), // Fecha actual como valor inicial
                     identificadorObjet: selectedObjetivo ? selectedObjetivo.identificador : 0,
-                    criteriosAcept: [],
+                    criteriosAcept: [], // Mantén esto si aún es necesario para compatibilidad
+                    criterio_aceptacion_entregable: [], // Array vacío como valor inicial
                   })
                   setView(3)
                 }}

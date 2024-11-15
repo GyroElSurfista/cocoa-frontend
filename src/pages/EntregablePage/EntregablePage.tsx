@@ -106,7 +106,8 @@ const EntregablePage = () => {
         isOpen={isModalOpen}
         onClose={closeModal}
         onCreate={handleCreateEntregable}
-        nombrePlani={nombrePlani} // Pasar identificadorPlani
+        fetchEntregables={fetchEntregables} // Pasar el método fetchEntregables
+        nombrePlani={nombrePlani}
       />
 
       {/* Snackbar para mostrar mensajes */}
