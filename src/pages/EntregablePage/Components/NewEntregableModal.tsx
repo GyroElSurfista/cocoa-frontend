@@ -167,7 +167,12 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
 
     // Validar criterios
     if (!validateCriterios(criterios)) {
-      setGeneralError('Todos los criterios deben ser válidos.')
+      if (criterios.length === 0) {
+        setGeneralError('Debe agregar al menos un criterio.')
+      } else {
+        setGeneralError('Todos los criterios deben ser válidos.')
+      }
+
       return
     }
 
@@ -407,14 +412,14 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                   </div>
                   {/* Mostrar error específico para cada input de criterio */}
                   {validationErrors?.[`criteriosAcept.${index}.descripcion`] && (
-                    <div className="text-red-500 text-sm mt-1">{validationErrors[`criteriosAcept.${index}.descripcion`].join(', ')}</div>
+                    <div className="text-red-500 text-sm my-1">{validationErrors[`criteriosAcept.${index}.descripcion`].join(', ')}</div>
                   )}
                 </div>
               ))}
             </div>
 
             {/* Mostrar error general si no hay criterios válidos */}
-            {generalError && <div className="text-red-500 text-sm mt-2">{generalError}</div>}
+            {generalError && <div className="text-red-500 text-sm my-2">{generalError}</div>}
 
             <div className="flex justify-center">
               <button type="button" onClick={addCriterio} className="button-primary mb-4">
@@ -446,20 +451,25 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
               Entregables para {selectedObjetivo ? selectedObjetivo.nombre : 'No seleccionado'}
             </h5>
 
-            {entregables.map((e, index) => (
-              <div key={index} className="flex items-center mb-2 relative">
-                <input
-                  type="text"
-                  value={`${e.nombre} - ${e.criteriosAcept.length} Criterios`}
-                  readOnly
-                  className="border text-gray-900 rounded-lg block w-full p-2.5"
-                />
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                  <img src={IconEdit} alt="Edit" className="cursor-pointer" onClick={() => handleEditEntregable(index)} />
-                  <img src={IconTrash} alt="Delete" onClick={() => removeEntregable(index)} className="cursor-pointer" />
+            <div className="max-h-64 overflow-y-auto">
+              {' '}
+              {/* Contenedor con scroll */}
+              {entregables.map((e, index) => (
+                <div key={index} className="flex items-center mb-2 relative">
+                  <input
+                    type="text"
+                    value={`${e.nombre} - ${e.criteriosAcept.length} Criterios`}
+                    readOnly
+                    className="border text-gray-900 rounded-lg block w-full p-2.5"
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                    <img src={IconEdit} alt="Edit" className="cursor-pointer" onClick={() => handleEditEntregable(index)} />
+                    <img src={IconTrash} alt="Delete" onClick={() => removeEntregable(index)} className="cursor-pointer" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
             <div className="flex justify-center">
               <button
                 type="button"

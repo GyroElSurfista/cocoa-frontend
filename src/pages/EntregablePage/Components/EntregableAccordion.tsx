@@ -84,10 +84,10 @@ const EntregableAccordion: React.FC<EntregableAccordionProps> = ({ objetivoIds, 
 
                       {/* Criterios desplegables para cada entregable */}
                       {expandedDeliverable === entregable.identificador && (
-                        <div className="mt-2 px-4 py-2 rounded-md">
+                        <div className="mt-2 px-4 py-4 rounded-md">
                           {entregable.criterio_aceptacion_entregable.map((criterio, criterioIndex) => (
                             <p key={criterio.identificador} className="text-gray-700 text-sm">
-                              Criterio {criterioIndex + 1}: {criterio.descripcion}
+                              {criterioIndex + 1}. {criterio.descripcion}
                             </p>
                           ))}
                         </div>

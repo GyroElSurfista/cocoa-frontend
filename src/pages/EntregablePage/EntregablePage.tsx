@@ -19,6 +19,7 @@ const EntregablePage = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
+  const [refreshTrigger, setRefreshTrigger] = useState(false) // Estado para forzar la recarga de datos // IDs de ejemplo
 
   // Fetch entregables
   const fetchEntregables = async () => {
@@ -68,7 +69,7 @@ const EntregablePage = () => {
   const handleCreateEntregable = async (newEntregables: Entregables.Entregable[]) => {
     // Aquí actualizamos el estado local inmediatamente después de guardar el entregable
     setEntregables([...entregables, ...newEntregables])
-
+    setRefreshTrigger((prev) => !prev)
     // Configurar el mensaje del Snackbar
     setSnackbarMessage('Entregable(s) agregado(s) correctamente')
     setSnackbarColor('#D3FFD2') // Color verde
@@ -96,7 +97,8 @@ const EntregablePage = () => {
 
       <div className="mt-4">
         <EntregableAccordion
-          objetivoIds={objetivoIds} // Pasar objetivoIds
+          objetivoIds={objetivoIds}
+          refreshTrigger={refreshTrigger} // Pasar el trigger al componente
         />
       </div>
 
@@ -105,8 +107,7 @@ const EntregablePage = () => {
       <NewEntregableModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        onCreate={handleCreateEntregable}
-        fetchEntregables={fetchEntregables} // Pasar el método fetchEntregables
+        onCreate={handleCreateEntregable} // Pasar el método fetchEntregables
         nombrePlani={nombrePlani}
       />
 
