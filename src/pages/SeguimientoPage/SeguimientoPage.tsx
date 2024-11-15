@@ -57,8 +57,21 @@ const SeguimientoPage = () => {
 
   return (
     <div>
-      <h2 className="text-black text-3xl font-semibold">Generar Planillas de Seguimiento</h2>
-      <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
+      <h2 className="text-black text-[33px] font-semibold">Generar Planillas de Seguimiento</h2>
+      <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
+      <div className="flex flex-row justify-between">
+        <p className="text-[28px] font-semibold">Proyecto </p>
+        <p className="text-base font-normal">
+          Generado el: <span className="text-[#462fa4] text-base font-normal">Martes</span>
+        </p>
+      </div>
+      <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
+      <div className="flex flex-row justify-between pb-6">
+        <p className="text-xl font-semibold">Planillas de seguimiento de objetivo</p>
+        <p className="text-xl font-semibold">
+          Día de revisón: <span className="text-[#462fa4] text-xl font-semibold">Martes</span>
+        </p>
+      </div>
 
       {objetivos.length > 0 ? (
         objetivos.map((objetivo, index) => <ObjectiveTracker key={index} objective={objetivo} index={index} />)
@@ -66,7 +79,6 @@ const SeguimientoPage = () => {
         <p className="text-center font-semibold mt-4">No existen objetivos disponibles.</p>
       )}
 
-      <hr className="border-[1.5px] border-[#c6caff] mt-4 mb-4" />
       <div className="flex justify-center pb-3">
         <button onClick={openModal} className="button-primary">
           Generar Planillas

@@ -40,18 +40,12 @@ const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective, index })
         <div className="w-auto inline-flex justify-center border-l border-[#c6caff]">
           <p className="flex items-center justify-end pl-3 pr-2">
             Fechas:
-            <span className="bg-indigo-200 rounded-xl text-sm ml-1 p-1 text-gray-600 font-normal">
-              {formatDateToDMY(objective.iniDate)}
-            </span>{' '}
-            -
-            <span className="bg-indigo-200 rounded-xl text-sm p-1 ml-1 text-gray-600 font-normal">
-              {formatDateToDMY(objective.finDate)}
-            </span>
+            <span className="bg-indigo-200 rounded-xl text-sm ml-1 p-1 font-normal">{formatDateToDMY(objective.iniDate)}</span> -
+            <span className="bg-indigo-200 rounded-xl text-sm p-1 ml-1 font-normal">{formatDateToDMY(objective.finDate)}</span>
           </p>
         </div>
-        <div className="border-l border-[#c6caff] uppercase font-bold pl-2">{objective.nombrePlani}</div>
-        <div className="justify-end">
-          <button className="py-4 pl-3 font-medium text-gray-800 focus:outline-none" onClick={toggleAccordion}>
+        <div className="justify-end pl-2 border-l border-[#c6caff]">
+          <button className="py-4 pl-1 font-medium text-gray-800 focus:outline-none" onClick={toggleAccordion}>
             <svg
               className={`w-6 h-6 transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
               fill="none"
@@ -69,7 +63,9 @@ const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective, index })
           {rowsTracker?.map((row, index) => (
             <div key={index} className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex">
               <div className="text-black text-lg font-semibold">Planilla # {index + 1}</div>
-              <div className="text-black text-base font-normal">Fecha: {formatDateToDMY(row.fecha)}</div>
+              <div className="text-black text-base font-normal">
+                Día de seguimiento: <span className="text-[#5736cc] text-base font-bold">{formatDateToDMY(row.fecha)}</span>
+              </div>
             </div>
           ))}
         </div>
