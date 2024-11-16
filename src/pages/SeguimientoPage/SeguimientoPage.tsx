@@ -1,19 +1,14 @@
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { getObjectives } from '../../services/objective.service'
-import GenerateTrackerModal from './GenerateTrackerModal/GenerateTrackerModal'
 import ObjectiveTracker from './Components/ObjectiveTracker'
 import { Objective } from '../ObjectivePage/Models/objective'
 
 const SeguimientoPage = () => {
   const [objetivos, setObjetivos] = useState<Objective[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
-
-  const openModal = () => setIsModalOpen(true)
-  const closeModal = () => setIsModalOpen(false)
 
   const handleGenerateTracker = () => {
     cargarObjetivos()
@@ -78,14 +73,6 @@ const SeguimientoPage = () => {
       ) : (
         <p className="text-center font-semibold mt-4">No existen objetivos disponibles.</p>
       )}
-
-      <div className="flex justify-center pb-3">
-        <button onClick={openModal} className="button-primary">
-          Generar Planillas
-        </button>
-      </div>
-
-      <GenerateTrackerModal isOpen={isModalOpen} onClose={closeModal} onGenerate={handleGenerateTracker} />
 
       <Snackbar
         open={openSnackbar}

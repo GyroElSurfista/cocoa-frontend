@@ -1,7 +1,7 @@
 import { axiosInstance } from '../api/axios'
 
-export const generateWeeklyTracking = async (idObjective: number) => {
-  const response = await axiosInstance.post(`/objetivos/${idObjective}/generar-planillas-seguimiento`)
+export const generateWeeklyTracking = async (idProject: number) => {
+  const response = await axiosInstance.post(`/planificaciones/${idProject}/generar-planillas-seguimiento`)
   return response
 }
 
