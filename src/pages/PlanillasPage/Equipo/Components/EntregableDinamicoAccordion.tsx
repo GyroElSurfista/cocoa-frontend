@@ -8,6 +8,7 @@ import IconDanger from '../../../../assets/ico-danger.svg'
 
 interface EntregableDinamicoAccordionProps {
   entregables: Entregable[]
+  fechas: string[]
   onEntregableUpdated: () => void // Prop para refrescar la lista de entregables
 }
 
@@ -28,7 +29,7 @@ interface CriterioAceptacion {
   identificadorEntre: number
 }
 
-export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionProps> = ({ entregables, onEntregableUpdated }) => {
+export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionProps> = ({ entregables, onEntregableUpdated, fechas }) => {
   const [expanded, setExpanded] = useState<number | null>(null)
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false)
@@ -39,6 +40,7 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
   }
 
   const handleEditClick = (event: React.MouseEvent, entregable: Entregable) => {
+    console.log(entregable)
     event.stopPropagation() // Evita que el evento de expansión se dispare
     setSelectedEntregable(entregable)
     setEditModalOpen(true) // Abre el modal de edición
@@ -56,6 +58,7 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
   }
 
   const handleDeleteConfirm = async () => {
+    console.log('fechas:' + fechas)
     if (selectedEntregable) {
       try {
         await axios.delete(`https://cocoabackend.onrender.com/api/entregables/eliminar/${selectedEntregable.identificador}`)
@@ -117,7 +120,8 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
           initialData={selectedEntregable} // Pasa los datos del entregable seleccionado
           entregable={entregables}
           objectiveId={selectedEntregable.identificadorObjet} // Pasa el objetivo ID del entregable seleccionado
-          planillaSeguiId={selectedEntregable.identificadorPlaniSegui} // Pasa el planillaSeguiId si existe
+          planillaSeguiId={selectedEntregable.identificadorPlaniSegui}
+          fechas={fechas}
         />
       )}
 
