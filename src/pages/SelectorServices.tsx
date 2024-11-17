@@ -109,6 +109,7 @@ export const SelectorServices = () => {
       </div>
 
       <GenerateTrackerModal />
+        
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => navigate('/eliminar-plantillas')}
