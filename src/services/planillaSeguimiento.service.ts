@@ -5,11 +5,11 @@ export const generateWeeklyTracking = async (idProject: number) => {
   return response
 }
 
-export const getWeeklyTrackers = async (idObjective: string) => {
-  const response = await axiosInstance.get(`/objetivos/${idObjective}/planillas-seguimiento`)
+export const getWeeklyTrackers = async (idProject: string) => {
+  const response = await axiosInstance.get(`/planificaciones/${idProject}/objetivos-planillas-seguimiento`)
   return response
 }
 
-export const getObjectivesFromProject = async (idProyect: number) => {
+export const getObjectivesFromProject = async (idProyect: number | string) => {
   return await axiosInstance.get(`/planificaciones/${idProyect}/objetivos`)
 }

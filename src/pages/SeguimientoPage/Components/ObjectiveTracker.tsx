@@ -1,33 +1,23 @@
 import React, { useState } from 'react'
 import { formatDateToDMY } from '../../../utils/formatDate'
-import { getWeeklyTrackers } from '../../../services/planillaSeguimiento.service'
 import { Objective } from '../../ObjectivePage/Models/objective'
 
-interface rowTracker {
+export interface rowTracker {
   identificador: number
   fecha: string
-  observacion: []
   identificadorObjet: number
 }
 interface ObjectiveTrackerProps {
   objective: Objective
   index: number
+  opened: boolean
 }
 
-const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective, index }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [rowsTracker, setRowsTracker] = useState<Array<rowTracker>>()
+const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective, index, opened }) => {
+  const [isOpen, setIsOpen] = useState(opened)
 
   const toggleAccordion = async () => {
     setIsOpen(!isOpen)
-    if (!isOpen) {
-      try {
-        const response = await getWeeklyTrackers(objective.identificador + '')
-        setRowsTracker(response.data)
-      } catch (error) {
-        console.log('error in fetch weekly trackers', error)
-      }
-    }
   }
 
   return (
@@ -60,7 +50,7 @@ const ObjectiveTracker: React.FC<ObjectiveTrackerProps> = ({ objective, index })
       </div>
       {isOpen && (
         <div className="py-4 px-20 text-gray-600">
-          {rowsTracker?.map((row, index) => (
+          {objective.planilla_seguimiento?.map((row, index) => (
             <div key={index} className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex">
               <div className="text-black text-lg font-semibold">Planilla # {index + 1}</div>
               <div className="text-black text-base font-normal">

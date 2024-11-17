@@ -30,15 +30,15 @@ const GenerateTrackerModal = () => {
     }
     if (hasTrackers) {
       navigate(`/planillas-seguimiento/${selectedProject.identificador}`, {
-        state: { project: `${selectedProject.nombre}`, generated: true },
+        state: { project: selectedProject, generated: false },
       })
       return
     } else {
       try {
-        // const response = await generateWeeklyTracking(selectedProject.identificador)
-        // console.log(response)
+        const response = await generateWeeklyTracking(selectedProject.identificador)
+        console.log(response.data)
         navigate(`/planillas-seguimiento/${selectedProject.identificador}`, {
-          state: { project: `${selectedProject.nombre}`, generated: false },
+          state: { project: response.data, generated: true },
         })
       } catch (error) {
         console.error('Error generating tracking sheet:', error)
@@ -118,7 +118,7 @@ const GenerateTrackerModal = () => {
               <button onClick={handleClose} className="button-secondary_outlined mr-2">
                 Cancelar
               </button>
-              <button onClick={handleGenerate} className="button-primary">
+              <button onClick={handleGenerate} className={hasTrackers ? 'button-primary_purple' : 'button-primary'}>
                 {hasTrackers ? 'Ver planillas' : 'Siguiente'}
               </button>
             </div>
