@@ -34,3 +34,11 @@
 .button-secondary_outlined:hover {
   background-color: #ebecf6;
 }
+
+.button-primary_purple {
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--Port-Gore-800, #462fa4);
+  color: #fff;
+  box-shadow: 2px 2px 3px 0px rgba(0, 0, 0, 0.3);
+}

@@ -19,7 +19,7 @@ const ObjectiveAccordion: React.FC<ObjectiveAccordionProps> = ({ objective, inde
           <div className="w-auto border-r-2 pr-6 border-[#c6caff]">
             <span className="text-center text-[#1c1c1c] text-lg font-semibold">Objetivo {indexObj}</span>
           </div>
-          <div className="w-8/12 text-start">
+          <div className="w-7/12 text-start">
             <p>{objective.objective}</p>
           </div>
           <div className="w-auto pl-3 pr-2 flex justify-items-end border-l-2 border-[#c6caff]">

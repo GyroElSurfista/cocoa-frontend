@@ -1,67 +1,49 @@
 import { Autocomplete, TextField } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getPlannings } from '../../../services/objective.service'
-import { generateWeeklyTracking, getObjectivesFromProject } from '../../../services/planillaSeguimiento.service'
+import { generateWeeklyTracking } from '../../../services/planillaSeguimiento.service'
 import { Planificacion } from '../../../interfaces/project.interface'
 import dayjs from 'dayjs'
+import { useNavigate } from 'react-router-dom'
 
-interface Objective {
-  identificador: number
-  nombre: string
-  fechaInici: string
-  fechaFin: string
-  valueP: string
-  planillasGener: boolean
-  nombrePlani: string
-}
-
-interface GenerateTrackerModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onGenerate: () => void
-}
-
-const GenerateTrackerModal: React.FC<GenerateTrackerModalProps> = ({ isOpen, onClose, onGenerate }) => {
+const GenerateTrackerModal = () => {
+  const [isOpen, setIsOpen] = useState(false)
   const [projects, setProjects] = useState<Array<Planificacion>>([])
-  const [objectives, setObjectives] = useState<Array<Objective>>([])
   const [selectedProject, setSelectedProject] = useState<Planificacion | null>(null)
-  const [selectedObjective, setSelectedObjective] = useState<Objective | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [step, setStep] = useState(1)
+  const [hasTrackers, setHasTrackers] = useState(false)
 
-  const handleCancel = () => {
+  const navigate = useNavigate()
+
+  const handleOpen = () => setIsOpen(true)
+  const handleClose = () => {
     setSelectedProject(null)
-    setSelectedObjective(null)
+    setHasTrackers(false)
     setError(null)
-    setStep(1)
-    onClose()
-  }
-
-  const handleNextStep = () => {
-    if (!selectedProject) {
-      setError('Por favor, selecciona un proyecto.')
-      return
-    }
-    setError(null)
-    setStep(2)
-    fetchObjectives()
+    setIsOpen(false)
   }
 
   const handleGenerate = async () => {
-    if (!selectedObjective) {
-      setError('Por favor, selecciona un objetivo.')
+    if (!selectedProject) {
+      setError('Debe seleccionar un proyecto para continuar.')
       return
     }
-
-    try {
-      const response = await generateWeeklyTracking(selectedObjective.identificador)
-      console.log(response)
-      onGenerate()
-      handleCancel()
-      fetchObjectives()
-    } catch (error) {
-      console.error('Error generating tracking sheet:', error)
-      setError('Ocurrió un error al generar la planilla de seguimiento. Inténtalo de nuevo.')
+    if (hasTrackers) {
+      navigate(`/planillas-seguimiento/${selectedProject.identificador}`, {
+        state: { project: selectedProject, generated: false },
+      })
+      return
+    } else {
+      try {
+        const response = await generateWeeklyTracking(selectedProject.identificador)
+        console.log(response.data)
+        navigate(`/planillas-seguimiento/${selectedProject.identificador}`, {
+          state: { project: response.data, generated: true },
+        })
+      } catch (error) {
+        console.error('Error generating tracking sheet:', error)
+        setError('Ocurrió un error al generar la planilla de seguimiento. Inténtalo de nuevo.')
+      }
     }
   }
 
@@ -79,54 +61,42 @@ const GenerateTrackerModal: React.FC<GenerateTrackerModalProps> = ({ isOpen, onC
         return currentDate.isAfter(startDate) && currentDate.isBefore(endDate)
       })
       setProjects(filteredProjects)
+      console.log(filteredProjects)
     } catch (error) {
       console.error('Error fetching projects', error)
     }
+    return
   }
 
-  const fetchObjectives = async () => {
-    try {
-      if (selectedProject) {
-        const response = await getObjectivesFromProject(selectedProject.identificador)
+  const handleProjectChange = (project: Planificacion | null) => {
+    setSelectedProject(project)
+    setError(null) // Clear error when a project is selected
 
-        const currentDate = dayjs()
-
-        // Filter objectives that have not generated tracking sheets and are still ongoing
-        const filteredObjectives = response.data.filter((obj: Objective) => {
-          const endDate = dayjs(obj.fechaFin)
-          // Only include objectives that have not generated tracking sheets and are still active
-          return !obj.planillasGener && currentDate.isBefore(endDate)
-        })
-        console.log(filteredObjectives)
-        setObjectives(filteredObjectives)
-      }
-    } catch (error) {
-      console.error('Error fetching objectives:', error)
-      setError('Ocurrió un error al cargar los objetivos.')
+    if (project?.planillasSeguiGener) {
+      setHasTrackers(true)
+    } else {
+      setHasTrackers(false)
     }
   }
 
   useEffect(() => {
-    if (selectedProject) {
-      fetchObjectives()
-    }
-  }, [selectedProject])
-
-  useEffect(() => {
-    fetchProjects()
-  }, [])
-
-  if (!isOpen) return null
+    if (isOpen) fetchProjects()
+  }, [isOpen])
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white w-full max-w-lg p-6 rounded-[20px] shadow-lg">
-        <div className="flex justify-center items-center py-3">
-          <h5 className="text-xl font-semibold">Generar Planillas de Seguimiento</h5>
-        </div>
-        <hr className="border-[1.5px] mb-4" />
-        {step === 1 && (
-          <>
+    <>
+      {/* Botón para abrir el modal */}
+      <div className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer" onClick={handleOpen}>
+        <p>Servicio de generación de planillas de seguimiento semanal</p>
+      </div>
+
+      {isOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+          <div className="bg-white w-full max-w-lg p-6 rounded-[20px] shadow-lg">
+            <div className="flex justify-center items-center py-3">
+              <h5 className="text-xl font-semibold">Generar Planillas de Seguimiento</h5>
+            </div>
+            <hr className="border-[1.5px] mb-4" />
             <p className="pb-3">Selecciona el proyecto para generar planillas de seguimiento a los objetivos correspondientes.</p>
             <div className="pb-2 font-medium">
               Proyecto <span className="text-red-500">*</span>
@@ -135,53 +105,27 @@ const GenerateTrackerModal: React.FC<GenerateTrackerModalProps> = ({ isOpen, onC
               options={projects}
               getOptionLabel={(option) => option.nombre}
               value={selectedProject}
-              onChange={(_, newValue) => {
-                setSelectedProject(newValue)
-                setError(null)
-              }}
+              onChange={(_, newValue) => handleProjectChange(newValue)}
               renderInput={(params) => <TextField {...params} label="Selecciona un proyecto" variant="outlined" />}
             />
             {error && <p className="text-red-500 text-sm pt-2">{error}</p>}
+            {hasTrackers && (
+              <p className="text-yellow-600 text-sm pt-2">
+                El proyecto seleccionado ya cuenta con planillas generadas. ¿Deseas ver las planillas?
+              </p>
+            )}
             <div className="flex justify-end pt-4">
-              <button onClick={handleCancel} className="button-secondary_outlined mr-2">
+              <button onClick={handleClose} className="button-secondary_outlined mr-2">
                 Cancelar
               </button>
-              <button onClick={handleNextStep} className="button-primary">
-                Siguiente
+              <button onClick={handleGenerate} className={hasTrackers ? 'button-primary_purple' : 'button-primary'}>
+                {hasTrackers ? 'Ver planillas' : 'Siguiente'}
               </button>
             </div>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <p className="pb-3">Selecciona el objetivo para el cual deseas generar las planillas de seguimiento.</p>
-            <div className="pb-2 font-medium">
-              Objetivo <span className="text-red-500">*</span>
-            </div>
-            <Autocomplete
-              options={objectives}
-              getOptionLabel={(option) => `${option.nombre}`}
-              value={selectedObjective}
-              onChange={(_, newValue) => {
-                setSelectedObjective(newValue)
-                setError(null)
-              }}
-              renderInput={(params) => <TextField {...params} label="Selecciona un objetivo" variant="outlined" />}
-            />
-            {error && <p className="text-red-500 text-sm pt-2">{error}</p>}
-            <div className="flex justify-end pt-4">
-              <button onClick={handleCancel} className="button-secondary_outlined mr-2">
-                Cancelar
-              </button>
-              <button onClick={handleGenerate} className="button-primary">
-                Generar
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
