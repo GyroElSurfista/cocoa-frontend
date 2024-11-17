@@ -15,6 +15,7 @@ export const SelectorServices = () => {
   const [planiSeguiId, setplaniSeguiId] = useState<number | null>(null)
   const [planillaDate, setPlanillaDate] = useState<string | null>(null)
   const [objectiveName, setObjectiveName] = useState<string | null>(null)
+  const [fechaPlanilla, setFechaPlanilla] = useState<string[] | []>([])
   const [observartionPage, setObservationPage] = useState(false)
   const [teamPage, setTeamPage] = useState(false)
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
@@ -45,14 +46,14 @@ export const SelectorServices = () => {
     navigate('/objetivos-entregables', { state: { identificadorPlani, objetivoIds, nombrePlani } })
   }
 
-  const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number, objectiveName: string) => {
-    console.log('Received planiId:', planiId) // Verificar el identificador de planilla recibido
+  const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number, objectiveName: string, fechas: string[]) => {
     setObservations(obs)
     setObjectiveId(objectiveId)
     setPlanillaDate(date)
     setplaniSeguiId(planiId)
-    setObjectiveName(objectiveName) // Almacenar el ID de planilla de seguimiento
+    setObjectiveName(objectiveName)
     setTeamPage(true)
+    setFechaPlanilla(fechas)
   }
 
   if (observations && objectiveId && planillaDate && observartionPage) {
@@ -81,6 +82,7 @@ export const SelectorServices = () => {
         planillaDate={planillaDate}
         planillaSeguiId={planiSeguiId} // Ya estamos seguros de que no es `null`
         objectiveName={objectiveName}
+        fechas={fechaPlanilla}
         onBack={() => {
           // Si volvemos desde la página de observaciones, restablecemos todo
           setObservations(null)
@@ -88,6 +90,7 @@ export const SelectorServices = () => {
           setplaniSeguiId(null)
           setPlanillaDate(null)
           setTeamPage(false)
+          setFechaPlanilla([])
         }}
       />
     )
