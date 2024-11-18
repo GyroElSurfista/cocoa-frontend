@@ -6,6 +6,8 @@ import SelectorPlanillaEquipoModal from './PlanillasPage/Equipo/Components/Selec
 import { useNavigate } from 'react-router-dom'
 import ProjectSelectorModalEvaluacion from './PlanillasPage/Evaluacion/Components/ProjectSelectorModalEvaluacion'
 import SelectorPlaniEvaObj from './LlenarPlaniEvaObjPage/Components/SelectorPlaniEvaObj'
+import SelectorProjectEntregable from './EntregablePage/Components/SelectorProjectEntregable'
+import GenerateTrackerModal from './SeguimientoPage/GenerateTrackerModal/GenerateTrackerModal'
 
 export const SelectorServices = () => {
   const [observations, setObservations] = useState<any[] | null>(null)
@@ -13,12 +15,17 @@ export const SelectorServices = () => {
   const [planiSeguiId, setplaniSeguiId] = useState<number | null>(null)
   const [planillaDate, setPlanillaDate] = useState<string | null>(null)
   const [objectiveName, setObjectiveName] = useState<string | null>(null)
+  const [fechaPlanilla, setFechaPlanilla] = useState<string[] | []>([])
   const [observartionPage, setObservationPage] = useState(false)
   const [teamPage, setTeamPage] = useState(false)
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
+  const [isProjectModalEntregableOpen, setIsProjectModalEntregableOpen] = useState(false)
 
   const openProjectModal = () => setIsProjectModalOpen(true)
   const closeProjectModal = () => setIsProjectModalOpen(false)
+
+  const openProjectModalEntregable = () => setIsProjectModalEntregableOpen(true)
+  const closeProjectModalEntregable = () => setIsProjectModalEntregableOpen(false)
 
   const navigate = useNavigate()
 
@@ -34,14 +41,19 @@ export const SelectorServices = () => {
   //   setObservationPage(true)
   // }
 
-  const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number, objectiveName: string) => {
-    console.log('Received planiId:', planiId) // Verificar el identificador de planilla recibido
+  const handleProjectSelect = (identificadorPlani: number, objetivoIds: number[], nombrePlani: string) => {
+    closeProjectModalEntregable()
+    navigate('/objetivos-entregables', { state: { identificadorPlani, objetivoIds, nombrePlani } })
+  }
+
+  const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number, objectiveName: string, fechas: string[]) => {
     setObservations(obs)
     setObjectiveId(objectiveId)
     setPlanillaDate(date)
     setplaniSeguiId(planiId)
-    setObjectiveName(objectiveName) // Almacenar el ID de planilla de seguimiento
+    setObjectiveName(objectiveName)
     setTeamPage(true)
+    setFechaPlanilla(fechas)
   }
 
   if (observations && objectiveId && planillaDate && observartionPage) {
@@ -70,6 +82,7 @@ export const SelectorServices = () => {
         planillaDate={planillaDate}
         planillaSeguiId={planiSeguiId} // Ya estamos seguros de que no es `null`
         objectiveName={objectiveName}
+        fechas={fechaPlanilla}
         onBack={() => {
           // Si volvemos desde la página de observaciones, restablecemos todo
           setObservations(null)
@@ -77,6 +90,7 @@ export const SelectorServices = () => {
           setplaniSeguiId(null)
           setPlanillaDate(null)
           setTeamPage(false)
+          setFechaPlanilla([])
         }}
       />
     )
@@ -87,7 +101,6 @@ export const SelectorServices = () => {
       <h1 className="font-bold text-3xl">Usuario</h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
       <h2 className="font-bold text-2xl">Servicios</h2>
-
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => navigate('/objetivos')}
@@ -95,52 +108,47 @@ export const SelectorServices = () => {
         <p>Servicio de registro de objetivos</p>
       </div>
 
-      <div
-        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
-        onClick={() => navigate('/seguimiento')}
-      >
-        <p>Servicio de generacion de planillas de seguimiento semanal</p>
-      </div>
-
+      <GenerateTrackerModal />
+        
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => navigate('/eliminar-plantillas')}
       >
         <p>Servicio de eliminación de plantillas de evaluación de un objetivo</p>
       </div>
-
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => navigate('/crear-plantilla')}
       >
         <p>Servicio de creación de plantillas</p>
       </div>
-
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => navigate('/eliminar-actividad')}
       >
         <p>Servicio de eliminación de actividades</p>
       </div>
-
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => navigate('/crear-actividad')}
       >
         <p>Servicio de creación de actividades</p>
       </div>
-
+      {/* Opción para abrir el modal de selección de proyectos */}
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
-        onClick={() => navigate('/objetivos-entregables')}
+        onClick={openProjectModalEntregable}
       >
         <p>Servicio de entregables para un objetivo</p>
       </div>
-
+      <SelectorProjectEntregable
+        isOpen={isProjectModalEntregableOpen}
+        onClose={closeProjectModalEntregable}
+        onSelect={handleProjectSelect}
+      />
       {/* Renderizamos el modal de observaciones */}
 
       <SelectorPlanillaEquipoModal onRedirect={handleRedirectTeams} />
-
       {/* Servicio para abrir modal de generación */}
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
@@ -148,9 +156,7 @@ export const SelectorServices = () => {
       >
         <p>Servicio de generación de planillas de evaluación de un objetivo</p>
       </div>
-
       <ProjectSelectorModalEvaluacion isOpen={isProjectModalOpen} onClose={closeProjectModal} />
-
       <div className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer" onClick={openModal}>
         <div>Servicio de llenado de planilla de evaluacion de un objetivo</div>
       </div>
