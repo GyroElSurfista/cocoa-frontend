@@ -16,7 +16,7 @@ interface RubricaItemProps {
       }[]
     >
   ) => void
-  changeCriterios: (identificadorCriteEvaluFinal: number) => void
+  changeCriterios: (id: number, newCriterioId: number | null) => void
 }
 
 const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, changeCriterios }: RubricaItemProps): JSX.Element => {
@@ -48,10 +48,12 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, c
                   : rubrica
               )
             )
+
             if (newValue) {
-              changeCriterios(newValue.identificador)
+              changeCriterios(index, newValue.identificador)
               setErrorNoSelectedCriterio(false)
             } else {
+              changeCriterios(index, null)
               setErrorNoSelectedCriterio(true)
             }
           }}
