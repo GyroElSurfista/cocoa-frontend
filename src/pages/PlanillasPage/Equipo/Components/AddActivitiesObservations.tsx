@@ -9,6 +9,7 @@ interface AddActivitiesObservationsProps {
   onObservationChange: (activityIndex: number, observationIndex: number, newValue: string) => void
   onDeleteActivity: () => void
   onDeleteObservation: (activityIndex: number, observationIndex: number) => void
+  onValidationChange: (activityIndex: number, isValid: boolean) => void // Callback for validation state
   isReadOnly: boolean
 }
 
@@ -19,12 +20,15 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
   onAddObservation,
   onObservationChange,
   onDeleteActivity,
+  onValidationChange,
   isReadOnly,
 }) => {
   const [errors, setErrors] = useState<{
     nombre?: string
     observaciones: { [key: number]: string }
   }>({ observaciones: {} })
+
+  const [isValid, setIsValid] = useState(false) // Tracks overall validity of this activity
 
   // Real-time validation for activity name
   const validateActivityName = (name: string) => {
@@ -65,7 +69,7 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
     onObservationChange(activityIndex, observationIndex, newValue)
   }
 
-  // Clear errors when values are valid
+  // Update validity status based on errors and notify the parent
   useEffect(() => {
     const nameError = validateActivityName(activity.nombre)
     const observationErrors = (activity.observaciones || []).reduce(
@@ -81,7 +85,13 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
       nombre: nameError,
       observaciones: observationErrors,
     })
-  }, [activity])
+
+    const hasErrors = nameError || Object.values(observationErrors).some(Boolean)
+    const currentValidity = !hasErrors
+
+    setIsValid(currentValidity)
+    onValidationChange(activityIndex, currentValidity) // Notify parent of the validity status
+  }, [activity, onValidationChange, activityIndex])
 
   return (
     <div className="mb-4">

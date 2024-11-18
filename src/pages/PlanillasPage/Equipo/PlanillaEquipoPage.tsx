@@ -74,7 +74,9 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   const [isReadOnly, setIsReadOnly] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [activities, setActivities] = useState<Activity[]>([])
-  const [modalOpenEntregable, setModalOpenEntregable] = useState(false) // Estado para controlar el modal
+  const [modalOpenEntregable, setModalOpenEntregable] = useState(false)
+  const [validationStates, setValidationStates] = useState<boolean[]>([false])
+  const [errorMessage, setErrorMessage] = useState('') // Message to show when validations fail
 
   const fetchEmpresaYUsuarios = async (empresaId: number) => {
     try {
@@ -288,6 +290,21 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     }
   }
 
+  const handleValidationChange = (index: number, isValid: boolean) => {
+    const updatedStates = [...validationStates]
+    updatedStates[index] = isValid
+    setValidationStates(updatedStates)
+  }
+
+  const handleOpenModal = () => {
+    if (validationStates.every(Boolean)) {
+      setModalOpen(true)
+      setErrorMessage('') // Clear the error message
+    } else {
+      setErrorMessage('Por favor corrige los errores antes de guardar la planilla.')
+    }
+  }
+
   return (
     <div className="mx-28">
       <h1 className="font-bold text-3xl">Llenar planilla de Seguimiento</h1>
@@ -297,13 +314,21 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
           <button onClick={onBack}>{objectiveName}</button> {'>'} Planilla #{planillaDate}
         </h2>
         {!isReadOnly && (
-          <button onClick={() => setModalOpen(true)} className="button-primary">
-            Guardar Planillas
+          <button
+            onClick={handleOpenModal}
+            disabled={!validationStates.every(Boolean)}
+            className={`button-primary ${
+              validationStates.every(Boolean) ? 'bg-green-500 text-white' : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+            }`}
+          >
+            Guardar planilla
           </button>
         )}
       </div>
 
-      {modalOpen && <SavePlanillaEquipoModal onConfirm={handleGuardarPlanilla} onCancel={() => setModalOpen(false)} />}
+      {modalOpen && validationStates.every(Boolean) && (
+        <SavePlanillaEquipoModal onConfirm={handleGuardarPlanilla} onCancel={() => setModalOpen(false)} />
+      )}
 
       <div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
@@ -338,6 +363,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
             key={activity.identificador}
             activity={activity}
             activityIndex={activityIndex}
+            onValidationChange={handleValidationChange}
             onActivityChange={handleActivityChange}
             onAddObservation={() => handleAddObservationToActivity(activityIndex)}
             onObservationChange={handleObservationChange}
