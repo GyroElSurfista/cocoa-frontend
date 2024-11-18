@@ -1,8 +1,9 @@
-import { CircularProgress, TextField } from '@mui/material'
+import { Alert, CircularProgress, Slider, Snackbar, TextField } from '@mui/material'
 import {
   CrearPlantillaEvaluacionFinal,
   CriterioEvaluacionFinal,
   ParametroEvaluacionFinal,
+  Plantilla,
   Rubrica,
 } from '../../interfaces/plantilla.interface'
 import { useEffect, useState } from 'react'
@@ -12,6 +13,8 @@ import RubricaItem from './Components/RubricaItem'
 import { FieldErrors, Resolver, useForm } from 'react-hook-form'
 import { createPlantillaEvaluacionFinal } from '../../services/plantilla.service'
 import { AxiosError } from 'axios'
+import { AccountCircle } from '@mui/icons-material'
+import { formatDateToDMY } from '../../utils/formatDate'
 
 const resolver: Resolver<CrearPlantillaEvaluacionFinal> = async (values) => {
   const errors: FieldErrors<CrearPlantillaEvaluacionFinal> = {}
@@ -50,6 +53,7 @@ const CrearPlantillaPage = (): JSX.Element => {
     },
   ])
   const [rubricaCounter, setRubricaCounter] = useState<number>(1) // Contador de rubricas
+  const [successfulCreationPlantilla, setSuccessfulCreationPlantilla] = useState<Plantilla | null>(null)
 
   const {
     register,
@@ -59,7 +63,7 @@ const CrearPlantillaPage = (): JSX.Element => {
   } = useForm<CrearPlantillaEvaluacionFinal>({ resolver, mode: 'onChange' })
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await createPlantillaEvaluacionFinal({
+      const successfulCreation = await createPlantillaEvaluacionFinal({
         ...plantilla,
         nombre: data.nombre.trim(),
         rubricas: rubricas.map((rubrica) => {
@@ -72,6 +76,7 @@ const CrearPlantillaPage = (): JSX.Element => {
           }
         }),
       })
+      setSuccessfulCreationPlantilla(successfulCreation.data)
     } catch (error) {
       const axiosError = error as AxiosError<unknown>
 
@@ -145,7 +150,7 @@ const CrearPlantillaPage = (): JSX.Element => {
     setRubricas((prevRubricas) => prevRubricas.filter((rubrica) => rubrica.id !== id))
   }
 
-  return (
+  return !successfulCreationPlantilla ? (
     <form onSubmit={onSubmit}>
       <h1 className="text-4xl font-semibold text-black">Crear plantilla de Evaluación Final</h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
@@ -226,6 +231,111 @@ const CrearPlantillaPage = (): JSX.Element => {
         </button>
       </div>
     </form>
+  ) : (
+    <div className="h-full relative">
+      {/* Encabezado */}
+      <div className="relative flex items-center w-full px-4">
+        <h1 className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-semibold text-[#1c1c1c]">
+          {successfulCreationPlantilla.nombre}
+        </h1>
+
+        <div className="ml-auto px-4 flex items-center gap-2">
+          <span className="font-semibold text-xl">Puntaje Total:</span>
+          <span className="text-[#f60c2e] text-xl font-semibold">{successfulCreationPlantilla.puntaje}</span>
+        </div>
+      </div>
+
+      <hr className="border-[1.5px] border-[#c6caff] mt-2.5 mx-6" />
+
+      {/* Fecha y creador */}
+      <div className="px-6 py-2 flex justify-between items-center text-xl">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">Fecha de Creación:</span>
+          <span className="text-[#462fa4]">{formatDateToDMY(successfulCreationPlantilla.fechaCreac)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <AccountCircle />
+          <span className="font-semibold">Creado por:</span>
+          <span>{successfulCreationPlantilla.usuario_cread.name}</span>
+        </div>
+      </div>
+
+      <hr className="border-[1.5px] border-[#c6caff] mx-6" />
+
+      <div className="mt-4 px-6">
+        <header className="flex text-lg sm:text-xl md:text-2xl justify-between items-center gap-2.5 font-semibold text-gray-900">
+          <h2 className="">Criterios de Evaluación</h2>
+          <div className="flex gap-12">
+            <span>Escala</span>
+            <span>Puntaje</span>
+          </div>
+        </header>
+      </div>
+
+      {/* Lista de rúbricas */}
+      <div className="px-6 py-4 space-y-4 pb-[72px]">
+        {' '}
+        {/* Espacio fijo para el Snackbar */}
+        {successfulCreationPlantilla.rubricas.map((rubrica) => (
+          <article
+            key={rubrica.criterio_evalu_final.identificador}
+            className="w-full p-5 rounded-lg border border-gray-300 shadow-sm bg-white flex flex-wrap md:flex-nowrap items-center"
+          >
+            <div className="w-full md:w-2/5 mb-4 md:mb-0 md:mr-4">
+              <h3 className="text-lg md:text-xl font-semibold text-gray-800">{rubrica.criterio_evalu_final.nombre}</h3>
+              <p className="text-sm text-gray-500">{rubrica.criterio_evalu_final.descripcion}</p>
+            </div>
+
+            <div className="w-full md:w-3/5 flex items-center justify-between gap-6">
+              <div className="flex gap-7 w-full items-center justify-end">
+                {rubrica.param_evalu.tipo === 'cualitativo' ? (
+                  rubrica.param_evalu.campos.map((parametro) => (
+                    <div key={parametro.identificador} className="flex flex-col items-center space-y-1 text-center">
+                      <input type="radio" disabled name={`param-${rubrica.criterio_evalu_final.identificador}`} className="w-5 h-5" />
+                      <label className="text-xs text-gray-700">{parametro.nombre}</label>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex-grow">
+                    <Slider
+                      defaultValue={rubrica.param_evalu.valorMinim}
+                      marks
+                      min={rubrica.param_evalu.valorMinim}
+                      max={rubrica.param_evalu.valorMaxim}
+                      valueLabelDisplay="auto"
+                      sx={{
+                        color: '#b0b0b0',
+                        '& .MuiSlider-thumb': {
+                          backgroundColor: '#9e9e9e',
+                        },
+                        '& .MuiSlider-rail': {
+                          backgroundColor: '#e0e0e0',
+                        },
+                        '& .MuiSlider-track': {
+                          backgroundColor: '#b0b0b0',
+                        },
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-center w-14 h-14 bg-[#e0e3ff] rounded-full text-[#6344e7] text-lg font-semibold">
+                {rubrica.valorMaxim}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {/* Snackbar */}
+      <Snackbar
+        autoHideDuration={5000}
+        open={Boolean(successfulCreationPlantilla)}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        <Alert severity="success">Plantilla de Evaluación creada exitosamente</Alert>
+      </Snackbar>
+    </div>
   )
 }
 

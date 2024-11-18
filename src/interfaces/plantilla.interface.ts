@@ -58,7 +58,7 @@ export interface Plantilla {
   rubricas: {
     // Es parte de crear plantilla
     criterio_evalu_final: CriterioEvaluacionFinal
-    param_evalu: ParametroCualitativo | ParametroCualitativo
+    param_evalu: ParametroCualitativo | ParametroCuantitativo
     valorMaxim: number
   }[]
 
