@@ -108,13 +108,20 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       case 1:
         return (
           <>
-            <p className="pb-2">
-              Proyecto seleccionado:{' '}
-              <span className="">
-                {selectedProject?.nombre}. Inicia el {formatDateToDMY(selectedProject?.fechaInici)} y finaliza el{' '}
-                {formatDateToDMY(selectedProject?.fechaFin)}.
+            <p className="font-semibold">
+              Proyecto seleccionado: <span className="font-normal">{selectedProject?.nombre}</span>
+            </p>
+            <p className="font-semibold">
+              Fecha de inicio y fin:{' '}
+              <span className="font-normal">
+                {formatDateToDMY(selectedProject?.fechaInici)} - {formatDateToDMY(selectedProject?.fechaFin)}
               </span>
-              Dia de revision: {selectedProject?.diaRevis}. Siguiente fecha disponible: {selectedProject?.siguienteFechaIniciDispo}
+            </p>
+            <p className="pb-2 font-semibold">
+              Dia de revision: <span className="font-normal">{selectedProject?.diaRevis}</span>
+            </p>
+            <p className="pb-2 font-semibold">
+              Siguiente fecha disponible: <span className="font-normal">{selectedProject?.siguienteFechaIniciDispo}</span>
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="">
