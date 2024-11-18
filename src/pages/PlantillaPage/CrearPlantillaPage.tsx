@@ -87,9 +87,21 @@ const CrearPlantillaPage = (): JSX.Element => {
     }
   })
 
-  const handleChangeCriterios = (identificadorCriteEvaluFinal: number) => {
-    setCriterios(originalCriterios.filter((criterio) => criterio.identificador !== identificadorCriteEvaluFinal))
+  const handleChangeCriterios = (id: number, newCriterioId: number | null) => {
+    setRubricas((prevRubricas) =>
+      prevRubricas.map((rubrica) =>
+        rubrica.id === id ? { ...rubrica, data: { ...rubrica.data, identificadorCriteEvaluFinal: newCriterioId } } : rubrica
+      )
+    )
   }
+
+  useEffect(() => {
+    setCriterios(() =>
+      originalCriterios.filter(
+        (criterio) => !rubricas.some((rubrica) => rubrica.data.identificadorCriteEvaluFinal === criterio.identificador)
+      )
+    )
+  }, [rubricas, originalCriterios])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -129,9 +141,8 @@ const CrearPlantillaPage = (): JSX.Element => {
     setRubricaCounter((prevCounter) => prevCounter + 1)
   }
 
-  const quitRubrica = (id: number, selectedCriterio: CriterioEvaluacionFinal | null) => {
+  const quitRubrica = (id: number) => {
     setRubricas((prevRubricas) => prevRubricas.filter((rubrica) => rubrica.id !== id))
-    if (selectedCriterio) setCriterios((prevCriterios) => [...prevCriterios, selectedCriterio])
   }
 
   return (
