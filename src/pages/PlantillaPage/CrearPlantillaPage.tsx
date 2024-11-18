@@ -42,6 +42,7 @@ const resolver: Resolver<CrearPlantillaEvaluacionFinal> = async (values) => {
 }
 
 const CrearPlantillaPage = (): JSX.Element => {
+  const [isLoading, setIsLoading] = useState(false)
   const [originalCriterios, setOriginalCriterios] = useState<CriterioEvaluacionFinal[]>([])
   const [criterios, setCriterios] = useState<CriterioEvaluacionFinal[]>([])
   const [parametros, setParametros] = useState<ParametroEvaluacionFinal[]>([])
@@ -62,6 +63,7 @@ const CrearPlantillaPage = (): JSX.Element => {
     formState: { errors, isValid },
   } = useForm<CrearPlantillaEvaluacionFinal>({ resolver, mode: 'onChange' })
   const onSubmit = handleSubmit(async (data) => {
+    setIsLoading(true)
     try {
       const successfulCreation = await createPlantillaEvaluacionFinal({
         ...plantilla,
@@ -89,6 +91,8 @@ const CrearPlantillaPage = (): JSX.Element => {
           })
         }
       }
+    } finally {
+      setIsLoading(false) // Detiene el estado de carga
     }
   })
 
@@ -165,7 +169,7 @@ const CrearPlantillaPage = (): JSX.Element => {
           }
           className="button-primary mt-2.5 disabled:bg-zinc-200 disabled:text-black"
         >
-          Crear plantilla
+          {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Crear plantilla'}
         </button>
       </div>
 
