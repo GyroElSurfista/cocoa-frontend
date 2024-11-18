@@ -11,6 +11,7 @@ import { getAllParametrosEvaluacion } from '../../services/parametro.service'
 import RubricaItem from './Components/RubricaItem'
 import { FieldErrors, Resolver, useForm } from 'react-hook-form'
 import { createPlantillaEvaluacionFinal } from '../../services/plantilla.service'
+import { AxiosError } from 'axios'
 
 const resolver: Resolver<CrearPlantillaEvaluacionFinal> = async (values) => {
   const errors: FieldErrors<CrearPlantillaEvaluacionFinal> = {}
@@ -53,6 +54,7 @@ const CrearPlantillaPage = (): JSX.Element => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isValid },
   } = useForm<CrearPlantillaEvaluacionFinal>({ resolver, mode: 'onChange' })
   const onSubmit = handleSubmit(async (data) => {
@@ -71,7 +73,17 @@ const CrearPlantillaPage = (): JSX.Element => {
         }),
       })
     } catch (error) {
-      console.error(error)
+      const axiosError = error as AxiosError<unknown>
+
+      if (axiosError.response?.data?.errors) {
+        const backendErrors = axiosError.response.data.errors
+        if (backendErrors?.nombre) {
+          setError('nombre', {
+            type: 'backend',
+            message: backendErrors.nombre[0],
+          })
+        }
+      }
     }
   })
 
@@ -132,7 +144,8 @@ const CrearPlantillaPage = (): JSX.Element => {
           disabled={
             !isValid ||
             Boolean(rubricas.find((rubrica) => rubrica.data.identificadorCriteEvaluFinal === null)) ||
-            Boolean(rubricas.length === 0)
+            Boolean(rubricas.length === 0) ||
+            plantilla.puntaje === 0
           }
           className="button-primary mt-2.5 disabled:bg-zinc-200 disabled:text-black"
         >
@@ -155,9 +168,13 @@ const CrearPlantillaPage = (): JSX.Element => {
           ></TextField>
         </div>
 
-        <div className="text-xl font-semibold">
-          <span className="text-black">Puntaje total: </span>
-          <span className="text-[#f60c2e] mr-2.5">{plantilla.puntaje}</span>
+        <div className="text-xl font-semibold space-y-1">
+          <div className="flex justify-end items-center">
+            <span className="text-black mr-1.5">Puntaje total:</span>
+            <span className="text-[#f60c2e] mr-2.5">{plantilla.puntaje}</span>
+          </div>
+
+          {plantilla.puntaje === 0 && <p className="text-xs text-[#f60c2e] mr-2.5">El puntaje total debe ser al menos 1</p>}
         </div>
       </section>
 
