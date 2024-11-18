@@ -56,24 +56,23 @@ const CrearPlantillaPage = (): JSX.Element => {
     formState: { errors, isValid },
   } = useForm<CrearPlantillaEvaluacionFinal>({ resolver, mode: 'onChange' })
   const onSubmit = handleSubmit(async (data) => {
-    console.log(
+    try {
       await createPlantillaEvaluacionFinal({
         ...plantilla,
         nombre: data.nombre.trim(),
         rubricas: rubricas.map((rubrica) => {
           const parametro = parametros.find((parametro) => rubrica.data.identificadorParamEvalu === parametro.identificador)
 
-          // Verificar si el parámetro es cualitativo
-          if (parametro && parametro.tipo === 'cualitativo') {
-            return rubrica.data
-          } else {
-            // Retornar `rubrica.data` sin el valor máximo
+          if (parametro && parametro.tipo === 'cualitativo') return rubrica.data
+          else {
             const { valorMaxim, ...rubricaSinValorMaxim } = rubrica.data
             return rubricaSinValorMaxim
           }
         }),
       })
-    )
+    } catch (error) {
+      console.error(error)
+    }
   })
 
   const handleChangeCriterios = (identificadorCriteEvaluFinal: number) => {

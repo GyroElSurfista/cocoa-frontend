@@ -34,7 +34,11 @@ export interface CrearPlantillaEvaluacionFinal {
   nombre: string
   descripcion: string
   puntaje: number // Es la suma de puntaje de todas las rúbricas
-  rubricas: Rubrica[]
+  rubricas: {
+    identificadorCriteEvaluFinal: number | null
+    identificadorParamEvalu: number
+    valorMaxim?: number
+  }[]
 }
 
 export interface Rubrica {
