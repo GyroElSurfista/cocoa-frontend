@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import ProjectSelectorModalEvaluacion from './PlanillasPage/Evaluacion/Components/ProjectSelectorModalEvaluacion'
 import SelectorPlaniEvaObj from './LlenarPlaniEvaObjPage/Components/SelectorPlaniEvaObj'
 import SelectorProjectEntregable from './EntregablePage/Components/SelectorProjectEntregable'
+import GenerateTrackerModal from './SeguimientoPage/GenerateTrackerModal/GenerateTrackerModal'
 
 export const SelectorServices = () => {
   const [observations, setObservations] = useState<any[] | null>(null)
@@ -106,12 +107,9 @@ export const SelectorServices = () => {
       >
         <p>Servicio de registro de objetivos</p>
       </div>
-      <div
-        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
-        onClick={() => navigate('/seguimiento')}
-      >
-        <p>Servicio de generacion de planillas de seguimiento semanal</p>
-      </div>
+
+      <GenerateTrackerModal />
+        
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => navigate('/eliminar-plantillas')}
