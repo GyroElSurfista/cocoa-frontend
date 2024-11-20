@@ -2,9 +2,11 @@ export interface NewEntregableModalProps {
   isOpen: boolean
   onClose: () => void
   onCreate: (entregable: Entregable) => void
+  onShowSnackbar: (message: string) => void // Función para mostrar Snackbar
   initialData?: Entregable
   entregable: Entregable[]
   objectiveId: number
+  objectiveName: string
   planillaSeguiId?: number
   fechas: string[]
 }
@@ -30,6 +32,7 @@ export interface Objective {
   identificador: number
   nombre: string
   nombrePlani: string
+  identificadorPlani: number
 }
 
 export interface Observacion {
@@ -60,6 +63,7 @@ export interface SelectorObservationModalProps {
     planillaDate: string,
     planiId: number,
     objectiveName: string,
+    identificadorPlani: number,
     fechas: string[]
   ) => void
 }

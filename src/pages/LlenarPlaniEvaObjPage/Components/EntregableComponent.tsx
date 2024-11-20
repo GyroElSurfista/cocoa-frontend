@@ -5,10 +5,11 @@ interface EntregableComponentProps {
   entregable: Entregable
   onToggleCriteria: (entregableId: number, criterioId: number) => void
   isEvaluationSaved: boolean
+  index: number
 }
 
-const EntregableComponent = ({ entregable, onToggleCriteria, isEvaluationSaved }: EntregableComponentProps) => {
-  const [isExpanded, setIsExpanded] = useState(false)
+const EntregableComponent = ({ entregable, onToggleCriteria, isEvaluationSaved, index }: EntregableComponentProps) => {
+  const [isExpanded, setIsExpanded] = useState(true)
   const [criteriaCheckedState, setCriteriaCheckedState] = useState<{ [key: number]: boolean }>({})
 
   useEffect(() => {
@@ -38,12 +39,28 @@ const EntregableComponent = ({ entregable, onToggleCriteria, isEvaluationSaved }
 
   return (
     <div className="w-full mb-4">
-      <div className="flex flex-row bg-[#eef0ff] rounded-[10px] border-b border-[#c6caff] cursor-pointer" onClick={toggleAccordion}>
+      <div
+        className="flex flex-row justify-between bg-[#eef0ff] rounded-[10px] border-b border-[#c6caff] cursor-pointer"
+        onClick={toggleAccordion}
+      >
         <div className="w-auto py-4 px-3 border-r border-[#c6caff]">
-          <p className="font-medium">Entregable {entregable.identificador}</p>
+          <p className="font-medium">Entregable {index + 1}</p>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center grow shrink">
           <p className="px-8">{entregable.nombre}</p>
+        </div>
+        <div className="justify-end">
+          <button className="py-4 w-9 font-medium text-gray-800 focus:outline-none">
+            <svg
+              className={`w-6 h-6 transform ${isExpanded ? 'rotate-180' : 'rotate-0'}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
       </div>
       {isExpanded && (

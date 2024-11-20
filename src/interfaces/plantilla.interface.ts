@@ -25,6 +25,7 @@ export interface ParametroCualitativo extends ParametroEvaluacion {
 
 export interface ParametroCuantitativo extends ParametroEvaluacion {
   tipo: 'cuantitativo'
+  valorMaxim: number
   valorMinim: number
   cantidadInter: number
 }
@@ -34,10 +35,16 @@ export interface CrearPlantillaEvaluacionFinal {
   descripcion: string
   puntaje: number // Es la suma de puntaje de todas las rúbricas
   rubricas: {
-    identificadorCriteEvaluFinal: number
+    identificadorCriteEvaluFinal: number | null
     identificadorParamEvalu: number
-    valorMaxim: number // Es el puntaje de cada rúbrica
+    valorMaxim?: number
   }[]
+}
+
+export interface Rubrica {
+  identificadorCriteEvaluFinal: number | null
+  identificadorParamEvalu: number
+  valorMaxim: number // Es el puntaje de cada rúbrica
 }
 
 export interface Plantilla {
@@ -51,7 +58,7 @@ export interface Plantilla {
   rubricas: {
     // Es parte de crear plantilla
     criterio_evalu_final: CriterioEvaluacionFinal
-    param_evalu: ParametroCualitativo | ParametroCualitativo
+    param_evalu: ParametroCualitativo | ParametroCuantitativo
     valorMaxim: number
   }[]
 

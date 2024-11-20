@@ -23,6 +23,7 @@ interface Planning {
   costo: number
   identificadorGrupoEmpre: number
   diaRevis: string
+  siguienteFechaIniciDispo: string
   sumavalorporce: number
 }
 const steps = ['Seleccionar un proyecto', 'Datos del objetivo', 'Valor porcentual del objetivo']
@@ -107,12 +108,20 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       case 1:
         return (
           <>
-            <p className="pb-2">
-              Proyecto seleccionado:{' '}
-              <span className="">
-                {selectedProject?.nombre}. Inicia el {formatDateToDMY(selectedProject?.fechaInici)} y finaliza el{' '}
-                {formatDateToDMY(selectedProject?.fechaFin)}
+            <p className="font-semibold">
+              Proyecto seleccionado: <span className="font-normal">{selectedProject?.nombre}</span>
+            </p>
+            <p className="font-semibold">
+              Fecha de inicio y fin:{' '}
+              <span className="font-normal">
+                {formatDateToDMY(selectedProject?.fechaInici)} - {formatDateToDMY(selectedProject?.fechaFin)}
               </span>
+            </p>
+            <p className="pb-2 font-semibold">
+              Dia de revision: <span className="font-normal">{selectedProject?.diaRevis}</span>
+            </p>
+            <p className="pb-2 font-semibold">
+              Siguiente fecha disponible: <span className="font-normal">{selectedProject?.siguienteFechaIniciDispo}</span>
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="">
@@ -123,6 +132,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 <input
                   type="date"
                   id="iniDate"
+                  min={selectedProject?.siguienteFechaIniciDispo.toString().split('T')[0]}
                   {...register('iniDate', {
                     required: 'La fecha de inicio es obligatoria',
                     onChange: () => clearErrors('iniDate'),
@@ -130,6 +140,15 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                       notPast: (value) => {
                         const today = new Date().toISOString().split('T')[0]
                         return value >= today || 'La fecha de inicio no puede ser anterior a la fecha actual'
+                      },
+                      afterNextAvailableDate: (value) => {
+                        if (selectedProject) {
+                          const siguienteFecha = new Date(selectedProject.siguienteFechaIniciDispo)
+                          return (
+                            value >= siguienteFecha.toISOString().split('T')[0] ||
+                            `La fecha de inicio no puede ser anterior a la siguiente fecha disponible ${siguienteFecha.toLocaleDateString()}`
+                          )
+                        }
                       },
                       beforeEndDate: (value) => {
                         const endDate = watch('finDate')
@@ -171,12 +190,13 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 <input
                   type="date"
                   id="finDate"
+                  min={selectedProject?.siguienteFechaIniciDispo}
                   {...register('finDate', {
                     required: 'La fecha de fin es obligatoria',
                     onChange: () => clearErrors('finDate'),
                     validate: {
                       notPast: (value) => {
-                        const today = new Date().toISOString().split('T')[0] // Formato de fecha 'YYYY-MM-DD'
+                        const today = new Date().toISOString().split('T')[0]
                         return value >= today || 'La fecha de fin no puede ser anterior a la fecha actual'
                       },
                       afterStartDate: (value) => {
@@ -188,16 +208,13 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                         )
                       },
                       withinProjectRangeEndDate: (value) => {
-                        // Verificar si el proyecto está seleccionado
                         if (!selectedProject) {
                           return 'Debe seleccionar un proyecto primero.'
                         }
 
-                        // Extraer las fechas de inicio y fin del proyecto
                         const projectStart = new Date(selectedProject.fechaInici).toISOString().split('T')[0]
                         const projectEnd = new Date(selectedProject.fechaFin).toISOString().split('T')[0]
 
-                        // Validar si la fecha de fin seleccionada está dentro del rango del proyecto
                         if (value < projectStart) {
                           return 'La fecha de fin no puede ser anterior a la fecha de inicio del proyecto seleccionado'
                         }
@@ -205,13 +222,23 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                           return 'La fecha de fin no puede ser posterior a la fecha de fin del proyecto seleccionado'
                         }
 
-                        // Validar que la fecha de fin no sea anterior a la fecha de inicio
-                        const startDate = new Date(selectedProject.fechaInici).toISOString().split('T')[0]
-                        if (value < startDate) {
-                          return 'La fecha de fin no puede ser anterior a la fecha de inicio'
-                        }
+                        return true
+                      },
+                      matchesReviewDay: (value) => {
+                        if (selectedProject && selectedProject.diaRevis) {
+                          // Parse the date string manually to avoid UTC offset issues
+                          const [year, month, day] = value.split('-').map(Number) // assuming "YYYY-MM-DD" format
+                          const selectedDate = new Date(year, month - 1, day) // month is 0-indexed in JavaScript Date
 
-                        return true // Si la validación pasa
+                          // Get the day of the week in Spanish
+                          const selectedDayOfWeek = selectedDate.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase()
+                          console.log(selectedDayOfWeek)
+                          const projectReviewDay = selectedProject.diaRevis.toLowerCase()
+
+                          // Return true if the day matches, or an error message if it doesn't
+                          return selectedDayOfWeek === projectReviewDay || `La fecha de finalización debe caer en un ${projectReviewDay}.`
+                        }
+                        return true
                       },
                     },
                   })}
@@ -334,6 +361,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       reset()
       onClose()
       setActiveStep(0)
+      setSelectedProject(null)
     } catch (error: any) {
       // Set API error if the request fails
       console.log(error)
@@ -382,14 +410,14 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
   const fetchProjects = async () => {
     try {
       const response = await getPlannings()
+      console.log(response.data)
       const currentDate = dayjs()
 
-      // Filter projects that have not yet started
+      // Filter projects that have not yet started and where siguienteFechaIniciDispo is not null
       const filteredProjects = response.data.filter((project: Planning) => {
         const startDate = dayjs(project.fechaInici)
 
-        // Only include projects where the start date is in the future
-        return currentDate.isBefore(startDate)
+        return currentDate.isBefore(startDate) && project.siguienteFechaIniciDispo !== null
       })
       console.log(filteredProjects)
       setProjects(filteredProjects)
@@ -400,7 +428,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
 
   useEffect(() => {
     fetchProjects()
-  }, [])
+  }, [selectedProject])
 
   useEffect(() => {
     if (valueP) {
