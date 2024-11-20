@@ -30,6 +30,7 @@ export interface Objective {
   identificador: number
   nombre: string
   nombrePlani: string
+  identificadorPlani: number
 }
 
 export interface Observacion {
@@ -60,6 +61,7 @@ export interface SelectorObservationModalProps {
     planillaDate: string,
     planiId: number,
     objectiveName: string,
+    identificadorPlani: number,
     fechas: string[]
   ) => void
 }
