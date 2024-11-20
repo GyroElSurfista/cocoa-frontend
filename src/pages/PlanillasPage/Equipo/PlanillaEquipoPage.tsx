@@ -276,11 +276,6 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     loadEntregables()
   }
 
-  // Abre el modal para registrar un nuevo entregable
-  const openEntregableModal = () => {
-    setModalOpenEntregable(true)
-  }
-
   // Cierra el modal después de crear un entregable y actualiza la lista
   const handleCloseEntregableModal = () => {
     setModalOpenEntregable(false)
@@ -301,18 +296,6 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
     if (reason === 'clickaway') return
     setSnackbarOpen(false)
-  }
-
-  const handleAddObservationToActivity = (activityIndex: number) => {
-    const newActivities = [...activities]
-    newActivities[activityIndex].observaciones.push({ identificador: Date.now(), descripcion: '' })
-    setActivities(newActivities)
-
-    setValidationStates((prev) => {
-      const updatedStates = [...prev]
-      updatedStates[activityIndex] = false // Nueva observación invalida por defecto
-      return updatedStates
-    })
   }
 
   const handleDeleteActivity = (activityIndex: number) => {
@@ -404,6 +387,11 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     })
   }, [activities])
 
+  const handleShowSnackbar = (message: string) => {
+    setSnackbarMessage(message)
+    setSnackbarOpen(true)
+  }
+
   return (
     <div className="mx-28">
       <h1 className="font-bold text-3xl">Llenar planilla de Seguimiento</h1>
@@ -489,14 +477,22 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
 
       <h2 className="font-bold text-3xl">Entregables</h2>
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
-      <EntregableDinamicoAccordion entregables={entregables} onEntregableUpdated={handleEntregableCreatedOrUpdated} fechas={fechas} />
+      <EntregableDinamicoAccordion
+        entregables={entregables}
+        fechas={fechas}
+        objectiveName={objectiveName}
+        onEntregableUpdated={handleEntregableCreatedOrUpdated}
+        onShowSnackbar={handleShowSnackbar} // Pasa la función al acordeón
+      />
 
       <NewEntregableDinamicoModal
         isOpen={modalOpenEntregable}
-        onClose={handleCloseEntregableModal} // Cierra el modal y recarga la lista
+        onClose={handleCloseEntregableModal}
         onCreate={handleEntregableCreatedOrUpdated}
+        onShowSnackbar={handleShowSnackbar} // Pasa la función al modal
         entregable={entregables}
         objectiveId={objectiveId}
+        objectiveName={objectiveName}
         planillaSeguiId={planillaSeguiId}
         fechas={fechas}
       />

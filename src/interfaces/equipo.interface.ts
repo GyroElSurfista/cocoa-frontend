@@ -2,9 +2,11 @@ export interface NewEntregableModalProps {
   isOpen: boolean
   onClose: () => void
   onCreate: (entregable: Entregable) => void
+  onShowSnackbar: (message: string) => void // Función para mostrar Snackbar
   initialData?: Entregable
   entregable: Entregable[]
   objectiveId: number
+  objectiveName: string
   planillaSeguiId?: number
   fechas: string[]
 }

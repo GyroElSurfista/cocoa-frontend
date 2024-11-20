@@ -1,15 +1,18 @@
 import React, { useState } from 'react'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import axios from 'axios'
+import IconClose from '../../../../assets/icon-close.svg'
 import * as Equipo from './../../../../interfaces/equipo.interface'
 
 const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   isOpen,
   onClose,
   onCreate,
+  onShowSnackbar,
   initialData,
   fechas,
   objectiveId,
+  objectiveName,
   planillaSeguiId,
 }) => {
   const { handleSubmit, reset } = useForm<FormData>()
@@ -74,11 +77,26 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
     }
   }
 
+  // Eliminar un criterio
+  const removeCriterio = (index: number) => {
+    const updatedCriterios = [...criterios]
+    updatedCriterios.splice(index, 1)
+    setCriterios(updatedCriterios)
+
+    // Limpiar el error correspondiente al índice eliminado
+    const newValidationErrors = { ...validationErrors }
+    delete newValidationErrors[`criterio_${index}`]
+    setValidationErrors(newValidationErrors)
+  }
+
   // Validar entradas antes de guardar
   const validateInputs = (): boolean => {
     const errors: { [key: string]: string } = {}
     if (nombre.trim().length < 5 || nombre.trim().length > 50) {
       errors['nombre'] = 'El nombre del entregable debe tener entre 5 y 50 caracteres.'
+    }
+    if (criterios.length === 0 || !criterios.some((criterio) => criterio.trim().length >= 10)) {
+      errors['criterios'] = 'Debe agregar al menos un criterio válido y cumplir con las validaciones.'
     }
 
     criterios.forEach((criterio, index) => {
@@ -149,6 +167,7 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
 
       if (response.status === 200 || response.status === 201) {
         onCreate(response.data)
+        onShowSnackbar(initialData ? 'Entregable actualizado exitosamente' : 'Entregable registrado exitosamente')
         onClose()
       }
     } catch (error) {
@@ -172,14 +191,16 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   return (
     isOpen && (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-        <div className="bg-white w-[375px] max-w-lg p-6 rounded-[20px] shadow-lg max-h-[85vh] overflow-y-auto min-w-[300px]">
+        <div className="bg-white w-[475px] max-w-lg p-6 rounded-[20px] shadow-lg max-h-[85vh] overflow-y-auto min-w-[300px]">
           <h5 className="text-xl font-semibold text-center">
             {initialData ? 'Editar Entregable Dinamico' : 'Registrar Entregable Dinamico'}
           </h5>
           <hr className="border-[1.5px] my-2" />
-          <p className="text-base font-semibold">Entregable para el Objetivo {objectiveId}</p>
+          <p className="text-base font-semibold">Entregable para el Objetivo {objectiveName}</p>
 
-          <h6 className="my-2 text-base">Entregable *</h6>
+          <h6 className="my-2 text-base flex">
+            Entregable <p className="text-red-600">*</p>
+          </h6>
           <input
             type="text"
             placeholder="Nombre del entregable"
@@ -190,21 +211,34 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
           />
           {validationErrors['nombre'] && <p className="text-red-500 text-sm">{validationErrors['nombre']}</p>}
 
-          <h6 className="text-base mb-2">Criterios de aceptación para Entregable *</h6>
-          {criterios.map((criterio, index) => (
-            <div key={index} className="mb-4">
-              <input
-                type="text"
-                value={criterio}
-                onChange={(e) => handleCriterioChange(index, e.target.value)}
-                placeholder="Criterio de aceptación"
-                className="border text-gray-900 rounded-lg block w-full p-2.5 mb-2"
-                disabled={isSaving}
-              />
-              {validationErrors[`criterio_${index}`] && <p className="text-red-500 text-sm">{validationErrors[`criterio_${index}`]}</p>}
-            </div>
-          ))}
-          <div className="flex justify-center items-center ">
+          <h6 className="text-base mb-2 flex">
+            Criterios de aceptación para Entregable <p className="text-red-600">*</p>
+          </h6>
+
+          {/* Contenedor con scroll limitado solo para los inputs de criterios */}
+          <div className="max-h-[40vh] overflow-y-auto">
+            {criterios.map((criterio, index) => (
+              <div key={index} className="mb-4 relative">
+                <input
+                  type="text"
+                  value={criterio}
+                  onChange={(e) => handleCriterioChange(index, e.target.value)}
+                  placeholder="Criterio de aceptación"
+                  className="border text-gray-900 rounded-lg block w-full p-2.5 pr-8"
+                  disabled={isSaving}
+                />
+                <img
+                  src={IconClose}
+                  alt="Eliminar"
+                  onClick={() => removeCriterio(index)}
+                  className="w-6 h-6 absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                />
+                {validationErrors[`criterio_${index}`] && <p className="text-red-500 text-sm">{validationErrors[`criterio_${index}`]}</p>}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-center items-center">
             <button onClick={() => setCriterios([...criterios, ''])} className="button-primary mb-4" disabled={isSaving}>
               + Nuevo Criterio
             </button>
