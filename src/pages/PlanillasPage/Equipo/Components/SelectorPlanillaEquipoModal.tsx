@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Autocomplete, TextField, Snackbar } from '@mui/material'
 import * as Equipo from './../../../../interfaces/equipo.interface'
+import PlaniSeguiIcon from '../../../../assets/PlaniSeguiIcon'
 
 export const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationModalProps) => {
   const [showProjectModal, setShowProjectModal] = useState(false)
@@ -112,13 +113,18 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObser
     }
   }
 
+  const isCurrentPage = location.pathname.startsWith('/planillas-seguimiento/')
+
   return (
     <>
       <div
-        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        className={`hover:text-[#6344e7] py-3 px-2.5 text-base font-normal gap-1 items-center flex cursor-pointer ${
+          isCurrentPage ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
+        }`}
         onClick={() => setShowProjectModal(true)}
       >
-        <div>Servicio de planilla de equipos</div>
+        <PlaniSeguiIcon />
+        Planillas de Seguimiento Semanal{' '}
       </div>
 
       {showProjectModal && (

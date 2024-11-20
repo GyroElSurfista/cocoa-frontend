@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -13,16 +13,28 @@ import PlantillaEva from '../assets/PlantillaEva'
 import SelectorProjectEntregable from '../pages/EntregablePage/Components/SelectorProjectEntregable'
 import ProjectSelectorModalEvaluacion from '../pages/PlanillasPage/Evaluacion/Components/ProjectSelectorModalEvaluacion'
 import PlaniEvaIcon from '../assets/PlaniEvaIcon'
-import PlaniSeguiIcon from '../assets/PlaniSeguiIcon'
 import SelectorPlaniEvaObj from '../pages/LlenarPlaniEvaObjPage/Components/SelectorPlaniEvaObj'
+import GenerateTrackerModal from '../pages/SeguimientoPage/GenerateTrackerModal/GenerateTrackerModal'
+import SelectorPlanillaEquipoModal from '../pages/PlanillasPage/Equipo/Components/SelectorPlanillaEquipoModal'
+import ObservationPage from '../pages/SeguimientoPage/NewObservation/ObservationPage'
+import PlanillaEquipoPage from '../pages/PlanillasPage/Equipo/PlanillaEquipoPage'
 
 const Sidebar = () => {
+  const [observations, setObservations] = useState<any[] | null>(null)
+  const [objectiveId, setObjectiveId] = useState<number | null>(null)
+  const [planiSeguiId, setplaniSeguiId] = useState<number | null>(null)
+  const [planillaDate, setPlanillaDate] = useState<string | null>(null)
+  const [objectiveName, setObjectiveName] = useState<string | null>(null)
+  const [fechaPlanilla, setFechaPlanilla] = useState<string[] | []>([])
+  const [observartionPage, setObservationPage] = useState(false)
+  const [teamPage, setTeamPage] = useState(false)
   const [isOpen, setIsOpen] = useState(true)
   const [isProjectModalEntregableOpen, setIsProjectModalEntregableOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
 
   const navigate = useNavigate()
+  const location = useLocation()
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
@@ -42,11 +54,61 @@ const Sidebar = () => {
     navigate('/objetivos-entregables', { state: { identificadorPlani, objetivoIds, nombrePlani } })
   }
 
+  const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number, objectiveName: string, fechas: string[]) => {
+    setObservations(obs)
+    setObjectiveId(objectiveId)
+    setPlanillaDate(date)
+    setplaniSeguiId(planiId)
+    setObjectiveName(objectiveName)
+    setTeamPage(true)
+    setFechaPlanilla(fechas)
+  }
+
+  if (observations && objectiveId && planillaDate && observartionPage) {
+    // Si hay datos de observación, redirigimos a la página de observaciones
+    return (
+      <ObservationPage
+        observations={observations}
+        objectiveId={objectiveId}
+        planillaDate={planillaDate}
+        onBack={() => {
+          // Si volvemos desde la página de observaciones, restablecemos todo
+          setObservations(null)
+          setObjectiveId(null)
+          setPlanillaDate(null)
+          setObservationPage(false)
+        }}
+      />
+    )
+  }
+  if (observations && objectiveId && planillaDate && teamPage && objectiveName && planiSeguiId !== null) {
+    // Si todos los datos están presentes y `planiSeguiId` no es null, renderizamos `PlanillaEquipoPage`
+    return (
+      <PlanillaEquipoPage
+        observations={observations}
+        objectiveId={objectiveId}
+        planillaDate={planillaDate}
+        planillaSeguiId={planiSeguiId} // Ya estamos seguros de que no es `null`
+        objectiveName={objectiveName}
+        fechas={fechaPlanilla}
+        onBack={() => {
+          // Si volvemos desde la página de observaciones, restablecemos todo
+          setObservations(null)
+          setObjectiveId(null)
+          setplaniSeguiId(null)
+          setPlanillaDate(null)
+          setTeamPage(false)
+          setFechaPlanilla([])
+        }}
+      />
+    )
+  }
+
   return (
     <div>
       {/* Sidebar en vista de escritorio (vertical) */}
       <div
-        className={`hidden lg:block ${isOpen ? 'w-72' : 'w-20'} h-[calc(100vh-5rem)] bg-white shadow border-r-4 border-[#e7e7e7] transition-all duration-300 relative`}
+        className={`hidden lg:block ${isOpen ? 'w-72' : 'w-20'} min-h-screen bg-white shadow border-r-4 border-[#e7e7e7] transition-all duration-300 relative`}
       >
         <button onClick={toggleSidebar} className="focus:outline-none -right-4 top-8 bg-[#d1d1d1] text-white absolute rounded-full">
           {isOpen ? <KeyboardArrowLeftIcon /> : <KeyboardArrowRight />}
@@ -72,7 +134,10 @@ const Sidebar = () => {
                     </>
                   )}
                 </NavLink>
-                <div className="py-3 px-2.5 text-base font-normal gap-1 items-center flex" onClick={openProjectModalEntregable}>
+                <div
+                  className="hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex"
+                  onClick={openProjectModalEntregable}
+                >
                   <EntregableIcon />
                   Entregables
                 </div>
@@ -98,11 +163,12 @@ const Sidebar = () => {
             </ItemSidebar>
             <ItemSidebar name="Generar y Crear">
               <>
-                <div className="py-3 px-2.5 text-base font-normal gap-1 items-center flex" onClick={openProjectModalEntregable}>
-                  <EntregableIcon />
-                  Planillas de Seguimiento Semanal
-                </div>
-                <div className="py-3 px-2.5 text-base font-normal gap-1 items-center flex" onClick={openProjectModal}>
+                <GenerateTrackerModal />
+                <div
+                  className={`hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex 
+                    ${location.pathname.match('/planilla-evaluacion') ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`}
+                  onClick={openProjectModal}
+                >
                   <PlaniEvaIcon />
                   Planillas de Evaluación de Objetivo
                 </div>
@@ -125,11 +191,13 @@ const Sidebar = () => {
             </ItemSidebar>
             <ItemSidebar name="Llenar y Completar">
               <>
-                <div className="py-3 px-2.5 text-base font-normal gap-1 items-center flex" onClick={openProjectModalEntregable}>
-                  <PlaniSeguiIcon />
-                  Planillas de Seguimiento Semanal
-                </div>
-                <div className="py-3 px-2.5 text-base font-normal gap-1 items-center flex" onClick={openModal}>
+                <SelectorPlanillaEquipoModal onRedirect={handleRedirectTeams} />
+                <div
+                  className={`hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex ${
+                    location.pathname.startsWith('/planilla-evaluacion/') ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
+                  }`}
+                  onClick={openModal}
+                >
                   <PlaniEvaIcon />
                   Planillas de Evaluación de Objetivo
                 </div>
@@ -167,6 +235,7 @@ const Sidebar = () => {
               </>
             </ItemSidebar>
           </div>
+          <div className=""></div>
         </nav>
       </div>
 

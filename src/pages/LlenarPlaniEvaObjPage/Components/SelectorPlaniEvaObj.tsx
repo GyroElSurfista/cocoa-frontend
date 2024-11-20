@@ -44,6 +44,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
         const response = await verificarLlenadoObj(selectedObjective.identificador)
         if (response.data.puedeSerLlenado) {
           navigate(`/planilla-evaluacion/${selectedObjective.identificador}`, { state: { project: `${selectedProject.nombre}` } })
+          handleCancel()
         } else {
           setError(response.data.mensaje)
         }
