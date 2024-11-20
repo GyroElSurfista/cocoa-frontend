@@ -16,6 +16,7 @@ export const SelectorServices = () => {
   const [planillaDate, setPlanillaDate] = useState<string | null>(null)
   const [objectiveName, setObjectiveName] = useState<string | null>(null)
   const [fechaPlanilla, setFechaPlanilla] = useState<string[] | []>([])
+  const [identificadorPlani, setIdentificadorPlani] = useState(0)
   const [observartionPage, setObservationPage] = useState(false)
   const [teamPage, setTeamPage] = useState(false)
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
@@ -46,7 +47,15 @@ export const SelectorServices = () => {
     navigate('/objetivos-entregables', { state: { identificadorPlani, objetivoIds, nombrePlani } })
   }
 
-  const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number, objectiveName: string, fechas: string[]) => {
+  const handleRedirectTeams = (
+    obs: any[],
+    objectiveId: number,
+    date: string,
+    planiId: number,
+    objectiveName: string,
+    identificadorPlani: number,
+    fechas: string[]
+  ) => {
     setObservations(obs)
     setObjectiveId(objectiveId)
     setPlanillaDate(date)
@@ -54,6 +63,7 @@ export const SelectorServices = () => {
     setObjectiveName(objectiveName)
     setTeamPage(true)
     setFechaPlanilla(fechas)
+    setIdentificadorPlani(identificadorPlani)
   }
 
   if (observations && objectiveId && planillaDate && observartionPage) {
@@ -82,6 +92,7 @@ export const SelectorServices = () => {
         planillaDate={planillaDate}
         planillaSeguiId={planiSeguiId} // Ya estamos seguros de que no es `null`
         objectiveName={objectiveName}
+        identificadorPlani={identificadorPlani}
         fechas={fechaPlanilla}
         onBack={() => {
           // Si volvemos desde la página de observaciones, restablecemos todo
@@ -91,6 +102,7 @@ export const SelectorServices = () => {
           setPlanillaDate(null)
           setTeamPage(false)
           setFechaPlanilla([])
+          setIdentificadorPlani(0)
         }}
       />
     )
@@ -109,7 +121,7 @@ export const SelectorServices = () => {
       </div>
 
       <GenerateTrackerModal />
-        
+
       <div
         className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
         onClick={() => navigate('/eliminar-plantillas')}
