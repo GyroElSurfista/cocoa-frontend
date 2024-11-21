@@ -26,6 +26,7 @@ const Sidebar = () => {
   const [planillaDate, setPlanillaDate] = useState<string | null>(null)
   const [objectiveName, setObjectiveName] = useState<string | null>(null)
   const [fechaPlanilla, setFechaPlanilla] = useState<string[] | []>([])
+  const [identificadorPlani, setIdentificadorPlani] = useState(0)
   const [observartionPage, setObservationPage] = useState(false)
   const [teamPage, setTeamPage] = useState(false)
   const [isOpen, setIsOpen] = useState(true)
@@ -54,7 +55,15 @@ const Sidebar = () => {
     navigate('/objetivos-entregables', { state: { identificadorPlani, objetivoIds, nombrePlani } })
   }
 
-  const handleRedirectTeams = (obs: any[], objectiveId: number, date: string, planiId: number, objectiveName: string, fechas: string[]) => {
+  const handleRedirectTeams = (
+    obs: any[],
+    objectiveId: number,
+    date: string,
+    planiId: number,
+    objectiveName: string,
+    identificadorPlani: number,
+    fechas: string[]
+  ) => {
     setObservations(obs)
     setObjectiveId(objectiveId)
     setPlanillaDate(date)
@@ -62,6 +71,7 @@ const Sidebar = () => {
     setObjectiveName(objectiveName)
     setTeamPage(true)
     setFechaPlanilla(fechas)
+    setIdentificadorPlani(identificadorPlani)
   }
 
   if (observations && objectiveId && planillaDate && observartionPage) {
@@ -90,6 +100,7 @@ const Sidebar = () => {
         planillaDate={planillaDate}
         planillaSeguiId={planiSeguiId} // Ya estamos seguros de que no es `null`
         objectiveName={objectiveName}
+        identificadorPlani={identificadorPlani}
         fechas={fechaPlanilla}
         onBack={() => {
           // Si volvemos desde la página de observaciones, restablecemos todo
@@ -99,6 +110,7 @@ const Sidebar = () => {
           setPlanillaDate(null)
           setTeamPage(false)
           setFechaPlanilla([])
+          setIdentificadorPlani(0)
         }}
       />
     )
@@ -108,7 +120,7 @@ const Sidebar = () => {
     <div>
       {/* Sidebar en vista de escritorio (vertical) */}
       <div
-        className={`hidden lg:block ${isOpen ? 'w-72' : 'w-20'} min-h-screen bg-white shadow border-r-4 border-[#e7e7e7] transition-all duration-300 relative`}
+        className={`hidden lg:block ${isOpen ? 'w-72' : 'w-20'} min-h-[calc(100vh-5rem)] bg-white shadow border-r-4 border-[#e7e7e7] transition-all duration-300 relative`}
       >
         <button onClick={toggleSidebar} className="focus:outline-none -right-4 top-8 bg-[#d1d1d1] text-white absolute rounded-full">
           {isOpen ? <KeyboardArrowLeftIcon /> : <KeyboardArrowRight />}

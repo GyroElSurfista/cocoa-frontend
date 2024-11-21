@@ -14,7 +14,7 @@ const ItemSidebar = ({ name, children }: ItemSidebarProps) => {
 
   return (
     <>
-      <div className="pb-2" onClick={toggleAccordion}>
+      <div className="pb-2 cursor-pointer" onClick={toggleAccordion}>
         <p className="font-semibold">{name}</p>
       </div>
       {isExpanded && <div className="pl-2">{children}</div>}
