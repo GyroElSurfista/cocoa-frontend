@@ -105,11 +105,14 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
                   <div className="w-auto border-l-2 pl-2 border-[#c6caff]">
                     <span className="mr-1">Fecha fin: </span>
                     <span className="bg-[#C6CAFF] rounded px-1 text-sm">
-                      {new Date(planilla.fechaFin).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}
+                      {new Date(new Date(planilla.fechaFin).setDate(new Date(planilla.fechaFin).getDate() + 1)).toLocaleDateString(
+                        'es-ES',
+                        {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        }
+                      )}
                     </span>
                   </div>
                   <div className="w-auto border-l-2 pl-2 border-[#c6caff] flex items-center space-x-2">
@@ -126,7 +129,7 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
                 <span className="flex font-bold text-base">
                   <p className="mr-1">Fecha de evaluación:</p>
 
-                  {new Date(planilla.fechaFin).toLocaleDateString('es-ES', {
+                  {new Date(new Date(planilla.fechaFin).setDate(new Date(planilla.fechaFin).getDate() + 1)).toLocaleDateString('es-ES', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
