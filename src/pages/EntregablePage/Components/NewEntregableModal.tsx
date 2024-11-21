@@ -336,9 +336,9 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
           <>
             <h5 className="text-xl font-semibold text-center">Registrar Entregable(s)</h5>
             <hr className="border-[1.5px] my-2" />
-            <p className="text-sm my-2">Selecciona el proyecto y el objetivo asociado para el cual deseas registrar los entregables.</p>
+            <p className="text-sm my-2">Selecciona el objetivo asociado para el cual deseas registrar los entregables.</p>
 
-            <h2 className="pb-2 font-medium">Objetivos</h2>
+            <h2 className="pb-2 font-medium">Objetivo asociado</h2>
             <Autocomplete
               id="objetivo-autocomplete"
               options={filteredObjetivos}
