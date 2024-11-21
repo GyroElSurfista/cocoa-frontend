@@ -113,6 +113,11 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setGeneralError('')
 
     const newValidationErrors = { ...validationErrors }
+    if (value.trim().length === 0) {
+      newValidationErrors[`criteriosAcept.${index}.descripcion`] = ['']
+      setValidationErrors(newValidationErrors)
+      return
+    }
     if (value.trim().length < 10) {
       newValidationErrors[`criteriosAcept.${index}.descripcion`] = ['El criterio debe tener al menos 10 caracteres']
     } else if (value.trim().length > 50) {
@@ -150,6 +155,11 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
 
     // Validar nombre localmente
     const trimmedName = currentEntregable.nombre.trim()
+    if (trimmedName.length === 0) {
+      setErrorMessage('Debe llenar el campo Nombre del entregable')
+      return
+    }
+
     if (trimmedName.length < 5 || trimmedName.length > 50) {
       setErrorMessage('El nombre del entregable debe tener entre 5 y 50 caracteres.')
       return
@@ -170,7 +180,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
       if (criterios.length === 0) {
         setGeneralError('Debe agregar al menos un criterio.')
       } else {
-        setGeneralError('Todos los criterios deben ser válidos.')
+        setGeneralError('Todos los criterios deben ser llenados correctamente.')
       }
 
       return
