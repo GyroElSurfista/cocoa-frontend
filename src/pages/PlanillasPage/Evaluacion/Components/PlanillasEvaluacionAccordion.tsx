@@ -36,8 +36,7 @@ interface PlanillasEvaluacionAccordionProps {
 
 export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordionProps> = ({ identificadorPlani, nombrePlani }) => {
   const [planillas, setPlanillas] = useState<Planilla[]>([])
-  const [deliverables, setDeliverables] = useState<Deliverable[]>([])
-  const [expandedPlanilla, setExpandedPlanilla] = useState<number | null>(null)
+  const [expandedPlanillas, setExpandedPlanillas] = useState<{ [key: number]: Deliverable[] }>({})
 
   // Fetch de las planillas de seguimiento para todos los objetivos
   useEffect(() => {
@@ -65,19 +64,30 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
     try {
       const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${identificadorObjet}/entregables`)
       const data = await response.json()
-      setDeliverables(data)
+      return data
     } catch (error) {
       console.error('Error al cargar los entregables:', error)
+      return []
     }
   }
 
-  const toggleDropdown = (planillaId: number, identificadorObjet: number) => {
-    if (expandedPlanilla === planillaId) {
-      setExpandedPlanilla(null)
-    } else {
-      setExpandedPlanilla(planillaId)
-      fetchDeliverables(identificadorObjet)
-    }
+  const toggleDropdown = async (planillaId: number, identificadorObjet: number) => {
+    setExpandedPlanillas((prevState) => {
+      if (prevState[planillaId]) {
+        // Si ya está expandido, lo colapsamos
+        const { [planillaId]: _, ...rest } = prevState
+        return rest
+      } else {
+        // Expandimos y buscamos los entregables
+        fetchDeliverables(identificadorObjet).then((deliverables) => {
+          setExpandedPlanillas((currentState) => ({
+            ...currentState,
+            [planillaId]: deliverables,
+          }))
+        })
+        return { ...prevState }
+      }
+    })
   }
 
   return (
@@ -85,7 +95,7 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
       {planillas.length > 0 ? (
         // Ordenamos las planillas por fechaFin
         [...planillas]
-          .sort((a, b) => new Date(a.fechaFin) - new Date(b.fechaFin))
+          .sort((a, b) => new Date(a.fechaFin).getTime() - new Date(b.fechaFin).getTime())
           .map((planilla, index) => (
             <div key={planilla.identificador} className="bg-[#e0e3ff] rounded my-3">
               <div
@@ -127,19 +137,18 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
                 </div>
               </div>
               {/* Dropdown content */}
-              {expandedPlanilla === planilla.identificador && (
+              {expandedPlanillas[planilla.identificador] && (
                 <div className="py-4 bg-[#E0E3FF] rounded-b-md px-14">
                   <span className="flex font-bold text-base">
                     <p className="mr-1">Fecha de evaluación:</p>
-
                     {new Date(new Date(planilla.fechaFin).setDate(new Date(planilla.fechaFin).getDate() + 1)).toLocaleDateString('es-ES', {
                       day: '2-digit',
                       month: '2-digit',
                       year: 'numeric',
                     })}
                   </span>
-                  {deliverables.length > 0 ? (
-                    deliverables.map((deliverable, index) => (
+                  {expandedPlanillas[planilla.identificador].length > 0 ? (
+                    expandedPlanillas[planilla.identificador].map((deliverable, index) => (
                       <div key={deliverable.identificador} className="my-2 px-2 bg-[#EEF0FF] rounded-md py-4">
                         <span className="font-semibold border-r-2 pr-2 border-[#c6caff]">{`Entregable ${index + 1}`}</span>
                         <span className="text-sm ml-4">{deliverable.nombre}</span>
