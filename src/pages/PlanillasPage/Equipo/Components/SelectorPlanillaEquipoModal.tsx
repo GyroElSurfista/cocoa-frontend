@@ -104,6 +104,7 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObser
         selectedPlanilla.fecha,
         selectedPlanilla.identificador,
         selectedObjective.nombre,
+        selectedObjective.identificadorPlani,
         fechasPlanillas
       )
       setShowObjectivePlanillaModal(false)

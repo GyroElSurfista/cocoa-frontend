@@ -1,15 +1,17 @@
 // EntregableDinamicoAccordion.tsx
 import React, { useState } from 'react'
-import IconTrash from '../../../../assets/trash.svg'
-import IconEdit from '../../../../assets/icon-edit.svg'
+import BorderColorIcon from '@mui/icons-material/BorderColor'
 import NewEntregableDinamicoModal from './NewEntregableDinamicoModal'
 import axios from 'axios'
 import IconDanger from '../../../../assets/ico-danger.svg'
+import DeleteIcon from '@mui/icons-material/Delete'
 
 interface EntregableDinamicoAccordionProps {
   entregables: Entregable[]
   fechas: string[]
-  onEntregableUpdated: () => void // Prop para refrescar la lista de entregables
+  objectiveName: string
+  onEntregableUpdated: () => void // Para actualizar la lista de entregables
+  onShowSnackbar: (message: string) => void // Función para mostrar Snackbar
 }
 
 interface Entregable {
@@ -29,7 +31,13 @@ interface CriterioAceptacion {
   identificadorEntre: number
 }
 
-export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionProps> = ({ entregables, onEntregableUpdated, fechas }) => {
+export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionProps> = ({
+  entregables,
+  onEntregableUpdated,
+  objectiveName,
+  fechas,
+  onShowSnackbar,
+}) => {
   const [expanded, setExpanded] = useState<number | null>(null)
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false)
@@ -63,7 +71,8 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
       try {
         await axios.delete(`https://cocoabackend.onrender.com/api/entregables/eliminar/${selectedEntregable.identificador}`)
         setDeleteModalOpen(false)
-        onEntregableUpdated() // Actualiza la lista de entregables
+        onEntregableUpdated()
+        onShowSnackbar('Entregable eliminado exitosamente')
       } catch (error) {
         console.error('Error al eliminar el entregable:', error)
       }
@@ -76,7 +85,7 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
         <div className="bg-[#e0e3ff] rounded my-3" key={entregable.identificador}>
           <div
             onClick={() => toggleAccordion(entregable.identificador)}
-            className="hover:bg-[#c6caff] w-full border rounded border-[#c6caff] p-4 cursor-pointer"
+            className="group hover:bg-[#c6caff] w-full border rounded border-[#c6caff] p-4 cursor-pointer relative"
           >
             <div className="flex flex-row w-full justify-between">
               <div className="flex items-center">
@@ -87,9 +96,30 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
                   {entregable.nombre || 'Sin descripción'}
                 </span>
               </div>
-              <div className="flex items-center border-l-2 border-[#c6caff] pl-2">
-                <img src={IconEdit} alt="Edit" className="cursor-pointer mx-2" onClick={(e) => handleEditClick(e, entregable)} />
-                <img src={IconTrash} alt="Delete" className="cursor-pointer mx-2" onClick={(e) => handleDeleteClick(e, entregable)} />
+              <div
+                className="flex items-center border-l-2 border-[#c6caff] pl-2 space-x-4"
+                onClick={(e) => e.stopPropagation()} // Detenemos la propagación
+              >
+                <BorderColorIcon
+                  onClick={(e) => handleEditClick(e, entregable)}
+                  sx={{
+                    color: 'gray',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      color: 'red', // Color en hover
+                    },
+                  }}
+                />
+                <DeleteIcon
+                  onClick={(e) => handleDeleteClick(e, entregable)}
+                  sx={{
+                    color: 'gray',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      color: 'red', // Color en hover
+                    },
+                  }}
+                />
               </div>
             </div>
 
@@ -117,9 +147,11 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
           isOpen={editModalOpen}
           onClose={handleCloseEditModal}
           onCreate={onEntregableUpdated}
+          onShowSnackbar={onShowSnackbar}
           initialData={selectedEntregable} // Pasa los datos del entregable seleccionado
           entregable={entregables}
-          objectiveId={selectedEntregable.identificadorObjet} // Pasa el objetivo ID del entregable seleccionado
+          objectiveId={selectedEntregable.identificadorObjet}
+          objectiveName={objectiveName}
           planillaSeguiId={selectedEntregable.identificadorPlaniSegui}
           fechas={fechas}
         />
@@ -132,7 +164,7 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
               <img src={IconDanger} alt="" />
             </div>
 
-            <h5 className="text-xl font-semibold mb-4">¿Esta seguro de eliminar este entregable?</h5>
+            <h5 className="text-xl font-semibold mb-4">¿Está seguro de eliminar este entregable?</h5>
             <p className="mb-6">Eliminar un entregable tiene que ser en consenso con la grupo empresa</p>
             <div className="flex justify-center gap-4">
               <button className="button-secondary_outlined" onClick={() => setDeleteModalOpen(false)}>
