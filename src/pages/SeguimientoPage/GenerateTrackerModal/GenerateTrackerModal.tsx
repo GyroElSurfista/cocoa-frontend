@@ -4,7 +4,8 @@ import { getPlannings } from '../../../services/objective.service'
 import { generateWeeklyTracking } from '../../../services/planillaSeguimiento.service'
 import { Planificacion } from '../../../interfaces/project.interface'
 import dayjs from 'dayjs'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import PlaniSeguiIcon from '../../../assets/PlaniSeguiIcon'
 
 const GenerateTrackerModal = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,6 +15,7 @@ const GenerateTrackerModal = () => {
   const [hasTrackers, setHasTrackers] = useState(false)
 
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleOpen = () => setIsOpen(true)
   const handleClose = () => {
@@ -32,6 +34,7 @@ const GenerateTrackerModal = () => {
       navigate(`/planillas-seguimiento/${selectedProject.identificador}`, {
         state: { project: selectedProject, generated: false },
       })
+      handleClose()
       return
     } else {
       try {
@@ -83,11 +86,19 @@ const GenerateTrackerModal = () => {
     if (isOpen) fetchProjects()
   }, [isOpen])
 
+  const isCurrentPage = location.pathname.startsWith('/planillas-seguimiento/')
+
   return (
     <>
       {/* Botón para abrir el modal */}
-      <div className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer" onClick={handleOpen}>
-        <p>Servicio de generación de planillas de seguimiento semanal</p>
+      <div
+        className={`hover:text-[#6344e7] py-3 px-2.5 text-base font-normal gap-1 items-center flex cursor-pointer ${
+          isCurrentPage ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
+        }`}
+        onClick={handleOpen}
+      >
+        <PlaniSeguiIcon />
+        <p>Planillas de Seguimiento Semanal</p>
       </div>
 
       {isOpen && (
