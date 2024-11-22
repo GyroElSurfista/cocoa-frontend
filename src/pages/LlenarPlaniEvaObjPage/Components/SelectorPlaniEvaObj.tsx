@@ -134,6 +134,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
             }}
             renderInput={(params) => <TextField {...params} label="Selecciona un objetivo" variant="outlined" />}
             disabled={!selectedProject} // Disable the field if no project is selected
+            noOptionsText="No existen objetivos que puedan ser evaluados"
           />
           {error && <p className="text-red-500 text-sm pt-2">{error}</p>}
           <div className="flex justify-end pt-4">
