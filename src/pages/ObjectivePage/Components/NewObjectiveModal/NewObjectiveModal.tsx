@@ -56,7 +56,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       setErrorMessage('') // Limpia el mensaje de error
       setActiveStep((prevStep) => prevStep + 1)
     } else {
-      setErrorMessage('Por favor, completa todos los campos requeridos.') // Establece el mensaje de error
+      setErrorMessage('Por favor, selecciona un proyecto para continuar') // Establece el mensaje de error
     }
   })
 

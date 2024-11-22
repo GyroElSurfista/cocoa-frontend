@@ -74,6 +74,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
   const fetchObjectives = async (idProject: number) => {
     try {
       const response = await getObjectivesEvaluables(idProject)
+      console.log(response.data)
       setObjectives(response.data.data)
     } catch (error) {
       console.error('Error fetching objectives for project:', error)
@@ -115,6 +116,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
             value={selectedProject}
             onChange={(_, newValue) => {
               setSelectedProject(newValue)
+              setSelectedObjective(null)
               setError(null) // Clear error when a valid selection is made
             }}
             renderInput={(params) => <TextField {...params} label="Selecciona un proyecto" variant="outlined" />}

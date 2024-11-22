@@ -1,4 +1,5 @@
 import DangerIcon from '../../../assets/ico-danger.svg'
+import TaskAltIcon from '@mui/icons-material/TaskAlt'
 
 interface ConfirmationModalProps {
   isOpen: boolean
