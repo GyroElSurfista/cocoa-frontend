@@ -121,7 +121,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               Dia de revision: <span className="font-normal">{selectedProject?.diaRevis}</span>
             </p>
             <p className="pb-2 font-semibold">
-              Siguiente fecha disponible: <span className="font-normal">{selectedProject?.siguienteFechaIniciDispo}</span>
+              Siguiente fecha disponible: <span className="font-normal">{formatDateToDMY(selectedProject?.siguienteFechaIniciDispo)}</span>
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="">
@@ -340,7 +340,6 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         setApiError('Debe seleccionar un proyecto antes de continuar.')
         return
       }
-      console.log(data)
       const createdObjective = await createObjective({
         identificadorPlani: selectedProject.identificador,
         nombre: data.objective.trim(),
@@ -349,7 +348,6 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
         nombrePlani: data.nombrePlani,
         valorPorce: parseFloat(data.valueP),
       })
-      console.log(createdObjective)
 
       // Clear any previous errors
       setApiError(null)
@@ -417,7 +415,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       const filteredProjects = response.data.filter((project: Planning) => {
         const startDate = dayjs(project.fechaInici)
 
-        return currentDate.isBefore(startDate) && project.siguienteFechaIniciDispo !== null
+        return currentDate.isBefore(startDate) && project.siguienteFechaIniciDispo !== null && project.sumavalorporce < 100.0
       })
       console.log(filteredProjects)
       setProjects(filteredProjects)
