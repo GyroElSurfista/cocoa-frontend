@@ -438,7 +438,13 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
             </div>
             <hr className="border-[1.5px] my-2" />
             <div className="flex justify-between">
-              <div onClick={() => setView(1)} className="flex items-center cursor-pointer">
+              <div
+                onClick={() => {
+                  setView(1)
+                  setCriterios([''])
+                }}
+                className="flex items-center cursor-pointer"
+              >
                 <img src={IconBack} alt="Back" className="mr-2" /> Atrás
               </div>
               <div className="flex gap-2">
