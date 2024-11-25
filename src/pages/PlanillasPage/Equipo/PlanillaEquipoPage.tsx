@@ -298,6 +298,12 @@ const PlanillaEquipoPage = () => {
     }))
   }
 
+  useEffect(() => {
+    if (identificadorPlani && planillaDate) {
+      fetchAsistenciasWithFaltas(identificadorPlani, planillaDate)
+    }
+  }, [identificadorPlani, planillaDate, usuarios])
+
   const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
     if (reason === 'clickaway') return
     setSnackbarOpen(false)
@@ -424,9 +430,9 @@ const PlanillaEquipoPage = () => {
               userId={usuario.id}
               planillaDate={planillaDate}
               isReadOnly={isReadOnly}
-              asistenciaData={asistencias[usuario.id]}
+              asistenciaData={asistencias[usuario.id]} // Actualizado dinámicamente desde el estado
               onChangeAsistencia={handleChangeAsistencia}
-              onValidationChange={handleValidationChangeRows} // Nuevo manejo de validación
+              onValidationChange={handleValidationChangeRows}
             />
           ))}
         </div>

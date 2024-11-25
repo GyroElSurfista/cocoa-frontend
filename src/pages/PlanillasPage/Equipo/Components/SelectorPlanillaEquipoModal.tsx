@@ -5,7 +5,7 @@ import PlaniSeguiIcon from '../../../../assets/PlaniSeguiIcon'
 import { useNavigate } from 'react-router-dom'
 
 const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationModalProps) => {
-  const navigate = useNavigate() // Hook para redirección
+  const navigate = useNavigate()
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showObjectivePlanillaModal, setShowObjectivePlanillaModal] = useState(false)
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
@@ -24,49 +24,43 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
   const [planillaError, setPlanillaError] = useState(false)
   const [fechasPlanillas, setFechasPlanillas] = useState<string[]>([])
 
-  useEffect(() => {
-    const fetchObjectivesAndPlans = async () => {
-      try {
-        // Fetch de objetivos y planificaciones en paralelo
-        const [objetivosResponse, planificacionesResponse] = await Promise.all([
-          fetch('https://cocoabackend.onrender.com/api/objetivos'),
-          fetch('https://cocoabackend.onrender.com/api/planificaciones'),
-        ])
+  // Función para cargar proyectos y objetivos
+  const fetchProjectsAndObjectives = async () => {
+    try {
+      const [objetivosResponse, planificacionesResponse] = await Promise.all([
+        fetch('https://cocoabackend.onrender.com/api/objetivos'),
+        fetch('https://cocoabackend.onrender.com/api/planificaciones'),
+      ])
 
-        const objetivosData = await objetivosResponse.json()
-        const planificacionesData = await planificacionesResponse.json()
+      const objetivosData = await objetivosResponse.json()
+      const planificacionesData = await planificacionesResponse.json()
 
-        // Obtener la fecha actual
-        const today = new Date()
+      const today = new Date()
+      const planificacionesEnCursoIds = new Set(
+        planificacionesData
+          .filter((plan) => {
+            const fechaInicio = new Date(plan.fechaInici)
+            const fechaFin = new Date(plan.fechaFin)
+            return today >= fechaInicio && today <= fechaFin
+          })
+          .map((plan) => plan.identificador)
+      )
 
-        // Filtrar planificaciones que están en curso según las fechas
-        const planificacionesEnCursoIds = new Set(
-          planificacionesData
-            .filter((plan) => {
-              const fechaInicio = new Date(plan.fechaInici)
-              const fechaFin = new Date(plan.fechaFin)
-              return today >= fechaInicio && today <= fechaFin
-            })
-            .map((plan) => plan.identificador) // Extraer solo los IDs de planificaciones en curso
-        )
+      const filteredObjectives = objetivosData.filter((obj) => planificacionesEnCursoIds.has(obj.identificadorPlani))
+      const uniqueProjects = Array.from(new Set(filteredObjectives.map((obj) => obj.nombrePlani)))
 
-        // Filtrar objetivos que pertenecen a planificaciones "en curso"
-        const filteredObjectives = objetivosData.filter((obj) => planificacionesEnCursoIds.has(obj.identificadorPlani))
-
-        // Obtener nombres únicos de proyectos con planificaciones "en curso"
-        const uniqueProjects = Array.from(new Set(filteredObjectives.map((obj) => obj.nombrePlani)))
-
-        // Establecer los estados
-        setObjectives(filteredObjectives) // Guardar objetivos filtrados
-        setProjectOptions(uniqueProjects) // Guardar nombres únicos de proyectos
-      } catch (error) {
-        console.error('Error al cargar los objetivos y planificaciones:', error)
-      }
+      setObjectives(filteredObjectives)
+      setProjectOptions(uniqueProjects)
+    } catch (error) {
+      console.error('Error al cargar los objetivos y planificaciones:', error)
     }
+  }
 
-    // Llamar a la función (en efecto secundario, por ejemplo en useEffect)
-    fetchObjectivesAndPlans()
-  }, [])
+  // Recargar opciones cuando se abre el modal del proyecto
+  const handleOpenProjectModal = () => {
+    setShowProjectModal(true)
+    fetchProjectsAndObjectives()
+  }
 
   useEffect(() => {
     if (selectedProject) {
@@ -85,10 +79,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
           )
           const data: Equipo.Planilla[] = await response.json()
           setPlanillas(data)
-
-          // Extraer las fechas de las planillas
-          const fechas = data.map((planilla) => planilla.fecha)
-          setFechasPlanillas(fechas)
+          setFechasPlanillas(data.map((planilla) => planilla.fecha))
         } catch (error) {
           console.error('Error al cargar las planillas', error)
         } finally {
@@ -98,15 +89,21 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
       fetchPlanillas()
     } else {
       setPlanillas([])
-      setFechasPlanillas([]) // Limpiar las fechas si no hay un objetivo seleccionado
+      setFechasPlanillas([])
     }
   }, [selectedObjective])
 
-  const handleProjectNext = () => {
-    if (selectedProject) {
-      setShowProjectModal(false)
-      setShowObjectivePlanillaModal(true)
-    }
+  const handleCancel = () => {
+    setShowProjectModal(false)
+    setShowObjectivePlanillaModal(false)
+    setSelectedProject(null)
+    setProjectInputValue('')
+    setSelectedObjective(null)
+    setObjectiveInputValue('')
+    setSelectedPlanilla(null)
+    setPlanillaInputValue('')
+    setPlanillaError(false)
+    setProjectOptions([])
   }
 
   const handleAccept = () => {
@@ -121,7 +118,6 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
         }))
       )
 
-      // Pasar datos al padre (opcional)
       onRedirect(
         observations,
         selectedObjective.identificador,
@@ -132,7 +128,6 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
         fechasPlanillas
       )
 
-      // Redirigir a la nueva página
       navigate(`/planilla-equipo/${selectedPlanilla.identificador}`, {
         state: {
           observations,
@@ -144,20 +139,20 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
           fechas: fechasPlanillas,
         },
       })
+
+      handleCancel()
     } else {
       setPlanillaError(true)
     }
   }
 
-  const isCurrentPage = location.pathname.startsWith('/planillas-seguimiento/')
-
   return (
     <>
       <div
         className={`hover:text-[#6344e7] py-3 px-2.5 text-base font-normal gap-1 items-center flex cursor-pointer ${
-          isCurrentPage ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
+          location.pathname.startsWith('/planillas-seguimiento/') ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
         }`}
-        onClick={() => setShowProjectModal(true)}
+        onClick={handleOpenProjectModal} // Llama a la función para abrir y recargar datos
       >
         <PlaniSeguiIcon />
         Planillas de Seguimiento Semanal{' '}
@@ -169,7 +164,6 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
             <h5 className="text-xl font-semibold text-center">Llenar planilla de Seguimiento</h5>
             <hr className="border-[1.5px] mb-4 mt-4" />
             <p className="font-inter font-normal mb-2 text-sm">Selecciona el proyecto para el cual deseas hacer seguimiento.</p>
-
             <label className="block mb-3 text-sm font-medium text-gray-900">
               Proyecto <span className="text-[#f60c2e]">*</span>
             </label>
@@ -184,10 +178,15 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
             />
 
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setShowProjectModal(false)} className="button-secondary_outlined">
+              <button type="button" onClick={handleCancel} className="button-secondary_outlined">
                 Cancelar
               </button>
-              <button type="button" onClick={handleProjectNext} className="button-primary" disabled={!selectedProject}>
+              <button
+                type="button"
+                onClick={() => setShowObjectivePlanillaModal(true)}
+                className="button-primary"
+                disabled={!selectedProject}
+              >
                 Siguiente
               </button>
             </div>
@@ -203,61 +202,53 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
             <p className="font-inter font-normal mb-2 text-sm">
               Selecciona el objetivo y la planilla correspondiente para la cual desees agregar la observación
             </p>
-
-            <div>
-              <label className="block mb-3 text-sm font-medium text-gray-900">
-                Objetivo <span className="text-[#f60c2e]">*</span>
-              </label>
-              <Autocomplete
-                options={filteredObjectives}
-                getOptionLabel={(option) => option.nombre}
-                value={selectedObjective}
-                onChange={(_, newValue) => setSelectedObjective(newValue)}
-                inputValue={objectiveInputValue}
-                onInputChange={(_, newValue) => setObjectiveInputValue(newValue)}
-                renderInput={(params) => (
-                  <TextField {...params} label="Selecciona un objetivo" variant="outlined" className="w-full mb-4" />
-                )}
-              />
-            </div>
-
-            <div className="mb-2">
-              <label className="block mb-3 text-sm font-medium text-gray-900">
-                Planilla <span className="text-[#f60c2e]">*</span>
-              </label>
-              <Autocomplete
-                options={planillas}
-                getOptionLabel={(option) => option.fecha}
-                value={selectedPlanilla}
-                onChange={(_, newValue) => setSelectedPlanilla(newValue)}
-                inputValue={planillaInputValue}
-                onInputChange={(_, newValue) => setPlanillaInputValue(newValue)}
-                loading={loadingPlanillas}
-                disabled={!selectedObjective || loadingPlanillas}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Selecciona una planilla"
-                    variant="outlined"
-                    className="w-full mb-4"
-                    error={planillaError}
-                    helperText={planillaError ? 'Por favor, selecciona una planilla válida' : ''}
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {loadingPlanillas ? 'Cargando...' : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
-                  />
-                )}
-              />
-            </div>
+            <label className="block mb-3 text-sm font-medium text-gray-900">
+              Objetivo <span className="text-[#f60c2e]">*</span>
+            </label>
+            <Autocomplete
+              options={filteredObjectives}
+              getOptionLabel={(option) => option.nombre}
+              value={selectedObjective}
+              onChange={(_, newValue) => setSelectedObjective(newValue)}
+              inputValue={objectiveInputValue}
+              onInputChange={(_, newValue) => setObjectiveInputValue(newValue)}
+              renderInput={(params) => <TextField {...params} label="Selecciona un objetivo" variant="outlined" className="w-full mb-4" />}
+            />
+            <label className="block mb-3 text-sm font-medium text-gray-900">
+              Planilla <span className="text-[#f60c2e]">*</span>
+            </label>
+            <Autocomplete
+              options={planillas}
+              getOptionLabel={(option) => option.fecha}
+              value={selectedPlanilla}
+              onChange={(_, newValue) => setSelectedPlanilla(newValue)}
+              inputValue={planillaInputValue}
+              onInputChange={(_, newValue) => setPlanillaInputValue(newValue)}
+              loading={loadingPlanillas}
+              disabled={!selectedObjective || loadingPlanillas}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Selecciona una planilla"
+                  variant="outlined"
+                  className="w-full mb-4"
+                  error={planillaError}
+                  helperText={planillaError ? 'Por favor, selecciona una planilla válida' : ''}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {loadingPlanillas ? 'Cargando...' : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+            />
 
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setShowObjectivePlanillaModal(false)} className="button-secondary_outlined">
+              <button type="button" onClick={handleCancel} className="button-secondary_outlined">
                 Cancelar
               </button>
               <button type="button" onClick={handleAccept} className="button-primary" disabled={!selectedPlanilla}>

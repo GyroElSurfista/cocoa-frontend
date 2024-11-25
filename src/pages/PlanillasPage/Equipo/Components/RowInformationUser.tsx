@@ -35,7 +35,7 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({
   onChangeAsistencia,
   onValidationChange,
 }) => {
-  const [isChecked, setIsChecked] = useState(asistenciaData?.valor || false)
+  const [isChecked, setIsChecked] = useState(true) // Siempre inicia en true
   const [motivo, setMotivo] = useState<string>(
     asistenciaData?.identificadorMotiv
       ? Object.keys(motivosMap).find((key) => motivosMap[key as Motivo] === asistenciaData.identificadorMotiv) || 'Motivo de Inasistencia'
@@ -43,6 +43,11 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({
   )
 
   const isGivenBaja = asistenciaData?.faltas >= 3
+
+  // Sincronizar el estado de `isChecked` con `asistenciaData.valor` pero siempre forzando `true` al inicializar.
+  useEffect(() => {
+    setIsChecked(asistenciaData?.valor ?? true) // Forzar siempre true si no hay datos
+  }, [asistenciaData])
 
   // Actualizar validación al cambiar estado
   useEffect(() => {
