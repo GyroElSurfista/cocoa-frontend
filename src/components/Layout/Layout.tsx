@@ -12,7 +12,7 @@ const Layout = () => {
       <NavBar />
       <div className="sm:flex">
         <Sidebar />
-        <main className="sm:flex-grow py-6 h-[calc(100vh-5rem)]">
+        <main className="sm:flex-grow p-6 h-[calc(100vh-5rem)]">
           {isHome ? (
             <div className="inline-flex justify-center items-center mx-8">
               <p className="text-5xl w-1/2">

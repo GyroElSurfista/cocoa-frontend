@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { Autocomplete, TextField, Snackbar } from '@mui/material'
 import * as Equipo from './../../../../interfaces/equipo.interface'
 import PlaniSeguiIcon from '../../../../assets/PlaniSeguiIcon'
+import { useNavigate } from 'react-router-dom'
 
-export const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationModalProps) => {
+const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationModalProps) => {
+  const navigate = useNavigate() // Hook para redirección
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showObjectivePlanillaModal, setShowObjectivePlanillaModal] = useState(false)
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
@@ -23,26 +25,47 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObser
   const [fechasPlanillas, setFechasPlanillas] = useState<string[]>([])
 
   useEffect(() => {
-    const fetchObjectives = async () => {
+    const fetchObjectivesAndPlans = async () => {
       try {
-        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-        const data: Equipo.Objective[] = await response.json()
+        // Fetch de objetivos y planificaciones en paralelo
+        const [objetivosResponse, planificacionesResponse] = await Promise.all([
+          fetch('https://cocoabackend.onrender.com/api/objetivos'),
+          fetch('https://cocoabackend.onrender.com/api/planificaciones'),
+        ])
 
-        // Filtrar objetivos con "(en curso)" en nombrePlani
-        const filteredObjectives = data.filter((obj) => obj.nombre.includes('(en curso)'))
+        const objetivosData = await objetivosResponse.json()
+        const planificacionesData = await planificacionesResponse.json()
 
-        // Obtener nombres únicos de proyectos con "(en curso)"
+        // Obtener la fecha actual
+        const today = new Date()
+
+        // Filtrar planificaciones que están en curso según las fechas
+        const planificacionesEnCursoIds = new Set(
+          planificacionesData
+            .filter((plan) => {
+              const fechaInicio = new Date(plan.fechaInici)
+              const fechaFin = new Date(plan.fechaFin)
+              return today >= fechaInicio && today <= fechaFin
+            })
+            .map((plan) => plan.identificador) // Extraer solo los IDs de planificaciones en curso
+        )
+
+        // Filtrar objetivos que pertenecen a planificaciones "en curso"
+        const filteredObjectives = objetivosData.filter((obj) => planificacionesEnCursoIds.has(obj.identificadorPlani))
+
+        // Obtener nombres únicos de proyectos con planificaciones "en curso"
         const uniqueProjects = Array.from(new Set(filteredObjectives.map((obj) => obj.nombrePlani)))
 
-        // Establecer estados
-        setObjectives(filteredObjectives) // Guardar los objetivos filtrados
-        setProjectOptions(uniqueProjects) // Guardar los nombres únicos
+        // Establecer los estados
+        setObjectives(filteredObjectives) // Guardar objetivos filtrados
+        setProjectOptions(uniqueProjects) // Guardar nombres únicos de proyectos
       } catch (error) {
-        console.error('Error al cargar los objetivos:', error)
+        console.error('Error al cargar los objetivos y planificaciones:', error)
       }
     }
 
-    fetchObjectives()
+    // Llamar a la función (en efecto secundario, por ejemplo en useEffect)
+    fetchObjectivesAndPlans()
   }, [])
 
   useEffect(() => {
@@ -98,6 +121,7 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObser
         }))
       )
 
+      // Pasar datos al padre (opcional)
       onRedirect(
         observations,
         selectedObjective.identificador,
@@ -107,8 +131,19 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObser
         selectedObjective.identificadorPlani,
         fechasPlanillas
       )
-      setShowObjectivePlanillaModal(false)
-      setPlanillaError(false)
+
+      // Redirigir a la nueva página
+      navigate(`/planilla-equipo/${selectedPlanilla.identificador}`, {
+        state: {
+          observations,
+          objectiveId: selectedObjective.identificador,
+          planillaDate: selectedPlanilla.fecha,
+          objectiveName: selectedObjective.nombre,
+          identificadorPlani: selectedObjective.identificadorPlani,
+          planillaSeguiId: selectedPlanilla.identificador,
+          fechas: fechasPlanillas,
+        },
+      })
     } else {
       setPlanillaError(true)
     }

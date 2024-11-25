@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
+import IconClose from '@mui/icons-material/Close'
 
 interface AddActivitiesObservationsProps {
   activity: { nombre: string; observaciones: { descripcion: string }[] }
@@ -21,6 +22,7 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
     onAddObservation,
     onObservationChange,
     onDeleteActivity,
+    onDeleteObservation,
     onValidationChange,
     isReadOnly,
   } = props
@@ -29,11 +31,16 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
   const [observationsValidStates, setObservationsValidStates] = useState<boolean[]>([]) // Estado de cada observación
 
   useEffect(() => {
-    setObservationsValidStates(activity.observaciones.map(() => false)) // Inicializa con `false` para todas las observaciones
-    console.log(
-      `Observations valid states initialized:`,
-      activity.observaciones.map(() => false)
-    )
+    const initialStates =
+      activity.observaciones.length > 0
+        ? activity.observaciones.map(() => false) // Inicializa como inválido para todas las observaciones
+        : [] // Sin observaciones, no necesita estados de validación
+    setObservationsValidStates(initialStates)
+
+    // Si no hay observaciones, se considera válido
+    if (activity.observaciones.length === 0) {
+      onValidationChange(activityIndex, isActivityNameValid)
+    }
   }, [activity.observaciones])
 
   const [errors, setErrors] = useState<{
@@ -57,13 +64,14 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
   }
 
   const validateGlobalState = (isActivityNameValid: boolean, observationsStates: boolean[]) => {
+    const hasObservations = activity.observaciones.length > 0
     const allObservationsValid = observationsStates.every(Boolean)
-    const isValid = isActivityNameValid && allObservationsValid
+    const isValid = isActivityNameValid && (hasObservations ? allObservationsValid : false)
 
-    console.log('Validating global state:', { isActivityNameValid, observationsStates, isValid })
-
-    // Notifica al padre directamente
-    onValidationChange(activityIndex, isValid)
+    // Solo llama si cambia el estado
+    if (ValidityState[activityIndex] !== isValid) {
+      onValidationChange(activityIndex, isValid)
+    }
   }
 
   const handleActivityNameChange = (newValue: string) => {
@@ -94,14 +102,6 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
       observationIndex
     )
 
-    console.log(`Validating observation:`, {
-      observationIndex,
-      newValue,
-      error,
-      isValid,
-      hasDuplicate,
-    })
-
     setErrors((prev) => ({
       ...prev,
       observaciones: {
@@ -128,19 +128,46 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
     onAddObservation()
     onValidationChange(activityIndex, false)
   }
+  const handleDeleteObservation = (observationIndex: number) => {
+    const updatedValidStates = observationsValidStates.filter((_, i) => i !== observationIndex)
+
+    // Eliminar la observación
+    onDeleteObservation(activityIndex, observationIndex)
+
+    // Validar inmediatamente después de eliminar la observación
+    const isValid = isActivityNameValid && updatedValidStates.length > 0 && updatedValidStates.every(Boolean)
+    onValidationChange(activityIndex, isValid)
+
+    if (updatedValidStates.length === 0) {
+      setObservationsValidStates([])
+      return
+    }
+
+    // Actualiza el estado de errores y validaciones después
+    setErrors((prev) => {
+      const updatedErrors = { ...prev.observaciones }
+      delete updatedErrors[observationIndex]
+      return { ...prev, observaciones: updatedErrors }
+    })
+    setObservationsValidStates(updatedValidStates)
+  }
 
   useEffect(() => {
     const hasErrors = activity.nombre.trim().length < 5 || activity.observaciones.some((obs) => obs.descripcion.trim().length < 5)
-    onValidationChange(activityIndex, !hasErrors)
+
+    // Si no hay observaciones, se ignoran errores de observación
+    onValidationChange(activityIndex, activity.observaciones.length === 0 || !hasErrors)
   }, [activity.nombre, activity.observaciones, onValidationChange, activityIndex])
 
   useEffect(() => {
+    const allObservationsValid = observationsValidStates.length > 0 && observationsValidStates.every(Boolean)
+    const isValid = isActivityNameValid && allObservationsValid
     const hasDuplicate = activity.observaciones.some((obs, i) =>
       activity.observaciones.some((innerObs, j) => i !== j && obs.descripcion.trim() === innerObs.descripcion.trim())
     )
 
     const generalError =
-      !isActivityNameValid || observationsValidStates.some((valid) => !valid) || hasDuplicate
+      !isActivityNameValid || (activity.observaciones.length > 0 && observationsValidStates.some((valid) => !valid)) || hasDuplicate
         ? 'Debe llenar la actividad y sus respectivas observacione(s) para guardar la planilla.'
         : undefined
 
@@ -148,7 +175,12 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
       ...prev,
       general: generalError,
     }))
-  }, [isActivityNameValid, observationsValidStates, activity.observaciones])
+
+    // Solo notifica cambios al padre si el estado global cambió
+    if (activity.observaciones.length === 0 || isValid !== observationsValidStates.every(Boolean)) {
+      onValidationChange(activityIndex, isValid)
+    }
+  }, [isActivityNameValid, observationsValidStates, activity.observaciones.length, activityIndex, onValidationChange])
 
   return (
     <div className="mb-4">
@@ -178,21 +210,26 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
 
       <h3 className="font-semibold text-xl">Observaciones</h3>
       {(activity.observaciones || []).map((observacion, observationIndex) => (
-        <div
-          key={observationIndex}
-          className="items-center gap-[20px] self-stretch rounded-[8px] border-[2px] border-[#FFC3CC] bg-white shadow-md w-full mb-2"
-        >
-          <div className="flex items-center justify-between rounded-lg w-full">
-            <textarea
-              value={observacion.descripcion}
-              onChange={(e) => handleObservationChange(observationIndex, e.target.value)}
-              maxLength={260}
-              className="text-left mx-2 w-full resize-none border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 my-2"
-              placeholder="Describa su observación"
-              disabled={isReadOnly}
-            />
+        <div key={observationIndex}>
+          <div className="items-center gap-2 self-stretch rounded-[8px] border-[2px] border-[#FFC3CC] bg-white shadow-md w-full mb-2 relative">
+            <div className="flex items-center justify-between rounded-lg w-full">
+              <textarea
+                value={observacion.descripcion}
+                onChange={(e) => handleObservationChange(observationIndex, e.target.value)}
+                maxLength={260}
+                className="text-left mx-2 w-full resize-none border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 my-2 pr-10"
+                placeholder="Describa su observación"
+                disabled={isReadOnly}
+              />
+              {!isReadOnly && (
+                <IconClose
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-red-500"
+                  onClick={() => handleDeleteObservation(observationIndex)}
+                />
+              )}
+            </div>
+            {errors.observaciones[observationIndex] && <p className="text-red-500 text-sm">{errors.observaciones[observationIndex]}</p>}
           </div>
-          {errors.observaciones[observationIndex] && <p className="text-red-500 text-sm">{errors.observaciones[observationIndex]}</p>}
         </div>
       ))}
       {!isReadOnly && errors.general && <p className="text-red-500 text-sm">{errors.general}</p>}

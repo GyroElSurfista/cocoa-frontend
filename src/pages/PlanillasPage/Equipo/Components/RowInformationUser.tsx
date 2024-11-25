@@ -67,7 +67,7 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({
     <div className={`flex h-11 ${isGivenBaja ? 'py-2' : ''}`}>
       <div className={`flex items-center ${isGivenBaja ? 'bg-[#FFC3CC]' : ''}`}>
         <img className="w-[25px] h-[25px] mx-2" src={IconUser} alt="User Icon" />
-        <h3 className="w-[220px] mr-4">
+        <h3 className="w-[270px] mr-4">
           {userName} {companyName}
         </h3>
       </div>
