@@ -53,7 +53,7 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   const handleCriterioChange = (index: number, value: string) => {
     setGeneralError('')
     const newCriterios = [...criterios]
-    newCriterios[index] = value.slice(0, 55)
+    newCriterios[index] = value.slice(0, 155)
     setCriterios(newCriterios)
 
     if (!value.trim()) {
@@ -64,10 +64,10 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
       return
     }
 
-    if (value.trim().length < 10 || value.trim().length > 50) {
+    if (value.trim().length < 10 || value.trim().length > 150) {
       setValidationErrors((prev) => ({
         ...prev,
-        [`criterio_${index}`]: 'El criterio debe tener entre 10 y 50 caracteres.',
+        [`criterio_${index}`]: 'El criterio debe tener entre 10 y 150 caracteres.',
       }))
     } else {
       setValidationErrors((prev) => {
@@ -100,8 +100,8 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
     }
 
     criterios.forEach((criterio, index) => {
-      if (criterio.trim().length < 10 || criterio.trim().length > 50) {
-        errors[`criterio_${index}`] = 'El criterio debe tener entre 10 y 50 caracteres.'
+      if (criterio.trim().length < 10 || criterio.trim().length > 150) {
+        errors[`criterio_${index}`] = 'El criterio debe tener entre 10 y 150 caracteres.'
       }
     })
 
@@ -191,7 +191,7 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   return (
     isOpen && (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-        <div className="bg-white w-[475px] max-w-lg p-6 rounded-[20px] shadow-lg max-h-[85vh] overflow-y-auto min-w-[300px]">
+        <div className="bg-white w-[575px] max-w-lg p-6 rounded-[20px] shadow-lg max-h-[85vh] min-w-[300px]">
           <h5 className="text-xl font-semibold text-center">
             {initialData ? 'Editar Entregable Dinamico' : 'Registrar Entregable Dinamico'}
           </h5>
