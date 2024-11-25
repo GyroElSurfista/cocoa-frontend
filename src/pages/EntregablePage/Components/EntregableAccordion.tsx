@@ -45,7 +45,7 @@ const EntregableAccordion: React.FC<EntregableAccordionProps> = ({ objetivoIds, 
   return (
     <div className="accordion-container">
       {data.length === 0 ? (
-        <p className="text-gray-500 text-center">Cargando objetivos...</p>
+        <p className="text-gray-500 text-center">No existen entregable(s) para este proyecto</p>
       ) : (
         data.map((objetivo, objetivoIndex) => (
           <div className="bg-[#e0e3ff] rounded my-3" key={objetivo.identificador}>
