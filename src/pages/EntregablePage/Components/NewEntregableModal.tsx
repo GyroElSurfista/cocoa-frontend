@@ -113,6 +113,11 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setGeneralError('')
 
     const newValidationErrors = { ...validationErrors }
+    if (value.trim().length === 0) {
+      newValidationErrors[`criteriosAcept.${index}.descripcion`] = ['']
+      setValidationErrors(newValidationErrors)
+      return
+    }
     if (value.trim().length < 10) {
       newValidationErrors[`criteriosAcept.${index}.descripcion`] = ['El criterio debe tener al menos 10 caracteres']
     } else if (value.trim().length > 50) {
@@ -150,6 +155,11 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
 
     // Validar nombre localmente
     const trimmedName = currentEntregable.nombre.trim()
+    if (trimmedName.length === 0) {
+      setErrorMessage('Debe llenar el campo Nombre del entregable')
+      return
+    }
+
     if (trimmedName.length < 5 || trimmedName.length > 50) {
       setErrorMessage('El nombre del entregable debe tener entre 5 y 50 caracteres.')
       return
@@ -170,7 +180,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
       if (criterios.length === 0) {
         setGeneralError('Debe agregar al menos un criterio.')
       } else {
-        setGeneralError('Todos los criterios deben ser válidos.')
+        setGeneralError('Todos los criterios deben ser llenados correctamente.')
       }
 
       return
@@ -336,9 +346,9 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
           <>
             <h5 className="text-xl font-semibold text-center">Registrar Entregable(s)</h5>
             <hr className="border-[1.5px] my-2" />
-            <p className="text-sm my-2">Selecciona el proyecto y el objetivo asociado para el cual deseas registrar los entregables.</p>
+            <p className="text-sm my-2">Selecciona el objetivo asociado para el cual deseas registrar los entregables.</p>
 
-            <h2 className="pb-2 font-medium">Objetivos</h2>
+            <h2 className="pb-2 font-medium">Objetivo asociado</h2>
             <Autocomplete
               id="objetivo-autocomplete"
               options={filteredObjetivos}
@@ -428,7 +438,13 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
             </div>
             <hr className="border-[1.5px] my-2" />
             <div className="flex justify-between">
-              <div onClick={() => setView(1)} className="flex items-center cursor-pointer">
+              <div
+                onClick={() => {
+                  setView(1)
+                  setCriterios([''])
+                }}
+                className="flex items-center cursor-pointer"
+              >
                 <img src={IconBack} alt="Back" className="mr-2" /> Atrás
               </div>
               <div className="flex gap-2">
@@ -458,10 +474,11 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                 <div key={index} className="flex items-center mb-2 relative">
                   <input
                     type="text"
-                    value={`${e.nombre} - ${e.criteriosAcept.length} Criterios`}
+                    value={`${e.nombre} - ${e.criteriosAcept.length} ${e.criteriosAcept.length === 1 ? 'Criterio' : 'Criterios'}`}
                     readOnly
                     className="border text-gray-900 rounded-lg block w-full p-2.5"
                   />
+
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
                     <img src={IconEdit} alt="Edit" className="cursor-pointer" onClick={() => handleEditEntregable(index)} />
                     <img src={IconTrash} alt="Delete" onClick={() => removeEntregable(index)} className="cursor-pointer" />

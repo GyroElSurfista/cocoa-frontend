@@ -444,35 +444,39 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
           )}
         </div>
         <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-6" />
-        {activities.map((activity, activityIndex) => (
-          <AddActivitiesObservations
-            key={activity.identificador}
-            activity={activity}
-            activityIndex={activityIndex}
-            onDeleteObservation={(observationIndex) => handleDeleteObservation(activityIndex, observationIndex)}
-            onActivityChange={(idx, newValue) => {
-              const updatedActivities = [...activities]
-              updatedActivities[idx].nombre = newValue
-              setActivities(updatedActivities)
-            }}
-            onAddObservation={() => {
-              const updatedActivities = [...activities]
-              updatedActivities[activityIndex].observaciones.push({
-                identificador: Date.now(),
-                descripcion: '',
-              })
-              setActivities(updatedActivities)
-            }}
-            onObservationChange={(idx, obsIdx, newValue) => {
-              const updatedActivities = [...activities]
-              updatedActivities[idx].observaciones[obsIdx].descripcion = newValue
-              setActivities(updatedActivities)
-            }}
-            onDeleteActivity={() => handleDeleteActivity(activityIndex)}
-            onValidationChange={handleValidationChange}
-            isReadOnly={isReadOnly}
-          />
-        ))}
+        {activities.length > 0 ? (
+          activities.map((activity, activityIndex) => (
+            <AddActivitiesObservations
+              key={activity.identificador}
+              activity={activity}
+              activityIndex={activityIndex}
+              onDeleteObservation={(observationIndex) => handleDeleteObservation(activityIndex, observationIndex)}
+              onActivityChange={(idx, newValue) => {
+                const updatedActivities = [...activities]
+                updatedActivities[idx].nombre = newValue
+                setActivities(updatedActivities)
+              }}
+              onAddObservation={() => {
+                const updatedActivities = [...activities]
+                updatedActivities[activityIndex].observaciones.push({
+                  identificador: Date.now(),
+                  descripcion: '',
+                })
+                setActivities(updatedActivities)
+              }}
+              onObservationChange={(idx, obsIdx, newValue) => {
+                const updatedActivities = [...activities]
+                updatedActivities[idx].observaciones[obsIdx].descripcion = newValue
+                setActivities(updatedActivities)
+              }}
+              onDeleteActivity={() => handleDeleteActivity(activityIndex)}
+              onValidationChange={handleValidationChange}
+              isReadOnly={isReadOnly}
+            />
+          ))
+        ) : (
+          <p className="text-gray-500 text-center mt-4">No existen Actividades de Seguimiento</p>
+        )}
       </div>
 
       <h2 className="font-bold text-3xl">Entregables</h2>
