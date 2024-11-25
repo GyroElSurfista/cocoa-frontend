@@ -1,67 +1,47 @@
 import { useState, useEffect } from 'react'
 import { Autocomplete, TextField, Snackbar } from '@mui/material'
+import * as Equipo from './../../../../interfaces/equipo.interface'
+import PlaniSeguiIcon from '../../../../assets/PlaniSeguiIcon'
 
-interface Objective {
-  identificador: number
-  nombre: string
-  nombrePlani: string
-}
-
-interface Observacion {
-  identificador: number
-  descripcion: string
-  fecha: string
-  identificadorActivSegui: number
-}
-
-interface ActividadSeguimiento {
-  identificador: number
-  nombre: string
-  identificadorPlaniSegui: number
-  observacion: Observacion[]
-}
-
-interface Planilla {
-  identificador: number
-  fecha: string
-  identificadorObjet: number
-  actividad_seguimiento: ActividadSeguimiento[]
-}
-
-interface SelectorObservationModalProps {
-  onRedirect: (observations: any[], objectiveId: number, planillaDate: string, planiId: number, objectiveName: string) => void
-}
-
-export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationModalProps) => {
+export const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationModalProps) => {
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [showObjectivePlanillaModal, setShowObjectivePlanillaModal] = useState(false)
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
   const [projectOptions, setProjectOptions] = useState<string[]>([])
   const [projectInputValue, setProjectInputValue] = useState('')
 
-  const [objectives, setObjectives] = useState<Objective[]>([])
-  const [filteredObjectives, setFilteredObjectives] = useState<Objective[]>([])
-  const [selectedObjective, setSelectedObjective] = useState<Objective | null>(null)
+  const [objectives, setObjectives] = useState<Equipo.Objective[]>([])
+  const [filteredObjectives, setFilteredObjectives] = useState<Equipo.Objective[]>([])
+  const [selectedObjective, setSelectedObjective] = useState<Equipo.Objective | null>(null)
   const [objectiveInputValue, setObjectiveInputValue] = useState('')
 
-  const [planillas, setPlanillas] = useState<Planilla[]>([])
-  const [selectedPlanilla, setSelectedPlanilla] = useState<Planilla | null>(null)
+  const [planillas, setPlanillas] = useState<Equipo.Planilla[]>([])
+  const [selectedPlanilla, setSelectedPlanilla] = useState<Equipo.Planilla | null>(null)
   const [planillaInputValue, setPlanillaInputValue] = useState('')
   const [loadingPlanillas, setLoadingPlanillas] = useState(false)
   const [planillaError, setPlanillaError] = useState(false)
+  const [fechasPlanillas, setFechasPlanillas] = useState<string[]>([])
 
   useEffect(() => {
     const fetchObjectives = async () => {
       try {
         const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-        const data: Objective[] = await response.json()
-        setObjectives(data)
-        const uniqueProjects = Array.from(new Set(data.map((obj) => obj.nombrePlani)))
-        setProjectOptions(uniqueProjects)
+        const data: Equipo.Objective[] = await response.json()
+
+        // Filtrar objetivos con "(en curso)" en nombrePlani
+        const filteredObjectives = data.filter((obj) => obj.nombre.includes('(en curso)'))
+
+        // Obtener nombres únicos de proyectos con "(en curso)"
+        const uniqueProjects = Array.from(new Set(filteredObjectives.map((obj) => obj.nombrePlani)))
+
+        // Establecer estados
+        setObjectives(filteredObjectives) // Guardar los objetivos filtrados
+        setProjectOptions(uniqueProjects) // Guardar los nombres únicos
       } catch (error) {
-        console.error('Error al cargar los objetivos', error)
+        console.error('Error al cargar los objetivos:', error)
       }
     }
+
     fetchObjectives()
   }, [])
 
@@ -80,8 +60,12 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
           const response = await fetch(
             `https://cocoabackend.onrender.com/api/objetivos/${selectedObjective.identificador}/planillas-seguimiento`
           )
-          const data: Planilla[] = await response.json()
+          const data: Equipo.Planilla[] = await response.json()
           setPlanillas(data)
+
+          // Extraer las fechas de las planillas
+          const fechas = data.map((planilla) => planilla.fecha)
+          setFechasPlanillas(fechas)
         } catch (error) {
           console.error('Error al cargar las planillas', error)
         } finally {
@@ -91,6 +75,7 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
       fetchPlanillas()
     } else {
       setPlanillas([])
+      setFechasPlanillas([]) // Limpiar las fechas si no hay un objetivo seleccionado
     }
   }, [selectedObjective])
 
@@ -118,7 +103,9 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
         selectedObjective.identificador,
         selectedPlanilla.fecha,
         selectedPlanilla.identificador,
-        selectedObjective.nombre
+        selectedObjective.nombre,
+        selectedObjective.identificadorPlani,
+        fechasPlanillas
       )
       setShowObjectivePlanillaModal(false)
       setPlanillaError(false)
@@ -127,13 +114,18 @@ export const SelectorPlanillaEquipoModal = ({ onRedirect }: SelectorObservationM
     }
   }
 
+  const isCurrentPage = location.pathname.startsWith('/planillas-seguimiento/')
+
   return (
     <>
       <div
-        className="h-10 px-5 py-2.5 my-2 bg-[#eef0ff] rounded-lg justify-between items-center flex cursor-pointer"
+        className={`hover:text-[#6344e7] py-3 px-2.5 text-base font-normal gap-1 items-center flex cursor-pointer ${
+          isCurrentPage ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
+        }`}
         onClick={() => setShowProjectModal(true)}
       >
-        <div>Servicio de planilla de equipos</div>
+        <PlaniSeguiIcon />
+        Planillas de Seguimiento Semanal{' '}
       </div>
 
       {showProjectModal && (

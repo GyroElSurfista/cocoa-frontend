@@ -1,4 +1,5 @@
 import DangerIcon from '../../../assets/ico-danger.svg'
+import TaskAltIcon from '@mui/icons-material/TaskAlt'
 
 interface ConfirmationModalProps {
   isOpen: boolean
@@ -21,10 +22,10 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, porcentaje }: Confirmat
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
       <div className="bg-white w-full max-w-lg p-5 rounded-[20px] shadow-lg">
         <div className="flex justify-center items-center pb-3">
-          <img src={DangerIcon} alt="Danger Icon" />
+          {porcentaje === 100 ? <TaskAltIcon className="text-green-500" fontSize="large" /> : <img src={DangerIcon} alt="Danger Icon" />}
         </div>
         <div className="text-center">
-          <p className="font-bold text-red text-[#f20519]">{porcentaje}% de los criterios cumplido</p>
+          <p className={`font-bold ${porcentaje === 100 ? 'text-green-500' : 'text-red-500'}`}>{porcentaje}% de los criterios cumplido</p>{' '}
           <p className="">
             La planilla
             <span className="font-bold uppercase"> {porcentaje === 100 ? 'SI' : 'NO'}</span> está habilitada para su pago

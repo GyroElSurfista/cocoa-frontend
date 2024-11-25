@@ -44,6 +44,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
         const response = await verificarLlenadoObj(selectedObjective.identificador)
         if (response.data.puedeSerLlenado) {
           navigate(`/planilla-evaluacion/${selectedObjective.identificador}`, { state: { project: `${selectedProject.nombre}` } })
+          handleCancel()
         } else {
           setError(response.data.mensaje)
         }
@@ -73,6 +74,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
   const fetchObjectives = async (idProject: number) => {
     try {
       const response = await getObjectivesEvaluables(idProject)
+      console.log(response.data)
       setObjectives(response.data.data)
     } catch (error) {
       console.error('Error fetching objectives for project:', error)
@@ -114,6 +116,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
             value={selectedProject}
             onChange={(_, newValue) => {
               setSelectedProject(newValue)
+              setSelectedObjective(null)
               setError(null) // Clear error when a valid selection is made
             }}
             renderInput={(params) => <TextField {...params} label="Selecciona un proyecto" variant="outlined" />}
@@ -131,6 +134,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
             }}
             renderInput={(params) => <TextField {...params} label="Selecciona un objetivo" variant="outlined" />}
             disabled={!selectedProject} // Disable the field if no project is selected
+            noOptionsText="No existen objetivos que puedan ser evaluados"
           />
           {error && <p className="text-red-500 text-sm pt-2">{error}</p>}
           <div className="flex justify-end pt-4">

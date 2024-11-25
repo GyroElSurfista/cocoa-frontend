@@ -1,3 +1,5 @@
+import { rowTracker } from '../../SeguimientoPage/Components/ObjectiveTracker'
+
 export interface Objective {
   identificador: number
   iniDate: string
@@ -6,4 +8,5 @@ export interface Objective {
   nombrePlani: string
   valueP: string
   planillasGener: boolean
+  planilla_seguimiento?: Array<rowTracker>
 }

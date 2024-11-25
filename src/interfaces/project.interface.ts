@@ -6,6 +6,8 @@ export interface Planificacion {
   costo: string
   identificadorGrupoEmpre: number
   diaRevis: string
+  planillasSeguiGener: boolean
+  fechaPlaniSeguiGener: string
   grupo_empresa: {
     identificador: number
     nombreLargo: string
