@@ -16,25 +16,46 @@ const SelectorProjectEntregable: React.FC<ProjectSelectorModalProps> = ({ isOpen
 
   const fetchProyectosUnicos = useCallback(async () => {
     try {
-      const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-      const data = await response.json()
+      const [objetivosResponse, planificacionesResponse] = await Promise.all([
+        fetch('https://cocoabackend.onrender.com/api/objetivos'),
+        fetch('https://cocoabackend.onrender.com/api/planificaciones'),
+      ])
+
+      const objetivosData = await objetivosResponse.json()
+      const planificacionesData = await planificacionesResponse.json()
 
       // Almacenar todos los objetivos
-      setAllObjectives(data)
+      setAllObjectives(objetivosData)
 
-      // Filtrar proyectos "(sin iniciar)" y asegurarse de que sean únicos
-      const proyectosUnicosSinIniciar = Array.from(
+      // Obtener la fecha actual
+      const today = new Date()
+
+      // Filtrar planificaciones que aún no han iniciado
+      const planificacionesValidas = planificacionesData.filter((plan: any) => {
+        const fechaInicio = new Date(plan.fechaInici)
+        return today < fechaInicio // Solo planificaciones futuras
+      })
+
+      // Crear un Set con los identificadores de las planificaciones válidas
+      const validPlanificacionIds = new Set(planificacionesValidas.map((plan: any) => plan.identificador))
+
+      // Filtrar objetivos con identificadores de planificación válidos
+      const proyectosUnicos = Array.from(
         new Map(
-          data
-            .filter((item: any) => item.nombrePlani.includes('(sin iniciar)'))
-            .map((item: any) => [
-              item.nombrePlani,
-              { nombre: item.nombrePlani, identificadorPlani: item.identificadorPlani, nombrePlani: item.nombrePlani },
+          objetivosData
+            .filter((objetivo: any) => validPlanificacionIds.has(objetivo.identificadorPlani)) // Filtrar por identificadorPlani
+            .map((objetivo: any) => [
+              objetivo.identificadorPlani,
+              {
+                nombre: objetivo.nombrePlani,
+                identificadorPlani: objetivo.identificadorPlani,
+                nombrePlani: objetivo.nombrePlani,
+              },
             ])
         ).values()
       )
 
-      setProjects(proyectosUnicosSinIniciar)
+      setProjects(proyectosUnicos)
     } catch (error) {
       console.error('Error fetching proyectos:', error)
       setErrorMessage('No se pudieron cargar los proyectos. Inténtalo nuevamente.')
@@ -66,7 +87,9 @@ const SelectorProjectEntregable: React.FC<ProjectSelectorModalProps> = ({ isOpen
         <div className="bg-white w-[475px] max-w-lg p-6 rounded-[20px] shadow-lg max-h-[85vh] overflow-y-auto min-w-[300px]">
           <h5 className="text-xl font-semibold text-center">Seleccionar Proyecto</h5>
           <hr className="border-[1.5px] my-2" />
-          <p className="text-sm my-2">Selecciona un proyecto para continuar con la creación de entregables asociados.</p>
+          <p className="text-sm my-2">
+            Selecciona un proyecto para continuar con la creación de entregables asociados (solo para proyectos en desarrollo).
+          </p>
 
           <h2 className="pb-2 font-medium">Proyectos</h2>
           <Autocomplete
