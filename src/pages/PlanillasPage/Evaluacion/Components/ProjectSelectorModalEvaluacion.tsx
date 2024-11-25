@@ -26,12 +26,34 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-        const data = await response.json()
+        // Fetch objetivos y planificaciones en paralelo
+        const [objetivosResponse, planificacionesResponse] = await Promise.all([
+          fetch('https://cocoabackend.onrender.com/api/objetivos'),
+          fetch('https://cocoabackend.onrender.com/api/planificaciones'),
+        ])
+
+        const objetivosData = await objetivosResponse.json()
+        const planificacionesData = await planificacionesResponse.json()
+
+        // Obtener la fecha actual
+        const today = new Date()
+
+        // Filtrar planificaciones que están en curso
+        const planificacionesEnCursoIds = new Set(
+          planificacionesData
+            .filter((plan: any) => {
+              const fechaInicio = new Date(plan.fechaInici)
+              const fechaFin = new Date(plan.fechaFin)
+              return today >= fechaInicio && today <= fechaFin // Entre fechaInicio y fechaFin
+            })
+            .map((plan: any) => plan.identificador) // Solo necesitamos los identificadores
+        )
+
+        // Filtrar objetivos cuyos identificadores de planificación estén en curso
         const uniqueProjects = Array.from(
           new Map(
-            data
-              .filter((item: any) => item.nombrePlani.includes('(en curso)'))
+            objetivosData
+              .filter((item: any) => planificacionesEnCursoIds.has(item.identificadorPlani)) // Filtrar por identificadorPlani
               .map((item: any) => [
                 item.nombrePlani,
                 {
@@ -42,6 +64,8 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
               ])
           ).values()
         )
+
+        // Actualizar el estado con los proyectos únicos
         setProjects(uniqueProjects)
       } catch (error) {
         console.error('Error al cargar los proyectos:', error)
