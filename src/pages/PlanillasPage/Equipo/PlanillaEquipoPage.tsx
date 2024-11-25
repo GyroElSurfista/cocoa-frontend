@@ -160,7 +160,7 @@ const PlanillaEquipoPage = () => {
     const fetchAsistencias = async () => {
       try {
         const response = await axios.get(
-          `https://cocoabackend.onrender.com/api/asistencia?grupoEmpresaId=${identificadorPlani}&fecha=${planillaDate}`
+          `https://cocoabackend.onrender.com/api/asistencia?grupoEmpresaId=${empresaId}&fecha=${planillaDate}`
         )
         console.log(identificadorPlani, planillaDate)
         console.log(response)
@@ -173,9 +173,6 @@ const PlanillaEquipoPage = () => {
 
         setAsistencias(asistenciaMap)
         setIsReadOnly(data.length > 0)
-        console.log(data)
-        console.log(data.lenght)
-        console.log(isReadOnly)
       } catch (error) {
         console.error('Error al obtener asistencias:', error)
       }
@@ -398,8 +395,8 @@ const PlanillaEquipoPage = () => {
       <h1 className="font-bold text-3xl">Llenar planilla de Seguimiento</h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
       <div className="flex justify-between">
-        <h2 className="font-bold text-2xl">
-          <button>{objectiveName}</button> {'>'} Planilla #{planillaDate}
+        <h2 className="flex font-bold text-2xl">
+          <p>{objectiveName}</p> {'>'} Planilla #{planillaDate}
         </h2>
         {!isReadOnly && (
           <button

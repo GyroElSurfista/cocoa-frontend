@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { Autocomplete, TextField, Snackbar } from '@mui/material'
 import * as Equipo from './../../../../interfaces/equipo.interface'
 import PlaniSeguiIcon from '../../../../assets/PlaniSeguiIcon'
@@ -72,21 +73,61 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
   useEffect(() => {
     if (selectedObjective) {
       setLoadingPlanillas(true)
-      const fetchPlanillas = async () => {
+
+      const fetchAndFilterPlanillas = async () => {
         try {
-          const response = await fetch(
+          // Obtener información de planificaciones
+          const planificacionesResponse = await axios.get('https://cocoabackend.onrender.com/api/planificaciones')
+          const planificacion = planificacionesResponse.data.find((plani) => plani.identificador === selectedObjective.identificadorPlani)
+
+          if (!planificacion) {
+            console.error(`Planificación con identificador ${selectedObjective.identificadorPlani} no encontrada`)
+            setPlanillas([])
+            setLoadingPlanillas(false)
+            return
+          }
+
+          const empresaId = planificacion.identificadorGrupoEmpre
+
+          // Obtener planillas del objetivo seleccionado
+          const planillasResponse = await axios.get(
             `https://cocoabackend.onrender.com/api/objetivos/${selectedObjective.identificador}/planillas-seguimiento`
           )
-          const data: Equipo.Planilla[] = await response.json()
-          setPlanillas(data)
-          setFechasPlanillas(data.map((planilla) => planilla.fecha))
+          const allPlanillas = planillasResponse.data
+
+          // Obtener fecha actual
+          const today = new Date()
+
+          // Verificar estado de llenado de cada planilla y filtrar por fecha
+          const filteredPlanillas = []
+          for (const planilla of allPlanillas) {
+            const planillaDate = new Date(planilla.fecha)
+
+            // Ignorar planillas con fecha futura
+            if (planillaDate > today) {
+              continue
+            }
+
+            // Verificar si la planilla ya fue llenada
+            const asistenciaResponse = await axios.get(
+              `https://cocoabackend.onrender.com/api/asistencia?grupoEmpresaId=${empresaId}&fecha=${planilla.fecha}`
+            )
+
+            if (asistenciaResponse.data.length === 0) {
+              filteredPlanillas.push(planilla)
+            }
+          }
+
+          setPlanillas(filteredPlanillas) // Guardar planillas no llenadas y con fecha válida
+          setFechasPlanillas(filteredPlanillas.map((planilla) => planilla.fecha))
         } catch (error) {
-          console.error('Error al cargar las planillas', error)
+          console.error('Error al cargar o filtrar planillas:', error)
         } finally {
           setLoadingPlanillas(false)
         }
       }
-      fetchPlanillas()
+
+      fetchAndFilterPlanillas()
     } else {
       setPlanillas([])
       setFechasPlanillas([])
