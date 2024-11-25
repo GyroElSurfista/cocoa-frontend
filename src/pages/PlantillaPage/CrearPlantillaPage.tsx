@@ -156,9 +156,9 @@ const CrearPlantillaPage = (): JSX.Element => {
 
   return !successfulCreationPlantilla ? (
     <form onSubmit={onSubmit}>
-      <h1 className="text-4xl font-semibold text-black">Crear plantilla de Evaluación Final</h1>
-      <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
-      <div className="flex justify-end">
+      <h1 className="text-4xl font-semibold text-black mx-6">Crear plantilla de Evaluación Final</h1>
+      <hr className="border-[1.5px] border-[#c6caff] mt-2.5 mx-6" />
+      <div className="flex justify-end mx-6">
         <button
           type="submit"
           disabled={
@@ -173,9 +173,9 @@ const CrearPlantillaPage = (): JSX.Element => {
         </button>
       </div>
 
-      <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
+      <hr className="border-[1.5px] border-[#c6caff] mt-2.5 mx-6" />
 
-      <section className="flex items-center justify-between">
+      <section className="flex items-center justify-between mx-6">
         <div className="flex flex-col">
           <label className="text-black text-xl font-semibold">Nombre de plantilla</label>
           <TextField
@@ -198,19 +198,19 @@ const CrearPlantillaPage = (): JSX.Element => {
         </div>
       </section>
 
-      <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
+      <hr className="border-[1.5px] border-[#c6caff] mt-2.5 mx-6" />
 
-      <h2 className="text-2xl font-semibold text-black mt-2">Criterios de Evaluación</h2>
+      <h2 className="text-2xl font-semibold text-black mt-2 mx-6">Criterios de Evaluación</h2>
 
-      <hr className="border-[1.5px] border-[#c6caff] mt-2.5" />
+      <hr className="border-[1.5px] border-[#c6caff] mt-2.5 mx-6" />
 
-      <section className="mt-4 space-y-6">
+      <section className="mt-4 space-y-6 mx-6">
         {rubricas.length === 0 && (
           <p className="text-[#f60c2e] text-lg text-center">
             Debes tener al menos un criterio para poder crear una plantilla de evaluación final
           </p>
         )}
-        {criterios.length > 0 && parametros.length > 0 ? (
+        {originalCriterios.length > 0 && parametros.length > 0 ? (
           rubricas.map((rubrica) => (
             <RubricaItem
               key={rubrica.id}
@@ -230,13 +230,18 @@ const CrearPlantillaPage = (): JSX.Element => {
       </section>
 
       <div className="flex justify-center">
-        <button type="button" onClick={addRubrica} className="button-primary my-2.5">
+        <button
+          type="button"
+          onClick={addRubrica}
+          className="button-primary my-2.5 disabled:bg-zinc-200 disabled:text-black"
+          disabled={criterios.length === 0}
+        >
           + Nuevo Criterio
         </button>
       </div>
     </form>
   ) : (
-    <div className="h-full relative">
+    <div className="h-full relative mx-6">
       {/* Encabezado */}
       <div className="relative flex items-center w-full px-4">
         <h1 className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-semibold text-[#1c1c1c]">
