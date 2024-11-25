@@ -90,27 +90,34 @@ export const RowInformationUser: React.FC<RowInformationUserProps> = ({
       {!isChecked && !isGivenBaja && (
         <div className="flex items-center">
           <h3 className="mx-3">Motivo:</h3>
-          <select
-            name="motivo"
-            value={motivo}
-            onChange={handleMotivoChange}
-            disabled={isReadOnly}
-            className="inline-flex items-center px-1 py-0 gap-1 rounded-md border-[0.5px] border-[#FFC3CC] bg-[#FFDEE3] text-[#A70920] h-7"
-          >
-            <option value="Motivo de Inasistencia">Motivo de Inasistencia</option>
-            <option value="Licencia">Licencia</option>
-            <option value="Imprevisto">Imprevisto</option>
-            <option value="Injustificado">Injustificado</option>
-          </select>
+          {isReadOnly ? (
+            // Muestra el motivo como un párrafo
+            <p className="text-[#A70920] font-semibold">{motivo}</p>
+          ) : (
+            // Muestra el select si isReadOnly es false
+            <select
+              name="motivo"
+              value={motivo}
+              onChange={handleMotivoChange}
+              className="inline-flex items-center px-1 py-0 gap-1 rounded-md border-[0.5px] border-[#FFC3CC] bg-[#FFDEE3] text-[#A70920] h-7"
+            >
+              <option value="Motivo de Inasistencia">Motivo de Inasistencia</option>
+              <option value="Licencia">Licencia</option>
+              <option value="Imprevisto">Imprevisto</option>
+              <option value="Injustificado">Injustificado</option>
+            </select>
+          )}
         </div>
       )}
 
       {/* Div final para mensajes */}
-      <div className="flex justify-end w-full pr-4 items-center">
-        {!isChecked && motivo === 'Motivo de Inasistencia' && (
-          <p className="text-red-500 font-semibold ">Debe verificar la asistencia antes de guardar la planilla</p>
-        )}
-      </div>
+      {!isReadOnly && !isGivenBaja && (
+        <div className="flex justify-end w-full pr-4 items-center">
+          {!isChecked && motivo === 'Motivo de Inasistencia' && (
+            <p className="text-red-500 font-semibold ">Debe verificar la asistencia antes de guardar la planilla</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
