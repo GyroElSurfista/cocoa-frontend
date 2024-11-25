@@ -336,6 +336,9 @@ const CrearPlantillaPage = (): JSX.Element => {
             </div>
           </article>
         ))}
+        <button type="reset" className="button-primary mt-2.5" onClick={() => location.reload()}>
+          Crear otra plantilla
+        </button>
       </div>
 
       {/* Snackbar */}
