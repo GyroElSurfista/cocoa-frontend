@@ -81,6 +81,7 @@ const CrearPlantillaPage = (): JSX.Element => {
       setSuccessfulCreationPlantilla(successfulCreation.data)
     } catch (error) {
       const axiosError = error as AxiosError<unknown>
+      console.error(error)
 
       if (axiosError.response?.data?.errors) {
         const backendErrors = axiosError.response.data.errors
@@ -136,7 +137,10 @@ const CrearPlantillaPage = (): JSX.Element => {
   useEffect(() => {
     setPlantilla((prevPlantilla) => ({
       ...prevPlantilla,
-      puntaje: rubricas.reduce((total, rubrica) => total + rubrica.data.valorMaxim, 0),
+      puntaje: rubricas.reduce((total, rubrica) => {
+        console.log(rubrica.data)
+        return total + rubrica.data.valorMaxim
+      }, 0),
     }))
   }, [rubricas])
 
@@ -165,7 +169,8 @@ const CrearPlantillaPage = (): JSX.Element => {
             !isValid ||
             Boolean(rubricas.find((rubrica) => rubrica.data.identificadorCriteEvaluFinal === null)) ||
             Boolean(rubricas.length === 0) ||
-            plantilla.puntaje === 0
+            plantilla.puntaje === 0 ||
+            Boolean(rubricas.find((rubrica) => rubrica.data.valorMaxim === 0))
           }
           className="button-primary mt-2.5 disabled:bg-zinc-200 disabled:text-black"
         >

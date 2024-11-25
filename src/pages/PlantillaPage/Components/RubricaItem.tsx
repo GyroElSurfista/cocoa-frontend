@@ -22,7 +22,8 @@ interface RubricaItemProps {
 const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, changeCriterios }: RubricaItemProps): JSX.Element => {
   const [selectedCriterio, setSelectedCriterio] = useState<CriterioEvaluacionFinal | null>(null)
   const [selectedParametro, setSelectedParametro] = useState<ParametroEvaluacionFinal>(parametros[0] || null)
-  const [errorNoSelectedCriterio, setErrorNoSelectedCriterio] = useState<boolean>(false)
+  const [errorNoSelectedCriterio, setErrorNoSelectedCriterio] = useState<boolean>(true)
+  const [errorPuntaje, setErrorPuntaje] = useState<boolean>(true)
 
   useEffect(() => {
     if (parametros.length > 0) {
@@ -130,11 +131,21 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, c
               size="small"
               defaultValue={0}
               type="number"
+              error={errorPuntaje}
               sx={{
                 '& .MuiInputBase-input': {
                   color: '#f60c2e',
                 },
+                '& .MuiFormHelperText-root': {
+                  maxHeight: '0px', // Altura mínima para evitar saltos
+                  fontSize: '0.65rem',
+                  position: 'relative',
+                  margin: '0',
+                  whiteSpace: 'nowrap',
+                  right: '5rem',
+                },
               }}
+              helperText={errorPuntaje ? 'Debe ser mayor a 0' : null}
               onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                 const sanitizedValue = e.target.value.replace(/[+\-.]/g, '')
                 let numericValue = parseInt(sanitizedValue, 10)
@@ -142,6 +153,8 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, c
                 if (isNaN(numericValue)) numericValue = 0
                 else if (numericValue > 100) numericValue = 100
                 e.target.value = numericValue.toString()
+
+                setErrorPuntaje(numericValue === 0)
 
                 setRubricas((prevRubricas) =>
                   prevRubricas.map((rubrica) =>
