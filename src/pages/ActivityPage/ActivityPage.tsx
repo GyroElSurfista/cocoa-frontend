@@ -24,7 +24,7 @@ const ActivityPage = (): JSX.Element => {
     const loadData = async () => {
       try {
         // Obtener actividades y convertir fechas a Date
-        const actividades = (await getActivities(1)).data.data.map((actividad) => ({
+        const actividades = (await getActivities(3)).data.data.map((actividad) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
@@ -127,7 +127,7 @@ const ActivityPage = (): JSX.Element => {
 
   return (
     <>
-      <h2 className="text-black text-2xl font-semibold">Actividades</h2>
+      <h2 className="text-black text-2xl font-semibold mx-6">Actividades</h2>
       <hr className="border-[1.5px] border-[#c6caff]" />
       <div className="flex overflow-x-hidden">
         <div className={`${isDialogOpen ? 'w-[65%] mr-4' : 'w-full'}`}>
