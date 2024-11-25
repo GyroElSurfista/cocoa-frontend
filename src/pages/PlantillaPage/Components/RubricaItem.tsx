@@ -90,6 +90,24 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, c
           value={selectedParametro}
           disableClearable
           onChange={(_event, newValue) => {
+            const prevSelectedParametro = selectedParametro
+            const valorMaximCalculado =
+              newValue.tipo === 'cuantitativo'
+                ? newValue.valorMaxim
+                : prevSelectedParametro.tipo === 'cualitativo'
+                  ? (() => {
+                      let currentValorMaxim = 0
+                      // Obtener el valor actual de valorMaxim desde el estado de las rubricas
+                      setRubricas((prevRubricas) => {
+                        const currentRubrica = prevRubricas.find((rubrica) => rubrica.id === index)
+                        currentValorMaxim = currentRubrica?.data.valorMaxim || 0
+                        return prevRubricas // Devolver el estado sin modificaciones en esta fase
+                      })
+
+                      return currentValorMaxim // Usar el valor actual calculado
+                    })()
+                  : 0
+
             setSelectedParametro(newValue)
             setRubricas((prevRubricas) =>
               prevRubricas.map((rubrica) =>
@@ -99,12 +117,15 @@ const RubricaItem = ({ index, criterios, parametros, quitRubrica, setRubricas, c
                       data: {
                         ...rubrica.data,
                         identificadorParamEvalu: newValue.identificador,
-                        valorMaxim: newValue.tipo === 'cuantitativo' ? newValue.valorMaxim : rubrica.data.valorMaxim,
+                        valorMaxim: valorMaximCalculado,
                       },
                     }
                   : rubrica
               )
             )
+
+            // Manejar errores en puntaje
+            setErrorPuntaje(prevSelectedParametro.tipo === 'cuantitativo' || valorMaximCalculado === 0)
           }}
           renderInput={(params) => (
             <TextField

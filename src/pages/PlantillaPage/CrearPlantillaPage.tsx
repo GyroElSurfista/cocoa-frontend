@@ -81,8 +81,6 @@ const CrearPlantillaPage = (): JSX.Element => {
       setSuccessfulCreationPlantilla(successfulCreation.data)
     } catch (error) {
       const axiosError = error as AxiosError<unknown>
-      console.error(error)
-
       if (axiosError.response?.data?.errors) {
         const backendErrors = axiosError.response.data.errors
         if (backendErrors?.nombre) {
@@ -138,7 +136,6 @@ const CrearPlantillaPage = (): JSX.Element => {
     setPlantilla((prevPlantilla) => ({
       ...prevPlantilla,
       puntaje: rubricas.reduce((total, rubrica) => {
-        console.log(rubrica.data)
         return total + rubrica.data.valorMaxim
       }, 0),
     }))
