@@ -109,15 +109,25 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
       })
 
       await Promise.all(requests)
+
+      // Obtener nuevamente los datos del proyecto actualizado
+      const refreshedResponse = await fetch('https://cocoabackend.onrender.com/api/objetivos')
+      const refreshedData = await refreshedResponse.json()
+
+      // Buscar el proyecto actualizado por su identificador
+      const updatedProject = refreshedData.find((obj: any) => obj.identificadorPlani === projectId)
+
+      // Redirigir con los datos actualizados
       navigate('/planilla-evaluacion', {
         state: {
-          identificadorPlani: selectedProject?.identificadorPlani,
-          nombrePlani: selectedProject?.nombrePlani,
+          identificadorPlani: updatedProject?.identificadorPlani,
+          nombrePlani: updatedProject?.nombrePlani,
           success: true,
-          message: `Planillas generadas correctamente para ${selectedProject?.nombrePlani}`,
-          fechaEvaluFinalGener: selectedProject?.fechaEvaluFinalGener,
+          message: `Planillas generadas correctamente para ${updatedProject?.nombrePlani}`,
+          fechaEvaluFinalGener: updatedProject?.fechaEvaluFinalGener, // Pasar la fecha actualizada
         },
       })
+
       resetModalState()
       onClose() // Cierra el modal solo después de generar nuevas planillas
     } catch (error) {
