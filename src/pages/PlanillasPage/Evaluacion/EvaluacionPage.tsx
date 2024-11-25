@@ -28,7 +28,7 @@ const EvaluacionPage: React.FC = () => {
   }
 
   return (
-    <div className="mx-28">
+    <div className="mx-5">
       <h1 className="font-bold text-3xl">Generar planillas de evaluación de objetivos</h1>
 
       <div>
