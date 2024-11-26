@@ -112,23 +112,39 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   // Verificar si el nombre está duplicado
   const checkNombreDuplicado = async (): Promise<boolean> => {
     try {
+      // Verificar nombres dinámicos con fechas
       for (const fecha of fechas) {
         const response = await axios.get(
           `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${fecha}`
         )
-        const entregablesExistentes = response.data.data
-        const exists = entregablesExistentes.some((e: { nombre: string }) => e.nombre.toLowerCase().trim() === nombre.toLowerCase().trim())
+        const entregablesDinamicos = response.data.data
+        const existsDinamico = entregablesDinamicos.some(
+          (e: { nombre: string }) => e.nombre.toLowerCase().trim() === nombre.toLowerCase().trim()
+        )
 
-        if (exists) {
+        if (existsDinamico) {
           setGeneralError(`El nombre "${nombre}" ya está registrado para el objetivo y fecha seleccionados.`)
           return true
         }
+      }
+
+      // Verificar nombres estáticos
+      const responseStatic = await axios.get('https://cocoabackend.onrender.com/api/entregables')
+      const entregablesEstaticos = responseStatic.data
+      const existsEstatico = entregablesEstaticos.some(
+        (e: { nombre: string }) => e.nombre.toLowerCase().trim() === nombre.toLowerCase().trim()
+      )
+
+      if (existsEstatico) {
+        setGeneralError(`El nombre "${nombre}" ya está registrado en los entregables existentes.`)
+        return true
       }
     } catch (error) {
       console.error('Error al verificar duplicados:', error)
       setGeneralError('Error al verificar el nombre del entregable. Intente nuevamente.')
       return true
     }
+
     return false
   }
 
@@ -138,11 +154,13 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
     setValidationErrors({})
     setIsSaving(true)
 
+    // Verificar duplicados (dinámicos y estáticos)
     if (await checkNombreDuplicado()) {
       setIsSaving(false)
       return
     }
 
+    // Validar entradas
     if (!validateInputs()) {
       setGeneralError('Debe agregar al menos un criterio válido y cumplir con las validaciones.')
       setIsSaving(false)
