@@ -10,6 +10,7 @@ interface EntregableDinamicoAccordionProps {
   entregables: Entregable[]
   fechas: string[]
   objectiveName: string
+  isReadOnly: boolean
   onEntregableUpdated: () => void // Para actualizar la lista de entregables
   onShowSnackbar: (message: string) => void // Función para mostrar Snackbar
 }
@@ -35,6 +36,7 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
   entregables,
   onEntregableUpdated,
   objectiveName,
+  isReadOnly,
   fechas,
   onShowSnackbar,
 }) => {
@@ -100,26 +102,30 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
                 className="flex items-center border-l-2 border-[#c6caff] pl-2 space-x-4"
                 onClick={(e) => e.stopPropagation()} // Detenemos la propagación
               >
-                <BorderColorIcon
-                  onClick={(e) => handleEditClick(e, entregable)}
-                  sx={{
-                    color: 'gray',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      color: 'red', // Color en hover
-                    },
-                  }}
-                />
-                <DeleteIcon
-                  onClick={(e) => handleDeleteClick(e, entregable)}
-                  sx={{
-                    color: 'gray',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      color: 'red', // Color en hover
-                    },
-                  }}
-                />
+                {!isReadOnly && (
+                  <BorderColorIcon
+                    onClick={(e) => handleEditClick(e, entregable)}
+                    sx={{
+                      color: 'gray',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        color: 'red', // Color en hover
+                      },
+                    }}
+                  />
+                )}
+                {!isReadOnly && (
+                  <DeleteIcon
+                    onClick={(e) => handleDeleteClick(e, entregable)}
+                    sx={{
+                      color: 'gray',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        color: 'red', // Color en hover
+                      },
+                    }}
+                  />
+                )}
               </div>
             </div>
 

@@ -11,15 +11,30 @@ const EntregablePage = () => {
   const navigate = useNavigate()
   const { identificadorPlani, objetivoIds, nombrePlani } = location.state || {}
 
+  // Estados locales sincronizados con location.state
+  const [currentPlani, setCurrentPlani] = useState({
+    identificadorPlani: identificadorPlani || null,
+    objetivoIds: objetivoIds || [],
+    nombrePlani: nombrePlani || '',
+  })
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [entregables, setEntregables] = useState<Entregables.Entregable[]>([])
   const [availableObjetivos, setAvailableObjetivos] = useState<Entregables.Objetivo[]>([])
-
-  // Estados para controlar el Snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarColor, setSnackbarColor] = useState('')
-  const [refreshTrigger, setRefreshTrigger] = useState(false) // Estado para forzar la recarga de datos // IDs de ejemplo
+  const [refreshTrigger, setRefreshTrigger] = useState(false)
+
+  // Sincroniza el estado local con location.state cuando cambia
+  useEffect(() => {
+    if (identificadorPlani && nombrePlani && objetivoIds) {
+      setCurrentPlani({ identificadorPlani, nombrePlani, objetivoIds })
+    } else {
+      // Redirigir si falta algún dato
+      navigate('/selector-proyecto')
+    }
+  }, [identificadorPlani, nombrePlani, objetivoIds, navigate])
 
   // Fetch entregables
   const fetchEntregables = async () => {
@@ -37,45 +52,31 @@ const EntregablePage = () => {
     try {
       const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
       const data = await response.json()
-      setAvailableObjetivos(data.filter((obj: any) => objetivoIds?.includes(obj.identificador)))
+      setAvailableObjetivos(data.filter((obj: any) => currentPlani.objetivoIds?.includes(obj.identificador)))
     } catch (error) {
       console.error('Error al cargar los objetivos:', error)
     }
   }
 
   useEffect(() => {
-    if (!identificadorPlani || !nombrePlani || !objetivoIds) {
-      // Si falta algún dato, redirigir al usuario de vuelta al selector de proyectos
-      navigate('/selector-proyecto')
-      return
-    }
-
     fetchEntregables()
     fetchObjetivos()
-  }, [identificadorPlani, nombrePlani, objetivoIds, navigate])
+  }, [currentPlani])
 
   const openModal = () => setIsModalOpen(true)
   const closeModal = () => setIsModalOpen(false)
 
-  // Maneja el cierre del Snackbar
   const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
-    if (reason === 'clickaway') {
-      return
-    }
+    if (reason === 'clickaway') return
     setOpenSnackbar(false)
   }
 
-  // Maneja la creación del entregable en tiempo real
   const handleCreateEntregable = async (newEntregables: Entregables.Entregable[]) => {
-    // Aquí actualizamos el estado local inmediatamente después de guardar el entregable
     setEntregables([...entregables, ...newEntregables])
     setRefreshTrigger((prev) => !prev)
-    // Configurar el mensaje del Snackbar
     setSnackbarMessage('Entregable(s) agregado(s) correctamente')
-    setSnackbarColor('#D3FFD2') // Color verde
-    setOpenSnackbar(true) // Mostrar el Snackbar
-
-    // Volver a cargar los entregables desde la API
+    setSnackbarColor('#D3FFD2')
+    setOpenSnackbar(true)
     await fetchEntregables()
   }
 
@@ -86,7 +87,7 @@ const EntregablePage = () => {
       </h2>
       <hr className="border-[1.5px] border-[#c6caff] my-3" />
       <div className="flex justify-between">
-        <h2 className="text-2xl font-semibold">Proyecto {nombrePlani}</h2>
+        <h2 className="text-2xl font-semibold">Proyecto {currentPlani.nombrePlani}</h2>
         <button onClick={openModal} className="button-primary">
           + Añadir entregable
         </button>
@@ -96,22 +97,19 @@ const EntregablePage = () => {
       <p className="font-semibold text-lg">Entregables:</p>
 
       <div className="mt-4">
-        <EntregableAccordion
-          objetivoIds={objetivoIds}
-          refreshTrigger={refreshTrigger} // Pasar el trigger al componente
-        />
+        <EntregableAccordion objetivoIds={currentPlani.objetivoIds} refreshTrigger={refreshTrigger} />
       </div>
 
       <hr className="border-[1.5px] border-[#c6caff] mt-4" />
 
       <NewEntregableModal
+        key={currentPlani.nombrePlani} // Usar nombrePlani como key
         isOpen={isModalOpen}
         onClose={closeModal}
-        onCreate={handleCreateEntregable} // Pasar el método fetchEntregables
-        nombrePlani={nombrePlani}
+        onCreate={handleCreateEntregable}
+        nombrePlani={currentPlani.nombrePlani}
       />
 
-      {/* Snackbar para mostrar mensajes */}
       <Snackbar
         open={openSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}

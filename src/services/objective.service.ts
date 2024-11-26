@@ -32,7 +32,7 @@ export const getPlannings = async () => {
 }
 
 export const getObjectivesFromPlanification = async (idProyect: number): AxiosPromise<ObjectiveData[]> => {
-  return await axiosInstance.get(`/planificaciones/${idProyect}/objetivos`)
+  return await axiosInstance.get(`/planificaciones/${idProyect}/objetivos-para-actividades`)
 }
 
 export const getActivitiesByObjective = async (idObjetivo: number): AxiosPromise<ActivityProps[]> => {
