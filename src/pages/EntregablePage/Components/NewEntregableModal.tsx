@@ -476,7 +476,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                     type="text"
                     value={`${e.nombre} - ${e.criteriosAcept.length} ${e.criteriosAcept.length === 1 ? 'Criterio' : 'Criterios'}`}
                     readOnly
-                    className="border text-gray-900 rounded-lg block w-full p-2.5"
+                    className="border text-gray-900 rounded-lg block w-full p-2.5 pr-16" // Añade pr-12 para espacio a la derecha
                   />
 
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
