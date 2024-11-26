@@ -53,8 +53,6 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
     if (name.trim().length === 0) return ''
     if (name.trim().length < 5) return 'El nombre debe tener al menos 5 caracteres.'
     if (name.trim().length > 50) return 'El nombre debe tener como máximo 50 caracteres.'
-    if (/[^a-zA-Z0-9\s]{5,}/.test(name)) return 'El nombre no puede contener más de 5 caracteres especiales consecutivos.'
-    if (!/[a-zA-Z0-9]{5,}/.test(name)) return 'El nombre debe contener al menos 5 caracteres normales.'
     return ''
   }
 
@@ -62,8 +60,6 @@ export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps>
     if (description.trim().length === 0) return 'La observación no puede estar vacía o contener solo espacios.'
     if (description.trim().length < 5) return 'La observación debe tener al menos 5 caracteres.'
     if (description.trim().length > 255) return 'La observación debe tener como máximo 255 caracteres.'
-    if (/[^a-zA-Z0-9\s]{5,}/.test(description)) return 'La observación no puede contener más de 5 caracteres especiales consecutivos.'
-    if (!/[a-zA-Z0-9]{5,}/.test(description)) return 'La observación debe contener al menos 5 caracteres normales.'
     return ''
   }
 

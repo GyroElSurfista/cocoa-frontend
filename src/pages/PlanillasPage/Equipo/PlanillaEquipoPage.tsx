@@ -396,7 +396,14 @@ const PlanillaEquipoPage = () => {
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
       <div className="flex justify-between">
         <h2 className="flex font-bold text-2xl">
-          <p>{objectiveName}</p> {'>'} Planilla #{planillaDate}
+          <p>
+            {objectiveName} {'>'} Planilla #
+            {new Date(new Date(planillaDate).setDate(new Date(planillaDate).getDate() + 1)).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })}
+          </p>
         </h2>
         {!isReadOnly && (
           <button
