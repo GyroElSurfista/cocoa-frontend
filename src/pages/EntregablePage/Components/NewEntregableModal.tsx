@@ -7,24 +7,13 @@ import IconBack from '../../../assets/icon-back.svg'
 import IconEdit from '../../../assets/icon-edit.svg'
 import IconTrash from '../../../assets/trash.svg'
 import * as Entregables from './../../../interfaces/entregable.interface'
-import { Entregable } from '../../../interfaces/entregable.interface'
+import { getAllObjetivosEntregables, getEntregablesWithObjetive, postEntregables } from '../../../services/entregable.service'
 
-interface NewEntregableModalProps {
-  isOpen: boolean
-  nombrePlani: string
-  onClose: () => void
-  onCreate: (newEntregable: Entregables.Entregable[]) => void
-}
-
-export interface FormData {
-  objetivoId: number
-}
-
-const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose, onCreate, nombrePlani }) => {
-  const { register, handleSubmit, setValue, reset } = useForm<FormData>()
+const NewEntregableModal: React.FC<Entregables.NewEntregableModalProps> = ({ isOpen, onClose, onCreate, nombrePlani }) => {
+  const { handleSubmit, setValue, reset } = useForm<Entregables.FormData>()
   const [view, setView] = useState<number>(1)
   const [filteredObjetivos, setFilteredObjetivos] = useState<Entregables.Objetivo[]>([])
-  const [entregables, setEntregables] = useState<Entregable[]>([])
+  const [entregables, setEntregables] = useState<Entregables.Entregable[]>([])
   const [currentEntregable, setCurrentEntregable] = useState<Entregables.Entregable>({
     nombre: '',
     descripcion: '',
@@ -49,8 +38,8 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
 
   const fetchObjetivos = useCallback(async () => {
     try {
-      const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-      const data: Entregables.Objetivo[] = await response.json()
+      const response = await getAllObjetivosEntregables()
+      const data: Entregables.Objetivo[] = await response.data
 
       // Aquí filtras los objetivos por nombrePlani
       const filtered = data.filter((objetivo) => objetivo.nombrePlani === nombrePlani) // Cambia el nombre según necesites
@@ -146,8 +135,9 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     // Validar nombre usando el endpoint para verificar duplicados
     if (selectedObjetivo) {
       try {
-        const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${selectedObjetivo.identificador}/entregables`)
-        const existingEntregables = await response.json()
+        const response = await getEntregablesWithObjetive(selectedObjetivo.identificador)
+
+        const existingEntregables = await response.data
         const exists = existingEntregables.some((e: { nombre: string }) => e.nombre === currentEntregable.nombre.trim())
 
         if (exists) {
@@ -329,15 +319,21 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
           criteriosAcept: e.criteriosAcept,
         }
 
-        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos/entregables', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-        if (response.status !== 201) {
-          const responseBody = await response.json()
-          setErrorMessage(responseBody.message || 'Error al crear el entregable.')
-          setValidationErrors(responseBody.errors || null)
+        try {
+          const response = await postEntregables(payload)
+
+          if (response.status !== 201) {
+            setErrorMessage(response.data.message || 'Error al crear el entregable.')
+            setValidationErrors(response.data.errors || null)
+            return
+          }
+        } catch (error: any) {
+          if (error.response) {
+            setErrorMessage(error.response.data.message || 'Error al crear el entregable.')
+            setValidationErrors(error.response.data.errors || null)
+          } else {
+            setErrorMessage('Error de red o del servidor.')
+          }
           return
         }
       }

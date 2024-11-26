@@ -1,6 +1,7 @@
 // SelectorProjectEntregable.tsx
 import { useState, useEffect, useCallback } from 'react'
 import { Modal, Autocomplete, TextField } from '@mui/material'
+import { getAllObjetivosEntregables, getAllPlanificaciones } from '../../../services/entregable.service'
 
 interface ProjectSelectorModalProps {
   isOpen: boolean
@@ -16,13 +17,10 @@ const SelectorProjectEntregable: React.FC<ProjectSelectorModalProps> = ({ isOpen
 
   const fetchProyectosUnicos = useCallback(async () => {
     try {
-      const [objetivosResponse, planificacionesResponse] = await Promise.all([
-        fetch('https://cocoabackend.onrender.com/api/objetivos'),
-        fetch('https://cocoabackend.onrender.com/api/planificaciones'),
-      ])
+      const [objetivosResponse, planificacionesResponse] = await Promise.all([getAllObjetivosEntregables(), getAllPlanificaciones()])
 
-      const objetivosData = await objetivosResponse.json()
-      const planificacionesData = await planificacionesResponse.json()
+      const objetivosData = await objetivosResponse.data
+      const planificacionesData = await planificacionesResponse.data
 
       // Almacenar todos los objetivos
       setAllObjectives(objetivosData)

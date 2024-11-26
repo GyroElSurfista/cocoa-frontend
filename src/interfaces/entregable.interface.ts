@@ -4,7 +4,17 @@ export interface EntregableAccordionProps {
   objetivoIds: string[]
 }
 
+export interface FormData {
+  objetivoId: number
+}
+export interface NewEntregableModalProps {
+  isOpen: boolean
+  nombrePlani: string
+  onClose: () => void
+  onCreate: (newEntregable: Entregable[]) => void
+}
 export interface Objetivo {
+  some(arg0: (e: { nombre: string }) => boolean): unknown
   identificador: number
   nombre: string
   nombrePlani: string
