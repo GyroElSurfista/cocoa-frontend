@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import { useForm, SubmitHandler } from 'react-hook-form'
@@ -40,6 +40,8 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string[] } | null>(null)
   const [lengthError, setLengthError] = useState('')
   const [generalError, setGeneralError] = useState('')
+
+  const scrollRef = useRef(null)
 
   useEffect(() => {
     if (isOpen) fetchObjetivos()
@@ -108,16 +110,18 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
 
   const updateCriterio = (index: number, value: string) => {
     const updatedCriterios = [...criterios]
-    updatedCriterios[index] = value.slice(0, 55) // Limit to 55 characters
+    updatedCriterios[index] = value.slice(0, 55) // Limitar caracteres a 55
     setCriterios(updatedCriterios)
-    setGeneralError('')
 
-    const newValidationErrors = { ...validationErrors }
-    if (value.trim().length === 0) {
-      newValidationErrors[`criteriosAcept.${index}.descripcion`] = ['']
-      setValidationErrors(newValidationErrors)
-      return
+    // Validar duplicados al actualizar
+    if (!validateDuplicates(updatedCriterios)) {
+      setGeneralError('No se permiten criterios duplicados.')
+    } else {
+      setGeneralError('')
     }
+
+    // Validar longitud de caracteres
+    const newValidationErrors = { ...validationErrors }
     if (value.trim().length < 10) {
       newValidationErrors[`criteriosAcept.${index}.descripcion`] = ['El criterio debe tener al menos 10 caracteres']
     } else if (value.trim().length > 50) {
@@ -134,6 +138,10 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setLengthError('')
     setValidationErrors(null)
     setGeneralError('')
+    if (!validateDuplicates(criterios)) {
+      setGeneralError('No se permiten criterios duplicados.')
+      return
+    }
 
     // Validar nombre usando el endpoint para verificar duplicados
     if (selectedObjetivo) {
@@ -260,7 +268,12 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     updatedCriterios.splice(index, 1)
     setCriterios(updatedCriterios)
 
-    // Limpiar el error correspondiente al índice eliminado
+    // Limpiar el error si no hay duplicados
+    if (validateDuplicates(updatedCriterios)) {
+      setGeneralError('')
+    }
+
+    // Limpiar errores específicos del criterio eliminado
     const newValidationErrors = { ...validationErrors }
     delete newValidationErrors[`criteriosAcept.${index}.descripcion`]
     setValidationErrors(newValidationErrors)
@@ -337,6 +350,18 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     }
   }
 
+  useEffect(() => {
+    // Desplaza el scroll al final después de agregar un criterio
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [criterios])
+
+  const validateDuplicates = (criteriosList: string[]) => {
+    const uniqueCriterios = new Set(criteriosList.map((c) => c.trim()))
+    return uniqueCriterios.size === criteriosList.length // Devuelve false si hay duplicados
+  }
+
   if (!isOpen) return null
 
   return (
@@ -402,7 +427,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
             <h6 className="text-base mb-2 flex">
               Criterios de aceptación para Entregable <p className="text-red-600">*</p>
             </h6>
-            <div className="max-h-40 overflow-y-auto">
+            <div ref={scrollRef} className="max-h-40 overflow-y-auto">
               {criterios.map((criterio, index) => (
                 <div className="mb-4" key={index}>
                   <div className="flex items-center relative">
@@ -420,7 +445,6 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                       className="w-6 h-6 absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
                     />
                   </div>
-                  {/* Mostrar error específico para cada input de criterio */}
                   {validationErrors?.[`criteriosAcept.${index}.descripcion`] && (
                     <div className="text-red-500 text-sm my-1">{validationErrors[`criteriosAcept.${index}.descripcion`].join(', ')}</div>
                   )}
@@ -428,7 +452,6 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
               ))}
             </div>
 
-            {/* Mostrar error general si no hay criterios válidos */}
             {generalError && <div className="text-red-500 text-sm my-2">{generalError}</div>}
 
             <div className="flex justify-center">
@@ -451,7 +474,12 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                 <button type="button" onClick={handleCancel} className="button-secondary_outlined">
                   Cancelar
                 </button>
-                <button type="button" onClick={saveEntregable} className="button-primary">
+                <button
+                  type="button"
+                  onClick={saveEntregable}
+                  className={`button-primary ${generalError ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={!!generalError} // Deshabilitado si hay un error general
+                >
                   Siguiente
                 </button>
               </div>
@@ -476,7 +504,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                     type="text"
                     value={`${e.nombre} - ${e.criteriosAcept.length} ${e.criteriosAcept.length === 1 ? 'Criterio' : 'Criterios'}`}
                     readOnly
-                    className="border text-gray-900 rounded-lg block w-full p-2.5"
+                    className="border text-gray-900 rounded-lg block w-full p-2.5 pr-16" // Añade pr-12 para espacio a la derecha
                   />
 
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">

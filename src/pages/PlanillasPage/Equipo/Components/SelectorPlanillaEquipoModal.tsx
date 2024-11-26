@@ -191,7 +191,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
     <>
       <div
         className={`hover:text-[#6344e7] py-3 px-2.5 text-base font-normal gap-1 items-center flex cursor-pointer ${
-          location.pathname.startsWith('/planillas-seguimiento/') ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
+          location.pathname === '/planillas-seguimiento' ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
         }`}
         onClick={handleOpenProjectModal} // Llama a la función para abrir y recargar datos
       >
