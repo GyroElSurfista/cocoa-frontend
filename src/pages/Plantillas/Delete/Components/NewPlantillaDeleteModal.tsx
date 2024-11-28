@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
 import IconDanger from './../../../../assets/ico-danger.svg'
+import { deletePlantilla } from '../../../../services/plantillasDelete.service'
 
 export interface NewPlantillaDeleteModalProps {
   plantillaId: number
@@ -33,9 +34,7 @@ export const NewPlantillaDeleteModal: React.FC<NewPlantillaDeleteModalProps> = (
 
   const handleConfirmDelete = async () => {
     try {
-      await fetch(`https://cocoabackend.onrender.com/api/plantillas-evaluacion-final/${plantillaId}`, {
-        method: 'DELETE',
-      })
+      await deletePlantilla(plantillaId)
       onDeleteConfirm()
     } catch (error) {
       console.error('Error deleting plantilla:', error)

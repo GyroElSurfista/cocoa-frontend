@@ -5,6 +5,7 @@ import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import Slider from '@mui/material/Slider'
 import * as Plantillas from './../../../../interfaces/plantilla.interface'
+import { getAllPlantillasEvaluation } from '../../../../services/plantillasDelete.service'
 
 interface PlantillaDeleteAccordionProps {
   onDeleteConfirm: () => void
@@ -19,8 +20,8 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
   useEffect(() => {
     const fetchPlantillas = async () => {
       try {
-        const response = await fetch('https://cocoabackend.onrender.com/api/plantillas-evaluacion-final')
-        const data = await response.json()
+        const response = await getAllPlantillasEvaluation()
+        const data = await response.data
         setPlantillas(data)
       } catch (error) {
         console.error('Error fetching plantillas:', error)
@@ -82,11 +83,14 @@ export const PlantillaDeleteAccordion: React.FC<PlantillaDeleteAccordionProps> =
                   <div className="flex items-center w-auto">
                     <span className="font-semibold text-sm mr-1">Creado el: </span>
                     <span className="text-sm">
-                      {new Date(plantilla.fechaCreac).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}
+                      {new Date(new Date(plantilla.fechaCreac).setDate(new Date(plantilla.fechaCreac).getDate() + 1)).toLocaleDateString(
+                        'es-ES',
+                        {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        }
+                      )}
                     </span>
                     {plantilla.usuario_cread && (
                       <span className="ml-3 flex items-center">
