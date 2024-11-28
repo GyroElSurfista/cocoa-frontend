@@ -3,6 +3,7 @@ import { useForm, SubmitHandler } from 'react-hook-form'
 import axios from 'axios'
 import IconClose from '../../../../assets/icon-close.svg'
 import * as Equipo from './../../../../interfaces/equipo.interface'
+import { getAllEntregables, getEntregablesDinamicos, saveOrUpdateEntregable } from '../../../../services/equipo.service'
 
 const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   isOpen,
@@ -114,9 +115,7 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
     try {
       // Verificar nombres dinámicos con fechas
       for (const fecha of fechas) {
-        const response = await axios.get(
-          `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${fecha}`
-        )
+        const response = await getEntregablesDinamicos(objectiveId, fecha)
         const entregablesDinamicos = response.data.data
         const existsDinamico = entregablesDinamicos.some(
           (e: { nombre: string }) => e.nombre.toLowerCase().trim() === nombre.toLowerCase().trim()
@@ -129,7 +128,7 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
       }
 
       // Verificar nombres estáticos
-      const responseStatic = await axios.get('https://cocoabackend.onrender.com/api/entregables')
+      const responseStatic = await getAllEntregables()
       const entregablesEstaticos = responseStatic.data
       const existsEstatico = entregablesEstaticos.some(
         (e: { nombre: string }) => e.nombre.toLowerCase().trim() === nombre.toLowerCase().trim()
@@ -179,9 +178,7 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
         identificadorPlaniSegui: initialData?.identificadorPlaniSegui || planillaSeguiId,
       }
 
-      const response = initialData
-        ? await axios.put(`https://cocoabackend.onrender.com/api/entregables/update/${initialData.identificador}`, updatedEntregable)
-        : await axios.post('https://cocoabackend.onrender.com/api/entregable', updatedEntregable)
+      const response = await saveOrUpdateEntregable(initialData, updatedEntregable)
 
       if (response.status === 200 || response.status === 201) {
         onCreate(response.data)

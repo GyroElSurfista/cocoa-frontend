@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getAllObjetivosEntregables } from '../../../../services/entregable.service'
 
 interface NewPlanillaModalProps {
   isOpen: boolean
@@ -25,9 +26,8 @@ const NewPlanillaModal: React.FC<NewPlanillaModalProps> = ({ isOpen, onClose, on
   useEffect(() => {
     const fetchObjetivos = async () => {
       try {
-        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-        if (!response.ok) throw new Error('Error al cargar los objetivos')
-        const data = await response.json()
+        const response = await getAllObjetivosEntregables()
+        const data = await response.data
         setObjetivos(data)
       } catch (error) {
         console.error('Error fetching objetivos:', error)

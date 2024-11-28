@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
 import IconClose from '@mui/icons-material/Close'
+import * as Equipo from './../../../../interfaces/equipo.interface'
 
-interface AddActivitiesObservationsProps {
-  activity: { nombre: string; observaciones: { descripcion: string }[] }
-  activityIndex: number
-  onActivityChange: (activityIndex: number, newValue: string) => void
-  onAddObservation: () => void
-  onObservationChange: (activityIndex: number, observationIndex: number, newValue: string) => void
-  onDeleteActivity: () => void
-  onDeleteObservation: (activityIndex: number, observationIndex: number) => void
-  onValidationChange: (activityIndex: number, isValid: boolean) => void // Callback for validation state
-  isReadOnly: boolean
-}
-
-export const AddActivitiesObservations: React.FC<AddActivitiesObservationsProps> = (props) => {
+export const AddActivitiesObservations: React.FC<Equipo.AddActivitiesObservationsProps> = (props) => {
   const {
     activity,
     activityIndex,

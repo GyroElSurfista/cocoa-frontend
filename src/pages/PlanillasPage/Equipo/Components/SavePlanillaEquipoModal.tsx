@@ -1,11 +1,7 @@
 import IconDanger from '../../../../assets/ico-danger.svg'
+import * as Equipo from './../../../../interfaces/equipo.interface'
 
-interface SavePlanillaEquipoModalProps {
-  onConfirm: () => void
-  onCancel: () => void
-}
-
-export const SavePlanillaEquipoModal: React.FC<SavePlanillaEquipoModalProps> = ({ onConfirm, onCancel }) => {
+export const SavePlanillaEquipoModal: React.FC<Equipo.SavePlanillaEquipoModalProps> = ({ onConfirm, onCancel }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
       <div className="bg-white w-[375px] max-w-lg p-6 rounded-[20px] shadow-lg">
