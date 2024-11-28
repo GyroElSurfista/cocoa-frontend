@@ -1,53 +1,27 @@
 import { useState, useEffect } from 'react'
 import Drop from '../../../../assets/icon-drop.svg'
+import * as Evaluacion from './../../../../interfaces/evaluacion.interface'
+import { getEntregablesWithObjetive, getObjetivesWhitPlanilla } from '../../../../services/planillaEvaGen.service'
 
-interface EvaluacionObjetivo {
-  identificador: number
-  fecha: string
-  habilitadoPago: boolean
-  sePago: boolean
-  observacion: string
-  identificadorObjet: number
-}
-
-interface Planilla {
-  identificador: number
-  nombre: string
-  fechaInici: string
-  fechaFin: string
-  valorPorce: string
-  planillasGener: boolean
-  identificadorPlani: number
-  planillaEvaluGener: boolean
-  evaluacion_objetivo: EvaluacionObjetivo[]
-}
-
-interface Deliverable {
-  identificador: number
-  nombre: string
-  descripcion: string
-  identificadorObjet: number
-}
-
-interface PlanillasEvaluacionAccordionProps {
-  identificadorPlani: number
-  nombrePlani: string
-}
-
-export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordionProps> = ({ identificadorPlani, nombrePlani }) => {
-  const [planillas, setPlanillas] = useState<Planilla[]>([])
-  const [expandedPlanillas, setExpandedPlanillas] = useState<{ [key: number]: Deliverable[] }>({})
+export const PlanillasEvaluacionAccordion: React.FC<Evaluacion.PlanillasEvaluacionAccordionProps> = ({
+  identificadorPlani,
+  nombrePlani,
+}) => {
+  const [planillas, setPlanillas] = useState<Evaluacion.Planilla[]>([])
+  const [expandedPlanillas, setExpandedPlanillas] = useState<{ [key: number]: Evaluacion.Deliverable[] }>({})
 
   // Fetch de las planillas de seguimiento para todos los objetivos
   useEffect(() => {
     const fetchAllPlanillas = async () => {
       try {
-        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos-con-planilla-evaluacion-generada')
-        const data = await response.json()
+        const response = await getObjetivesWhitPlanilla()
+        const data = await response.data
         const filteredPlanillas = data
-          .filter((planilla: Planilla) => planilla.evaluacion_objetivo.length > 0 && planilla.identificadorPlani === identificadorPlani)
+          .filter(
+            (planilla: Evaluacion.Planilla) => planilla.evaluacion_objetivo.length > 0 && planilla.identificadorPlani === identificadorPlani
+          )
           .sort(
-            (a: Planilla, b: Planilla) =>
+            (a: Evaluacion.Planilla, b: Evaluacion.Planilla) =>
               (a.evaluacion_objetivo[0]?.identificadorObjet || 0) - (b.evaluacion_objetivo[0]?.identificadorObjet || 0)
           ) // Orden ascendente por identificadorObjet
         setPlanillas(filteredPlanillas)
@@ -62,8 +36,8 @@ export const PlanillasEvaluacionAccordion: React.FC<PlanillasEvaluacionAccordion
   // Fetch deliverables for a specific objective
   const fetchDeliverables = async (identificadorObjet: number) => {
     try {
-      const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${identificadorObjet}/entregables`)
-      const data = await response.json()
+      const response = await getEntregablesWithObjetive(identificadorObjet)
+      const data = await response.data
       return data
     } catch (error) {
       console.error('Error al cargar los entregables:', error)

@@ -1,33 +1,17 @@
 import React, { useState, useEffect } from 'react'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
+import * as Evaluacion from './../../../../interfaces/evaluacion.interface'
+import { getAllObjetivosEntregables, postGeneratePlanillas } from '../../../../services/planillaEvaGen.service'
 
-interface NewPlanillaEvaluacionModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onPlanillasGenerated: () => void
-  identificadorPlani: number // Nuevo prop para filtrar objetivos
-}
-
-interface Objetivo {
-  identificador: number
-  nombre: string
-  fechaInici: string
-  fechaFin: string
-  valorPorce: string
-  planillasGener: boolean
-  planillaEvaluGener: boolean
-  identificadorPlani: number
-}
-
-const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({
+const NewPlanillaEvaluacionModal: React.FC<Evaluacion.NewPlanillaEvaluacionModalProps> = ({
   isOpen,
   onClose,
   onPlanillasGenerated,
   identificadorPlani,
 }) => {
-  const [objetivos, setObjetivos] = useState<Objetivo[]>([])
-  const [selectedObjetivo, setSelectedObjetivo] = useState<Objetivo | null>(null)
+  const [objetivos, setObjetivos] = useState<Evaluacion.Objetivo[]>([])
+  const [selectedObjetivo, setSelectedObjetivo] = useState<Evaluacion.Objetivo | null>(null)
   const [inputValue, setInputValue] = useState<string>('') // Para capturar el valor de texto
   const [apiError, setApiError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null) // Para el error de validación
@@ -37,10 +21,9 @@ const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({
     const fetchObjetivosRelacionados = async () => {
       console.log(identificadorPlani)
       try {
-        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-        if (!response.ok) throw new Error('Error al cargar los objetivos')
+        const response = await getAllObjetivosEntregables()
 
-        const objetivosData: Objetivo[] = await response.json()
+        const objetivosData: Evaluacion.Objetivo[] = await response.data
 
         // Filtrar objetivos según identificadorPlani y planillaEvaluGener === false
         const filteredObjetivos = objetivosData.filter(
@@ -74,14 +57,7 @@ const NewPlanillaEvaluacionModal: React.FC<NewPlanillaEvaluacionModalProps> = ({
     ]
 
     try {
-      const response = await fetch(
-        `https://cocoabackend.onrender.com/api/objetivos/${matchedObjetivo.identificador}/generar-planilla-evaluacion`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(planillasData),
-        }
-      )
+      const response = await postGeneratePlanillas(matchedObjetivo.identificador, planillasData)
 
       if (!response.ok) throw new Error('Error al generar las planillas.')
 

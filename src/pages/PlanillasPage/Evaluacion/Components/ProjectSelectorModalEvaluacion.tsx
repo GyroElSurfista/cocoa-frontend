@@ -3,21 +3,17 @@ import React, { useState, useEffect } from 'react'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import { useNavigate } from 'react-router-dom'
+import * as Evaluacion from './../../../../interfaces/evaluacion.interface'
+import {
+  getAllPlanificaciones,
+  getAllObjetivosEntregables,
+  getObjetivesWhitoutPlanilla,
+  postGeneratePlanillas,
+} from '../../../../services/planillaEvaGen.service'
 
-interface Project {
-  identificadorPlani: number
-  nombrePlani: string
-  fechaEvaluFinalGener: string
-}
-
-interface ProjectSelectorModalProps {
-  isOpen: boolean
-  onClose: () => void
-}
-
-const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ isOpen, onClose }) => {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+const ProjectSelectorModalEvaluacion: React.FC<Evaluacion.ProjectSelectorModalProps> = ({ isOpen, onClose }) => {
+  const [projects, setProjects] = useState<Evaluacion.Project[]>([])
+  const [selectedProject, setSelectedProject] = useState<Evaluacion.Project | null>(null)
   const [inputValue, setInputValue] = useState<string>('')
   const [showAlreadyGeneratedMessage, setShowAlreadyGeneratedMessage] = useState<boolean>(false)
   const [isViewingPlanillas, setIsViewingPlanillas] = useState<boolean>(false)
@@ -27,13 +23,10 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
     const fetchProjects = async () => {
       try {
         // Fetch objetivos y planificaciones en paralelo
-        const [objetivosResponse, planificacionesResponse] = await Promise.all([
-          fetch('https://cocoabackend.onrender.com/api/objetivos'),
-          fetch('https://cocoabackend.onrender.com/api/planificaciones'),
-        ])
+        const [objetivosResponse, planificacionesResponse] = await Promise.all([getAllObjetivosEntregables(), getAllPlanificaciones()])
 
-        const objetivosData = await objetivosResponse.json()
-        const planificacionesData = await planificacionesResponse.json()
+        const objetivosData = await objetivosResponse.data
+        const planificacionesData = await planificacionesResponse.data
 
         // Obtener la fecha actual
         const today = new Date()
@@ -84,8 +77,8 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
 
   const checkAndGeneratePlanillas = async (projectId: number) => {
     try {
-      const checkResponse = await fetch(`https://cocoabackend.onrender.com/api/objetivos-sin-planilla-evaluacion-generada`)
-      const checkData = await checkResponse.json()
+      const checkResponse = await getObjetivesWhitoutPlanilla()
+      const checkData = await checkResponse.data
       const pendingObjectives = checkData.filter((obj: any) => obj.identificadorPlani === projectId)
 
       if (pendingObjectives.length === 0) {
@@ -100,19 +93,14 @@ const ProjectSelectorModalEvaluacion: React.FC<ProjectSelectorModalProps> = ({ i
           { identificadorObjet: objetivo.identificador, fecha: '2024-09-10', identificador: Date.now() + 1 },
           { identificadorObjet: objetivo.identificador, fecha: '2024-09-17', identificador: Date.now() + 2 },
         ]
-
-        await fetch(`https://cocoabackend.onrender.com/api/objetivos/${objetivo.identificador}/generar-planilla-evaluacion`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(planillasData),
-        })
+        await postGeneratePlanillas(objetivo.identificador, planillasData)
       })
 
       await Promise.all(requests)
 
       // Obtener nuevamente los datos del proyecto actualizado
-      const refreshedResponse = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-      const refreshedData = await refreshedResponse.json()
+      const refreshedResponse = await getAllObjetivosEntregables()
+      const refreshedData = await refreshedResponse.data
 
       // Buscar el proyecto actualizado por su identificador
       const updatedProject = refreshedData.find((obj: any) => obj.identificadorPlani === projectId)
