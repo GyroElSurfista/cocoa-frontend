@@ -45,8 +45,6 @@ export const postAsistencia = (usuarioId: number, fecha: string): AxiosPromise<a
     valor: true,
   })
 }
-
-// Función para registrar inasistencia
 export const postInasistencia = (usuarioId: number, fecha: string, identificadorMotiv: number): AxiosPromise<any> => {
   return axiosInstance.post('/asistencias-inasistencia', {
     identificadorUsuar: usuarioId,

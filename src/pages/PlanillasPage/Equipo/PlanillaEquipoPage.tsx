@@ -180,11 +180,9 @@ const PlanillaEquipoPage = () => {
       console.log(planillaDate)
 
       if (asistencia && asistencia.valor && asistencia.identificadorMotiv === null) {
-        return postAsistencia(usuario.id, planillaDate)
+        return await postAsistencia(usuario.id, planillaDate)
       } else if (asistencia && asistencia.identificadorMotiv !== null) {
-        return postInasistencia(usuario.id, planillaDate, asistencia.identificadorMotiv)
-      } else {
-        throw new Error('Condición no válida para procesar la asistencia')
+        return await postInasistencia(usuario.id, planillaDate, asistencia.identificadorMotiv)
       }
     })
 
