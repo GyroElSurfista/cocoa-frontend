@@ -1,21 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import IconUser from '../../../../assets/icon-user.svg'
 import Checkbox from '@mui/material/Checkbox'
-
-interface RowInformationUserProps {
-  userName: string
-  companyName: string
-  userId: number
-  planillaDate: string
-  isReadOnly: boolean
-  asistenciaData?: {
-    valor: boolean
-    identificadorMotiv: number | null
-    faltas?: number
-  }
-  onChangeAsistencia: (userId: number, valor: boolean, identificadorMotiv: number | null) => void
-  onValidationChange: (userId: number, isValid: boolean) => void // Validación para el padre
-}
+import * as Equipo from './../../../../interfaces/equipo.interface'
 
 type Motivo = 'Licencia' | 'Imprevisto' | 'Injustificado'
 
@@ -25,7 +11,7 @@ const motivosMap: Record<Motivo, number> = {
   Injustificado: 3,
 }
 
-export const RowInformationUser: React.FC<RowInformationUserProps> = ({
+export const RowInformationUser: React.FC<Equipo.RowInformationUserProps> = ({
   userName,
   companyName,
   userId,

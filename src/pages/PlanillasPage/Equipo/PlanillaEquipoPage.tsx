@@ -8,66 +8,33 @@ import { AddActivitiesObservations } from './Components/AddActivitiesObservation
 import NewEntregableDinamicoModal from './Components/NewEntregableDinamicoModal'
 import { useLocation } from 'react-router-dom'
 import { Planificacion } from '../../../interfaces/project.interface'
-
-interface Observation {
-  identificador: number // Añadimos identificador
-  descripcion: string
-}
-
-interface Activity {
-  identificador: number
-  nombre: string
-  observaciones: Observation[] // Usamos el tipo Observation[]
-}
-
-interface User {
-  id: number
-  name: string
-  email: string
-}
-
-interface ObservationPageProps {
-  observations: Observation[]
-  objectiveId: number
-  planillaDate: string
-  planillaSeguiId?: number
-  objectiveName: string
-  identificadorPlani: number
-  fechas: string[]
-  onBack: () => void
-}
-
-interface Entregable {
-  identificador: number
-  nombre: string
-  descripcion: string | null
-  identificadorObjet: number
-  identificadorPlaniSegui?: number
-  dinamico?: boolean
-  fechaCreac?: string
-  criterio_aceptacion_entregable: CriterioAceptacion[]
-}
-
-interface CriterioAceptacion {
-  identificador: number
-  descripcion: string
-  identificadorEntre: number
-}
+import * as Equipo from './../../../interfaces/equipo.interface'
+import {
+  getActivities,
+  getAllPlanificaciones,
+  getAsistencias,
+  getAsistenciasDate,
+  getEntregablesDinamicos,
+  getUsersGrupoEmpresa,
+  postActividadSeguimiento,
+  postAsistencia,
+  postInasistencia,
+} from '../../../services/equipo.service'
 
 const PlanillaEquipoPage = () => {
   const location = useLocation()
 
   // Extraer datos del estado de navegación
   const { observations, objectiveId, planillaDate, objectiveName, identificadorPlani, planillaSeguiId, fechas } = location.state || {}
-  const [entregables, setEntregables] = useState<Entregable[]>([])
+  const [entregables, setEntregables] = useState<Equipo.Entregable[]>([])
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [usuarios, setUsuarios] = useState<User[]>([])
+  const [usuarios, setUsuarios] = useState<Equipo.User[]>([])
   const [empresa, setEmpresa] = useState<Planificacion | null>(null)
   const [asistencias, setAsistencias] = useState<Record<number, { valor: boolean; identificadorMotiv: number | null }>>({})
   const [isReadOnly, setIsReadOnly] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  const [activities, setActivities] = useState<Activity[]>([])
+  const [activities, setActivities] = useState<Equipo.Activity[]>([])
   const [modalOpenEntregable, setModalOpenEntregable] = useState(false)
 
   const [validationStates, setValidationStates] = useState<boolean[]>([false])
@@ -79,7 +46,7 @@ const PlanillaEquipoPage = () => {
 
   const fetchEmpresaYUsuarios = async () => {
     try {
-      const grupoResponse = await axios.get('https://cocoabackend.onrender.com/api/planificaciones')
+      const grupoResponse = await getAllPlanificaciones()
       const planificacionData = grupoResponse.data.find((e: Planificacion) => identificadorPlani === e.identificador)
 
       if (!planificacionData) {
@@ -91,9 +58,8 @@ const PlanillaEquipoPage = () => {
       setEmpresaId(planificacionData.identificadorGrupoEmpre)
 
       // Usa directamente el valor obtenido
-      const usuariosResponse = await axios.get(
-        `https://cocoabackend.onrender.com/api/grupoEmpresas/${planificacionData.identificadorGrupoEmpre}/usuarios`
-      )
+      const usuariosResponse = await getUsersGrupoEmpresa(planificacionData.identificadorGrupoEmpre)
+
       setUsuarios(usuariosResponse.data)
     } catch (error) {
       console.error('Error al obtener empresa o usuarios:', error)
@@ -103,12 +69,7 @@ const PlanillaEquipoPage = () => {
   const fetchAsistenciasWithFaltas = async (identificadorPlani: number, fecha: string) => {
     try {
       // Llama al endpoint con GET y parámetros de consulta
-      const response = await axios.get('https://cocoabackend.onrender.com/api/grupo-empresa/asistencia', {
-        params: {
-          identificadorGrupoEmpre: identificadorPlani,
-          fecha,
-        },
-      })
+      const response = await getAsistencias(identificadorPlani, fecha)
 
       const data = response.data
       const asistenciaMap: Record<number, { valor: boolean; identificadorMotiv: number | null; faltas: number }> = {}
@@ -139,9 +100,8 @@ const PlanillaEquipoPage = () => {
 
       try {
         for (const fecha of planillaDate) {
-          const response = await axios.get(
-            `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${fecha}`
-          )
+          const response = await getEntregablesDinamicos(objectiveId, fecha)
+
           const entregables = response.data.data
           allEntregables.push(...entregables) // Agrega los entregables obtenidos
         }
@@ -159,9 +119,8 @@ const PlanillaEquipoPage = () => {
     fetchEmpresaYUsuarios()
     const fetchAsistencias = async () => {
       try {
-        const response = await axios.get(
-          `https://cocoabackend.onrender.com/api/asistencia?grupoEmpresaId=${empresaId}&fecha=${planillaDate}`
-        )
+        const response = await getAsistenciasDate(empresaId, planillaDate)
+
         console.log(identificadorPlani, planillaDate)
         console.log(response)
         const data = response.data
@@ -186,7 +145,7 @@ const PlanillaEquipoPage = () => {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const response = await axios.get(`https://cocoabackend.onrender.com/api/planilla-seguimiento/${planillaSeguiId}/actividades`)
+        const response = await getActivities(planillaSeguiId)
 
         // Transformamos los datos para asegurar que la estructura sea compatible con el componente
         const transformedData = response.data.data.map((activity: any) => ({
@@ -204,9 +163,7 @@ const PlanillaEquipoPage = () => {
   }, [planillaSeguiId])
   const loadEntregables = async () => {
     try {
-      const response = await axios.get(
-        `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${planillaDate}`
-      )
+      const response = await getEntregablesDinamicos(objectiveId, planillaDate)
       setEntregables(response.data.data)
     } catch (error) {
       console.error('Error al obtener entregables dinámicos:', error)
@@ -223,18 +180,9 @@ const PlanillaEquipoPage = () => {
       console.log(planillaDate)
 
       if (asistencia && asistencia.valor && asistencia.identificadorMotiv === null) {
-        return axios.post('https://cocoabackend.onrender.com/api/asistencias-asistencia', {
-          identificadorUsuar: usuario.id,
-          fecha: planillaDate,
-          valor: true,
-        })
+        return await postAsistencia(usuario.id, planillaDate)
       } else if (asistencia && asistencia.identificadorMotiv !== null) {
-        return axios.post('https://cocoabackend.onrender.com/api/asistencias-inasistencia', {
-          identificadorUsuar: usuario.id,
-          fecha: planillaDate,
-          valor: false,
-          identificadorMotiv: asistencia.identificadorMotiv,
-        })
+        return await postInasistencia(usuario.id, planillaDate, asistencia.identificadorMotiv)
       }
     })
 
@@ -242,11 +190,7 @@ const PlanillaEquipoPage = () => {
       await Promise.all(solicitudes)
 
       for (const activity of activities) {
-        await axios.post('https://cocoabackend.onrender.com/api/actividad-seguimiento', {
-          nombre: activity.nombre,
-          identificadorPlaniSegui: planillaSeguiId,
-          observaciones: activity.observaciones,
-        })
+        await postActividadSeguimiento(activity.nombre, planillaSeguiId, activity.observaciones)
       }
 
       setSnackbarMessage('Planilla y actividades guardadas exitosamente')

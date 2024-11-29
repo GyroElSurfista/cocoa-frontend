@@ -4,6 +4,12 @@ import { Autocomplete, TextField, Snackbar } from '@mui/material'
 import * as Equipo from './../../../../interfaces/equipo.interface'
 import PlaniSeguiIcon from '../../../../assets/PlaniSeguiIcon'
 import { useNavigate } from 'react-router-dom'
+import {
+  getAllObjetivosEntregables,
+  getAllPlanificaciones,
+  getAsistenciasDate,
+  getPlanillasSeguimiento,
+} from '../../../../services/equipo.service'
 
 const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationModalProps) => {
   const navigate = useNavigate()
@@ -28,13 +34,10 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
   // Función para cargar proyectos y objetivos
   const fetchProjectsAndObjectives = async () => {
     try {
-      const [objetivosResponse, planificacionesResponse] = await Promise.all([
-        fetch('https://cocoabackend.onrender.com/api/objetivos'),
-        fetch('https://cocoabackend.onrender.com/api/planificaciones'),
-      ])
+      const [objetivosResponse, planificacionesResponse] = await Promise.all([getAllObjetivosEntregables(), getAllPlanificaciones()])
 
-      const objetivosData = await objetivosResponse.json()
-      const planificacionesData = await planificacionesResponse.json()
+      const objetivosData = await objetivosResponse.data
+      const planificacionesData = await planificacionesResponse.data
 
       const today = new Date()
       const planificacionesEnCursoIds = new Set(
@@ -77,7 +80,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
       const fetchAndFilterPlanillas = async () => {
         try {
           // Obtener información de planificaciones
-          const planificacionesResponse = await axios.get('https://cocoabackend.onrender.com/api/planificaciones')
+          const planificacionesResponse = await getAllPlanificaciones()
           const planificacion = planificacionesResponse.data.find((plani) => plani.identificador === selectedObjective.identificadorPlani)
 
           if (!planificacion) {
@@ -90,9 +93,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
           const empresaId = planificacion.identificadorGrupoEmpre
 
           // Obtener planillas del objetivo seleccionado
-          const planillasResponse = await axios.get(
-            `https://cocoabackend.onrender.com/api/objetivos/${selectedObjective.identificador}/planillas-seguimiento`
-          )
+          const planillasResponse = await getPlanillasSeguimiento(selectedObjective.identificador)
           const allPlanillas = planillasResponse.data
 
           // Obtener fecha actual
@@ -109,9 +110,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
             }
 
             // Verificar si la planilla ya fue llenada
-            const asistenciaResponse = await axios.get(
-              `https://cocoabackend.onrender.com/api/asistencia?grupoEmpresaId=${empresaId}&fecha=${planilla.fecha}`
-            )
+            const asistenciaResponse = await getAsistenciasDate(empresaId, planilla.fecha)
 
             if (asistenciaResponse.data.length === 0) {
               filteredPlanillas.push(planilla)

@@ -5,34 +5,10 @@ import NewEntregableDinamicoModal from './NewEntregableDinamicoModal'
 import axios from 'axios'
 import IconDanger from '../../../../assets/ico-danger.svg'
 import DeleteIcon from '@mui/icons-material/Delete'
+import * as Equipo from './../../../../interfaces/equipo.interface'
+import { deleteEntregable } from '../../../../services/equipo.service'
 
-interface EntregableDinamicoAccordionProps {
-  entregables: Entregable[]
-  fechas: string[]
-  objectiveName: string
-  isReadOnly: boolean
-  onEntregableUpdated: () => void // Para actualizar la lista de entregables
-  onShowSnackbar: (message: string) => void // Función para mostrar Snackbar
-}
-
-interface Entregable {
-  identificador: number
-  nombre: string
-  descripcion: string | null
-  identificadorObjet: number
-  identificadorPlaniSegui?: number
-  dinamico?: boolean
-  fechaCreac?: string
-  criterio_aceptacion_entregable: CriterioAceptacion[]
-}
-
-interface CriterioAceptacion {
-  identificador: number
-  descripcion: string
-  identificadorEntre: number
-}
-
-export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionProps> = ({
+export const EntregableDinamicoAccordion: React.FC<Equipo.EntregableDinamicoAccordionProps> = ({
   entregables,
   onEntregableUpdated,
   objectiveName,
@@ -43,13 +19,13 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
   const [expanded, setExpanded] = useState<number | null>(null)
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false)
-  const [selectedEntregable, setSelectedEntregable] = useState<Entregable | null>(null)
+  const [selectedEntregable, setSelectedEntregable] = useState<Equipo.Entregable | null>(null)
 
   const toggleAccordion = (id: number) => {
     setExpanded(expanded === id ? null : id)
   }
 
-  const handleEditClick = (event: React.MouseEvent, entregable: Entregable) => {
+  const handleEditClick = (event: React.MouseEvent, entregable: Equipo.Entregable) => {
     console.log(entregable)
     event.stopPropagation() // Evita que el evento de expansión se dispare
     setSelectedEntregable(entregable)
@@ -61,7 +37,7 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
     setSelectedEntregable(null)
   }
 
-  const handleDeleteClick = (event: React.MouseEvent, entregable: Entregable) => {
+  const handleDeleteClick = (event: React.MouseEvent, entregable: Equipo.Entregable) => {
     event.stopPropagation() // Evita que el evento de expansión se dispare
     setSelectedEntregable(entregable)
     setDeleteModalOpen(true)
@@ -71,7 +47,7 @@ export const EntregableDinamicoAccordion: React.FC<EntregableDinamicoAccordionPr
     console.log('fechas:' + fechas)
     if (selectedEntregable) {
       try {
-        await axios.delete(`https://cocoabackend.onrender.com/api/entregables/eliminar/${selectedEntregable.identificador}`)
+        await deleteEntregable(selectedEntregable.identificador)
         setDeleteModalOpen(false)
         onEntregableUpdated()
         onShowSnackbar('Entregable eliminado exitosamente')

@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import NewEntregableModal from './Components/NewEntregableModal'
 import EntregableAccordion from './Components/EntregableAccordion'
 import * as Entregables from './../../interfaces/entregable.interface'
+import { getAllObjetivosEntregables, getAllEntregables } from '../../services/entregable.service'
 
 const EntregablePage = () => {
   const location = useLocation()
@@ -39,8 +40,8 @@ const EntregablePage = () => {
   // Fetch entregables
   const fetchEntregables = async () => {
     try {
-      const response = await fetch('https://cocoabackend.onrender.com/api/entregables')
-      const data = await response.json()
+      const response = await getAllEntregables()
+      const data = await response.data
       setEntregables(data)
     } catch (error) {
       console.error('Error al cargar los entregables:', error)
@@ -50,8 +51,8 @@ const EntregablePage = () => {
   // Fetch objetivos
   const fetchObjetivos = async () => {
     try {
-      const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-      const data = await response.json()
+      const response = await getAllObjetivosEntregables()
+      const data = response.data // Aquí obtienes los datos directamente del servicio
       setAvailableObjetivos(data.filter((obj: any) => currentPlani.objetivoIds?.includes(obj.identificador)))
     } catch (error) {
       console.error('Error al cargar los objetivos:', error)
