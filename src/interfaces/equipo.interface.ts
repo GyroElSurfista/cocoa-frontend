@@ -150,6 +150,7 @@ export interface Planilla {
   fecha: string
   identificadorObjet: number
   actividad_seguimiento: ActividadSeguimiento[]
+  llenada?: boolean
 }
 
 export interface SelectorObservationModalProps {

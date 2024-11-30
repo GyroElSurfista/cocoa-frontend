@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
 import { RowInformationUser } from './Components/RowInformationUser'
-import axios from 'axios'
 import { SavePlanillaEquipoModal } from './Components/SavePlanillaEquipoModal'
 import { EntregableDinamicoAccordion } from './Components/EntregableDinamicoAccordion'
 import { AddActivitiesObservations } from './Components/AddActivitiesObservations'
@@ -55,7 +54,9 @@ const PlanillaEquipoPage = () => {
       }
 
       setEmpresa(planificacionData)
+      console.log(planificacionData)
       setEmpresaId(planificacionData.identificadorGrupoEmpre)
+      console.log(planificacionData.identificadorGrupoEmpre)
 
       // Usa directamente el valor obtenido
       const usuariosResponse = await getUsersGrupoEmpresa(planificacionData.identificadorGrupoEmpre)
