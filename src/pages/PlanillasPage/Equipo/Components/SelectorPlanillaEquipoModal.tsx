@@ -24,6 +24,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
   const [recommendedPlanilla, setRecommendedPlanilla] = useState<Equipo.Planilla | null>(null)
   const [showWarning, setShowWarning] = useState(false)
   const [noPlanillasError, setNoPlanillasError] = useState(false)
+  const [noObjetivesGenerate, setNoObjetivesGenerate] = useState(false)
 
   const [planillas, setPlanillas] = useState<Equipo.Planilla[]>([])
   const [selectedPlanilla, setSelectedPlanilla] = useState<Equipo.Planilla | null>(null)
@@ -61,12 +62,12 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
     }
   }
   useEffect(() => {
-    if (!loadingPlanillas && planillas.length === 0) {
+    if (!loadingPlanillas && planillas.length === 0 && autoSelectedObjective?.nombre) {
       setNoPlanillasError(true)
     } else {
       setNoPlanillasError(false)
     }
-  }, [loadingPlanillas, planillas])
+  }, [loadingPlanillas, planillas, selectedProject])
 
   useEffect(() => {
     if (selectedProject && objectives.length > 0) {
