@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import * as Entregables from './../../../interfaces/entregable.interface'
 import Drop from '../../../assets/icon-drop.svg'
+import { getEntregablesWithCriterios } from '../../../services/entregable.service'
 
 interface EntregableAccordionProps {
   objetivoIds: number[]
@@ -20,9 +21,11 @@ const EntregableAccordion: React.FC<EntregableAccordionProps> = ({ objetivoIds, 
       try {
         const results = await Promise.all(
           objetivoIds.map(async (objetivoId) => {
-            const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${objetivoId}/entregables-criterios`)
-            if (!response.ok) throw new Error(`Error fetching data for objetivoId ${objetivoId}`)
-            return response.json()
+            const response = await getEntregablesWithCriterios(objetivoId)
+            if (response.status < 200 || response.status >= 300) {
+              throw new Error(`Error fetching data for objetivoId ${objetivoId}: Status ${response.status}`)
+            }
+            return response.data
           })
         )
         setData(results.filter((obj: Entregables.Objetivo) => obj.entregable.length > 0)) // Filtrar objetivos sin entregables

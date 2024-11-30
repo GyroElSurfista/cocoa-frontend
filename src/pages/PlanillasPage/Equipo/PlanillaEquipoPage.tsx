@@ -1,81 +1,39 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Snackbar, SnackbarCloseReason, SnackbarContent } from '@mui/material'
 import { RowInformationUser } from './Components/RowInformationUser'
-import axios from 'axios'
 import { SavePlanillaEquipoModal } from './Components/SavePlanillaEquipoModal'
 import { EntregableDinamicoAccordion } from './Components/EntregableDinamicoAccordion'
 import { AddActivitiesObservations } from './Components/AddActivitiesObservations'
 import NewEntregableDinamicoModal from './Components/NewEntregableDinamicoModal'
+import { useLocation } from 'react-router-dom'
+import { Planificacion } from '../../../interfaces/project.interface'
+import * as Equipo from './../../../interfaces/equipo.interface'
+import {
+  getActivities,
+  getAllPlanificaciones,
+  getAsistencias,
+  getAsistenciasDate,
+  getEntregablesDinamicos,
+  getUsersGrupoEmpresa,
+  postActividadSeguimiento,
+  postAsistencia,
+  postInasistencia,
+} from '../../../services/equipo.service'
 
-interface Observation {
-  identificador: number // Añadimos identificador
-  descripcion: string
-}
+const PlanillaEquipoPage = () => {
+  const location = useLocation()
 
-interface Activity {
-  identificador: number
-  nombre: string
-  observaciones: Observation[] // Usamos el tipo Observation[]
-}
-
-interface User {
-  id: number
-  name: string
-  email: string
-}
-
-interface Empresa {
-  identificador: number
-  nombreLargo: string
-  nombreCorto: string
-}
-
-interface ObservationPageProps {
-  observations: Observation[]
-  objectiveId: number
-  planillaDate: string
-  planillaSeguiId?: number
-  objectiveName: string
-  identificadorPlani: number
-  fechas: string[]
-  onBack: () => void
-}
-
-interface Entregable {
-  identificador: number
-  nombre: string
-  descripcion: string | null
-  identificadorObjet: number
-  identificadorPlaniSegui?: number
-  dinamico?: boolean
-  fechaCreac?: string
-  criterio_aceptacion_entregable: CriterioAceptacion[]
-}
-
-interface CriterioAceptacion {
-  identificador: number
-  descripcion: string
-  identificadorEntre: number
-}
-
-const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
-  objectiveId,
-  planillaDate,
-  planillaSeguiId,
-  objectiveName,
-  identificadorPlani,
-  fechas,
-  onBack,
-}) => {
-  const [entregables, setEntregables] = useState<Entregable[]>([])
+  // Extraer datos del estado de navegación
+  const { observations, objectiveId, planillaDate, objectiveName, identificadorPlani, planillaSeguiId, fechas } = location.state || {}
+  const [entregables, setEntregables] = useState<Equipo.Entregable[]>([])
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [usuarios, setUsuarios] = useState<User[]>([])
-  const [empresa, setEmpresa] = useState<Empresa | null>(null)
+  const [usuarios, setUsuarios] = useState<Equipo.User[]>([])
+  const [empresa, setEmpresa] = useState<Planificacion | null>(null)
   const [asistencias, setAsistencias] = useState<Record<number, { valor: boolean; identificadorMotiv: number | null }>>({})
   const [isReadOnly, setIsReadOnly] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  const [activities, setActivities] = useState<Activity[]>([])
+  const [activities, setActivities] = useState<Equipo.Activity[]>([])
   const [modalOpenEntregable, setModalOpenEntregable] = useState(false)
 
   const [validationStates, setValidationStates] = useState<boolean[]>([false])
@@ -85,20 +43,24 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   const [validRows, setValidRows] = useState<Record<number, boolean>>({}) // Estado para las filas
   const [allValidRows, setAllValidRows] = useState(false) // Indica si todas las filas son válidas
 
-  const fetchEmpresaYUsuarios = async (empresaId: number) => {
+  const fetchEmpresaYUsuarios = async () => {
     try {
-      const grupoResponse = await axios.get('https://cocoabackend.onrender.com/api/grupoEmpresas')
-      const empresaData = grupoResponse.data.find((e: Empresa) => e.identificador === empresaId)
+      const grupoResponse = await getAllPlanificaciones()
+      const planificacionData = grupoResponse.data.find((e: Planificacion) => identificadorPlani === e.identificador)
 
-      if (!empresaData) {
-        console.error(`Empresa con ID ${empresaId} no encontrada`)
+      if (!planificacionData) {
+        console.error(`Empresa con identificador ${identificadorPlani} no encontrada`)
         return
       }
 
-      setEmpresa(empresaData)
-      setEmpresaId(empresaData.identificador) // Guarda el ID de la empresa
+      setEmpresa(planificacionData)
+      console.log(planificacionData)
+      setEmpresaId(planificacionData.identificadorGrupoEmpre)
+      console.log(planificacionData.identificadorGrupoEmpre)
 
-      const usuariosResponse = await axios.get(`https://cocoabackend.onrender.com/api/grupoEmpresas/${empresaId}/usuarios`)
+      // Usa directamente el valor obtenido
+      const usuariosResponse = await getUsersGrupoEmpresa(planificacionData.identificadorGrupoEmpre)
+
       setUsuarios(usuariosResponse.data)
     } catch (error) {
       console.error('Error al obtener empresa o usuarios:', error)
@@ -108,12 +70,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   const fetchAsistenciasWithFaltas = async (identificadorPlani: number, fecha: string) => {
     try {
       // Llama al endpoint con GET y parámetros de consulta
-      const response = await axios.get('https://cocoabackend.onrender.com/api/grupo-empresa/asistencia', {
-        params: {
-          identificadorGrupoEmpre: identificadorPlani,
-          fecha,
-        },
-      })
+      const response = await getAsistencias(identificadorPlani, fecha)
 
       const data = response.data
       const asistenciaMap: Record<number, { valor: boolean; identificadorMotiv: number | null; faltas: number }> = {}
@@ -144,9 +101,8 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
 
       try {
         for (const fecha of planillaDate) {
-          const response = await axios.get(
-            `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${fecha}`
-          )
+          const response = await getEntregablesDinamicos(objectiveId, fecha)
+
           const entregables = response.data.data
           allEntregables.push(...entregables) // Agrega los entregables obtenidos
         }
@@ -161,12 +117,13 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   }, [objectiveId, planillaDate])
 
   useEffect(() => {
-    fetchEmpresaYUsuarios(1)
+    fetchEmpresaYUsuarios()
     const fetchAsistencias = async () => {
       try {
-        const response = await axios.get(
-          `https://cocoabackend.onrender.com/api/asistencia?grupoEmpresaId=${identificadorPlani}&fecha=${planillaDate}`
-        )
+        const response = await getAsistenciasDate(empresaId, planillaDate)
+
+        console.log(identificadorPlani, planillaDate)
+        console.log(response)
         const data = response.data
         const asistenciaMap: Record<number, { valor: boolean; identificadorMotiv: number | null }> = {}
 
@@ -189,7 +146,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const response = await axios.get(`https://cocoabackend.onrender.com/api/planilla-seguimiento/${planillaSeguiId}/actividades`)
+        const response = await getActivities(planillaSeguiId)
 
         // Transformamos los datos para asegurar que la estructura sea compatible con el componente
         const transformedData = response.data.data.map((activity: any) => ({
@@ -207,9 +164,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   }, [planillaSeguiId])
   const loadEntregables = async () => {
     try {
-      const response = await axios.get(
-        `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${planillaDate}`
-      )
+      const response = await getEntregablesDinamicos(objectiveId, planillaDate)
       setEntregables(response.data.data)
     } catch (error) {
       console.error('Error al obtener entregables dinámicos:', error)
@@ -219,20 +174,16 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   const handleGuardarPlanilla = async () => {
     const solicitudes = usuarios.map(async (usuario) => {
       const asistencia = asistencias[usuario.id]
+      console.log(
+        '------------------------------------------------Guardado de asistencias ------------------------------------------------------'
+      )
+      console.log(usuario.id)
+      console.log(planillaDate)
 
       if (asistencia && asistencia.valor && asistencia.identificadorMotiv === null) {
-        return axios.post('https://cocoabackend.onrender.com/api/asistencias-asistencia', {
-          identificadorUsuar: usuario.id,
-          fecha: planillaDate,
-          valor: true,
-        })
+        return await postAsistencia(usuario.id, planillaDate)
       } else if (asistencia && asistencia.identificadorMotiv !== null) {
-        return axios.post('https://cocoabackend.onrender.com/api/asistencias-inasistencia', {
-          identificadorUsuar: usuario.id,
-          fecha: planillaDate,
-          valor: false,
-          identificadorMotiv: asistencia.identificadorMotiv,
-        })
+        return await postInasistencia(usuario.id, planillaDate, asistencia.identificadorMotiv)
       }
     })
 
@@ -240,18 +191,14 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
       await Promise.all(solicitudes)
 
       for (const activity of activities) {
-        await axios.post('https://cocoabackend.onrender.com/api/actividad-seguimiento', {
-          nombre: activity.nombre,
-          identificadorPlaniSegui: planillaSeguiId,
-          observaciones: activity.observaciones,
-        })
+        await postActividadSeguimiento(activity.nombre, planillaSeguiId, activity.observaciones)
       }
 
       setSnackbarMessage('Planilla y actividades guardadas exitosamente')
       setSnackbarOpen(true)
       setIsReadOnly(true)
       setModalOpen(false)
-      fetchEmpresaYUsuarios(1)
+      fetchEmpresaYUsuarios()
     } catch (error) {
       console.error('Error al guardar asistencia o actividades:', error)
       setSnackbarMessage('Error al guardar la planilla o actividades')
@@ -293,6 +240,12 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
     }))
   }
 
+  useEffect(() => {
+    if (identificadorPlani && planillaDate) {
+      fetchAsistenciasWithFaltas(identificadorPlani, planillaDate)
+    }
+  }, [identificadorPlani, planillaDate, usuarios])
+
   const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
     if (reason === 'clickaway') return
     setSnackbarOpen(false)
@@ -304,32 +257,27 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   }
 
   const handleDeleteObservation = (activityIndex: number, observationIndex: number) => {
-    const newActivities = [...activities]
-    newActivities[activityIndex].observaciones = newActivities[activityIndex].observaciones.filter((_, index) => index !== observationIndex)
-    setActivities(newActivities)
-  }
+    const updatedActivities = [...activities]
 
-  const handleActivityChange = (activityIndex: number, newValue: string) => {
-    const newActivities = [...activities]
-    newActivities[activityIndex].nombre = newValue
-    setActivities(newActivities)
-  }
-  const handleObservationChange = (activityIndex: number, observationIndex: number, newValue: string) => {
-    const newActivities = [...activities]
-    newActivities[activityIndex].observaciones[observationIndex].descripcion = newValue
-    setActivities(newActivities)
+    // Eliminar la observación correspondiente
+    updatedActivities[activityIndex].observaciones = updatedActivities[activityIndex].observaciones.filter(
+      (_, idx) => idx !== observationIndex
+    )
 
-    const activity = newActivities[activityIndex]
-    const hasErrors = activity.nombre.trim().length < 5 || activity.observaciones.some((obs) => obs.descripcion.trim().length < 5)
-    handleValidationChange(activityIndex, !hasErrors)
+    // Actualizar el estado de actividades
+    setActivities(updatedActivities)
   }
 
   const handleValidationChange = useCallback((activityIndex: number, isValid: boolean) => {
     setValidationStates((prev) => {
       const updatedStates = [...prev]
-      updatedStates[activityIndex] = isValid
 
-      console.log('Validation state updated Padre:', updatedStates)
+      // Prevenir cambios inconsistentes
+      if (!isValid && updatedStates[activityIndex]) {
+        updatedStates[activityIndex] = false // Forzar false
+      } else {
+        updatedStates[activityIndex] = isValid
+      }
 
       // Revalida el estado global
       validateGlobalState(updatedStates)
@@ -339,18 +287,13 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
 
   const validateGlobalState = (validationStates: boolean[]) => {
     const isEverythingValid = validationStates.every(Boolean)
-    console.log('Validating global state Padres:', { validationStates, allValid: isEverythingValid })
+
     setAllValid(isEverythingValid)
   }
 
   useEffect(() => {
     const isEverythingValid = validationStates.every(Boolean)
     setAllValid(isEverythingValid)
-
-    console.log('Validation state updated Padre:', {
-      validationStates,
-      allValid: isEverythingValid,
-    })
 
     if (isEverythingValid) {
       setErrorMessage('')
@@ -393,12 +336,19 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
   }
 
   return (
-    <div className="mx-28">
+    <div className="">
       <h1 className="font-bold text-3xl">Llenar planilla de Seguimiento</h1>
       <hr className="border-[1.5px] border-[#c6caff] mt-3 mb-3" />
       <div className="flex justify-between">
-        <h2 className="font-bold text-2xl">
-          <button onClick={onBack}>{objectiveName}</button> {'>'} Planilla #{planillaDate}
+        <h2 className="flex font-bold text-2xl">
+          <p>
+            {objectiveName} {'>'} Planilla #
+            {new Date(new Date(planillaDate).setDate(new Date(planillaDate).getDate() + 1)).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })}
+          </p>
         </h2>
         {!isReadOnly && (
           <button
@@ -420,18 +370,18 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
         <h2 className="font-bold text-2xl">Asistencia</h2>
         <hr className="border-[1.5px] border-[#c6caff] mt-3" />
 
-        <div className="my-3 px-[7%]">
+        <div className="my-3 px-[5%]">
           {usuarios.map((usuario) => (
             <RowInformationUser
               key={usuario.id}
               userName={usuario.name}
-              companyName={empresa?.nombreCorto || ''}
+              companyName={empresa?.grupo_empresa.nombreCorto || ''}
               userId={usuario.id}
               planillaDate={planillaDate}
               isReadOnly={isReadOnly}
-              asistenciaData={asistencias[usuario.id]}
+              asistenciaData={asistencias[usuario.id]} // Actualizado dinámicamente desde el estado
               onChangeAsistencia={handleChangeAsistencia}
-              onValidationChange={handleValidationChangeRows} // Nuevo manejo de validación
+              onValidationChange={handleValidationChangeRows}
             />
           ))}
         </div>
@@ -484,6 +434,7 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
       <EntregableDinamicoAccordion
         entregables={entregables}
         fechas={fechas}
+        isReadOnly={isReadOnly}
         objectiveName={objectiveName}
         onEntregableUpdated={handleEntregableCreatedOrUpdated}
         onShowSnackbar={handleShowSnackbar} // Pasa la función al acordeón
@@ -500,12 +451,13 @@ const PlanillaEquipoPage: React.FC<ObservationPageProps> = ({
         planillaSeguiId={planillaSeguiId}
         fechas={fechas}
       />
-
-      <div className="flex justify-center items-center ">
-        <button onClick={() => setModalOpenEntregable(true)} className="button-primary">
-          + Nuevo Entregable
-        </button>
-      </div>
+      {!isReadOnly && (
+        <div className="flex justify-center items-center ">
+          <button onClick={() => setModalOpenEntregable(true)} className="button-primary">
+            + Nuevo Entregable
+          </button>
+        </div>
+      )}
 
       <Snackbar
         open={snackbarOpen}

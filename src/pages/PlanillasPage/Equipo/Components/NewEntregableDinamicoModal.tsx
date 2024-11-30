@@ -3,6 +3,7 @@ import { useForm, SubmitHandler } from 'react-hook-form'
 import axios from 'axios'
 import IconClose from '../../../../assets/icon-close.svg'
 import * as Equipo from './../../../../interfaces/equipo.interface'
+import { getAllEntregables, getEntregablesDinamicos, saveOrUpdateEntregable } from '../../../../services/equipo.service'
 
 const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   isOpen,
@@ -53,7 +54,7 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   const handleCriterioChange = (index: number, value: string) => {
     setGeneralError('')
     const newCriterios = [...criterios]
-    newCriterios[index] = value.slice(0, 55)
+    newCriterios[index] = value.slice(0, 155)
     setCriterios(newCriterios)
 
     if (!value.trim()) {
@@ -64,10 +65,10 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
       return
     }
 
-    if (value.trim().length < 10 || value.trim().length > 50) {
+    if (value.trim().length < 10 || value.trim().length > 150) {
       setValidationErrors((prev) => ({
         ...prev,
-        [`criterio_${index}`]: 'El criterio debe tener entre 10 y 50 caracteres.',
+        [`criterio_${index}`]: 'El criterio debe tener entre 10 y 150 caracteres.',
       }))
     } else {
       setValidationErrors((prev) => {
@@ -100,8 +101,8 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
     }
 
     criterios.forEach((criterio, index) => {
-      if (criterio.trim().length < 10 || criterio.trim().length > 50) {
-        errors[`criterio_${index}`] = 'El criterio debe tener entre 10 y 50 caracteres.'
+      if (criterio.trim().length < 10 || criterio.trim().length > 150) {
+        errors[`criterio_${index}`] = 'El criterio debe tener entre 10 y 150 caracteres.'
       }
     })
 
@@ -112,23 +113,37 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   // Verificar si el nombre está duplicado
   const checkNombreDuplicado = async (): Promise<boolean> => {
     try {
+      // Verificar nombres dinámicos con fechas
       for (const fecha of fechas) {
-        const response = await axios.get(
-          `https://cocoabackend.onrender.com/api/entregables-dinamicos?identificadorObjet=${objectiveId}&fecha=${fecha}`
+        const response = await getEntregablesDinamicos(objectiveId, fecha)
+        const entregablesDinamicos = response.data.data
+        const existsDinamico = entregablesDinamicos.some(
+          (e: { nombre: string }) => e.nombre.toLowerCase().trim() === nombre.toLowerCase().trim()
         )
-        const entregablesExistentes = response.data.data
-        const exists = entregablesExistentes.some((e: { nombre: string }) => e.nombre.toLowerCase().trim() === nombre.toLowerCase().trim())
 
-        if (exists) {
+        if (existsDinamico) {
           setGeneralError(`El nombre "${nombre}" ya está registrado para el objetivo y fecha seleccionados.`)
           return true
         }
+      }
+
+      // Verificar nombres estáticos
+      const responseStatic = await getAllEntregables()
+      const entregablesEstaticos = responseStatic.data
+      const existsEstatico = entregablesEstaticos.some(
+        (e: { nombre: string }) => e.nombre.toLowerCase().trim() === nombre.toLowerCase().trim()
+      )
+
+      if (existsEstatico) {
+        setGeneralError(`El nombre "${nombre}" ya está registrado en los entregables existentes.`)
+        return true
       }
     } catch (error) {
       console.error('Error al verificar duplicados:', error)
       setGeneralError('Error al verificar el nombre del entregable. Intente nuevamente.')
       return true
     }
+
     return false
   }
 
@@ -138,11 +153,13 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
     setValidationErrors({})
     setIsSaving(true)
 
+    // Verificar duplicados (dinámicos y estáticos)
     if (await checkNombreDuplicado()) {
       setIsSaving(false)
       return
     }
 
+    // Validar entradas
     if (!validateInputs()) {
       setGeneralError('Debe agregar al menos un criterio válido y cumplir con las validaciones.')
       setIsSaving(false)
@@ -161,9 +178,7 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
         identificadorPlaniSegui: initialData?.identificadorPlaniSegui || planillaSeguiId,
       }
 
-      const response = initialData
-        ? await axios.put(`https://cocoabackend.onrender.com/api/entregables/update/${initialData.identificador}`, updatedEntregable)
-        : await axios.post('https://cocoabackend.onrender.com/api/entregable', updatedEntregable)
+      const response = await saveOrUpdateEntregable(initialData, updatedEntregable)
 
       if (response.status === 200 || response.status === 201) {
         onCreate(response.data)
@@ -191,7 +206,7 @@ const NewEntregableDinamicoModal: React.FC<Equipo.NewEntregableModalProps> = ({
   return (
     isOpen && (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-        <div className="bg-white w-[475px] max-w-lg p-6 rounded-[20px] shadow-lg max-h-[85vh] overflow-y-auto min-w-[300px]">
+        <div className="bg-white w-[575px] max-w-lg p-6 rounded-[20px] shadow-lg max-h-[85vh] min-w-[300px]">
           <h5 className="text-xl font-semibold text-center">
             {initialData ? 'Editar Entregable Dinamico' : 'Registrar Entregable Dinamico'}
           </h5>

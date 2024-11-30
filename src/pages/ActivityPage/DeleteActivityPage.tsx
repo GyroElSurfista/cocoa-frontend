@@ -12,7 +12,7 @@ import {
   searchActivitiesWithoutObjective,
 } from '../../services/activity.service'
 import { ActivityRowProps } from '../../interfaces/activity.interface'
-import { getObjectives, ObjectiveData } from '../../services/objective.service'
+import { getObjectives, getObjectivesFromPlanification, ObjectiveData } from '../../services/objective.service'
 import ModalConfirmation from '../../components/ModalConfirmation'
 
 const DeleteActivityPage = (): JSX.Element => {
@@ -45,7 +45,7 @@ const DeleteActivityPage = (): JSX.Element => {
           }))
         } else {
           // Si no hay búsqueda ni objetivo, obtener todas las actividades
-          actividades = (await getActivities(1)).data.data.map((actividad) => ({
+          actividades = (await getActivities(3)).data.data.map((actividad) => ({
             ...actividad,
             fechaInici: new Date(actividad.fechaInici),
             fechaFin: new Date(actividad.fechaFin),
@@ -53,7 +53,7 @@ const DeleteActivityPage = (): JSX.Element => {
         }
       } else if (selectedObjective) {
         // Si hay un objetivo y también una búsqueda
-        actividades = (await searchActivitiesWithObjective(searchTerm, selectedObjective.identificador, 1)).data.map(
+        actividades = (await searchActivitiesWithObjective(searchTerm, selectedObjective.identificador, 3)).data.map(
           (actividad: ActivityRowProps) => ({
             ...actividad,
             fechaInici: new Date(actividad.fechaInici),
@@ -62,7 +62,7 @@ const DeleteActivityPage = (): JSX.Element => {
         )
       } else {
         // Si solo hay búsqueda pero no hay objetivo
-        actividades = (await searchActivitiesWithoutObjective(searchTerm, 1)).data.map((actividad: ActivityRowProps) => ({
+        actividades = (await searchActivitiesWithoutObjective(searchTerm, 3)).data.map((actividad: ActivityRowProps) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
@@ -71,8 +71,8 @@ const DeleteActivityPage = (): JSX.Element => {
 
       if (actividades.length === 0) setSearchNotFound(true)
       else setSearchNotFound(false)
-
-      setActivities(actividades)
+      // setActivities(actividades)
+      setActivities(actividades.filter((actividad) => actividad.esEliminable === true))
     } catch (error) {
       console.error('Error al buscar actividades', error)
       setActivities([])
@@ -100,12 +100,12 @@ const DeleteActivityPage = (): JSX.Element => {
   // Función para eliminar las actividades seleccionadas
   const handleDeleteClick = async () => {
     await deleteManyActivities(selectedActivities)
-    const actividades = (await getActivities(1)).data.data.map((actividad) => ({
+    const actividades = (await getActivities(3)).data.data.map((actividad) => ({
       ...actividad,
       fechaInici: new Date(actividad.fechaInici),
       fechaFin: new Date(actividad.fechaFin),
     }))
-    setActivities(actividades)
+    setActivities(actividades.filter((actividad) => actividad.esEliminable === true))
     setSelectedActivities([])
     setOpen(false)
     setNoErrors(true)
@@ -123,12 +123,12 @@ const DeleteActivityPage = (): JSX.Element => {
     setSelectedObjective(null)
     setSearchNotFound(false)
     setResetKey((prevKey) => prevKey + 1)
-    const actividades = (await getActivities(1)).data.data.map((actividad) => ({
+    const actividades = (await getActivities(3)).data.data.map((actividad) => ({
       ...actividad,
       fechaInici: new Date(actividad.fechaInici),
       fechaFin: new Date(actividad.fechaFin),
     }))
-    setActivities(actividades)
+    setActivities(actividades.filter((actividad) => actividad.esEliminable === true))
   }
 
   const handleCloseSnackbar = (_event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
@@ -142,13 +142,13 @@ const DeleteActivityPage = (): JSX.Element => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const actividades = (await getActivities(1)).data.data.map((actividad) => ({
+        const actividades = (await getActivities(3)).data.data.map((actividad) => ({
           ...actividad,
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
         }))
-        setActivities(actividades)
-        const objetivos = (await getObjectives()).data
+        setActivities(actividades.filter((actividad) => actividad.esEliminable === true))
+        const objetivos = (await getObjectivesFromPlanification(3)).data
         setObjectives(objetivos)
       } catch (error) {
         console.error('Error al cargar los datos', error)
@@ -161,7 +161,7 @@ const DeleteActivityPage = (): JSX.Element => {
   return (
     <>
       <div className="flex justify-between items-end mb-2">
-        <h2 className="text-black text-2xl font-semibold">Eliminar actividades</h2>
+        <h2 className="text-black text-2xl font-semibold mx-6">Eliminar actividades</h2>
         <div className="flex items-center">
           <SearchIcon className="hover:fill-blue-400 mx-2 cursor-pointer" fontSize="small" onClick={handleSearch} />
           <div className="rounded-[10px] border border-[#888888] p-0.5">
@@ -182,7 +182,7 @@ const DeleteActivityPage = (): JSX.Element => {
             key={resetKey}
             disablePortal
             options={objectives}
-            getOptionLabel={(option) => `${option.nombre} - Proyecto: ${option.nombrePlani}`}
+            getOptionLabel={(option) => `${option.nombre}`}
             value={selectedObjective || null}
             onChange={handleObjectiveSelect}
             renderInput={(params) => <TextField {...params} label="Objetivo" />}
@@ -245,18 +245,7 @@ const DeleteActivityPage = (): JSX.Element => {
               esEliminable={true}
             />
           ) : (
-            <ActivityRowDelete
-              key={actividad.identificador}
-              fechaFin={actividad.fechaFin}
-              fechaInici={actividad.fechaInici}
-              index={index + 1}
-              nombre={actividad.nombre}
-              responsable={actividad.responsable}
-              identificador={actividad.identificador}
-              objetivo={actividad.objetivo}
-              proyecto={actividad.proyecto}
-              esEliminable={false}
-            />
+            <></>
           )
         )
       )}

@@ -203,7 +203,18 @@ const Sidebar = () => {
             </ItemSidebar>
             <ItemSidebar name="Llenar y Completar">
               <>
-                <SelectorPlanillaEquipoModal onRedirect={handleRedirectTeams} />
+                <SelectorPlanillaEquipoModal
+                  onRedirect={(observations, objectiveId, date, planiId, objectiveName, identificadorPlani, fechas) => {
+                    setObservations(observations)
+                    setObjectiveId(objectiveId)
+                    setPlanillaDate(date)
+                    setplaniSeguiId(planiId)
+                    setObjectiveName(objectiveName)
+                    setFechaPlanilla(fechas)
+                    setIdentificadorPlani(identificadorPlani)
+                  }}
+                />
+
                 <div
                   className={`hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex ${
                     location.pathname.startsWith('/planilla-evaluacion/') ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''

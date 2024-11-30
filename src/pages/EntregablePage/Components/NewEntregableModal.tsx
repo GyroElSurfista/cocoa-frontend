@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
 import { useForm, SubmitHandler } from 'react-hook-form'
@@ -7,24 +7,13 @@ import IconBack from '../../../assets/icon-back.svg'
 import IconEdit from '../../../assets/icon-edit.svg'
 import IconTrash from '../../../assets/trash.svg'
 import * as Entregables from './../../../interfaces/entregable.interface'
-import { Entregable } from '../../../interfaces/entregable.interface'
+import { getAllObjetivosEntregables, getEntregablesWithObjetive, postEntregables } from '../../../services/entregable.service'
 
-interface NewEntregableModalProps {
-  isOpen: boolean
-  nombrePlani: string
-  onClose: () => void
-  onCreate: (newEntregable: Entregables.Entregable[]) => void
-}
-
-export interface FormData {
-  objetivoId: number
-}
-
-const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose, onCreate, nombrePlani }) => {
-  const { register, handleSubmit, setValue, reset } = useForm<FormData>()
+const NewEntregableModal: React.FC<Entregables.NewEntregableModalProps> = ({ isOpen, onClose, onCreate, nombrePlani }) => {
+  const { handleSubmit, setValue, reset } = useForm<Entregables.FormData>()
   const [view, setView] = useState<number>(1)
   const [filteredObjetivos, setFilteredObjetivos] = useState<Entregables.Objetivo[]>([])
-  const [entregables, setEntregables] = useState<Entregable[]>([])
+  const [entregables, setEntregables] = useState<Entregables.Entregable[]>([])
   const [currentEntregable, setCurrentEntregable] = useState<Entregables.Entregable>({
     nombre: '',
     descripcion: '',
@@ -41,14 +30,16 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
   const [lengthError, setLengthError] = useState('')
   const [generalError, setGeneralError] = useState('')
 
+  const scrollRef = useRef(null)
+
   useEffect(() => {
     if (isOpen) fetchObjetivos()
   }, [isOpen])
 
   const fetchObjetivos = useCallback(async () => {
     try {
-      const response = await fetch('https://cocoabackend.onrender.com/api/objetivos')
-      const data: Entregables.Objetivo[] = await response.json()
+      const response = await getAllObjetivosEntregables()
+      const data: Entregables.Objetivo[] = await response.data
 
       // Aquí filtras los objetivos por nombrePlani
       const filtered = data.filter((objetivo) => objetivo.nombrePlani === nombrePlani) // Cambia el nombre según necesites
@@ -108,16 +99,18 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
 
   const updateCriterio = (index: number, value: string) => {
     const updatedCriterios = [...criterios]
-    updatedCriterios[index] = value.slice(0, 55) // Limit to 55 characters
+    updatedCriterios[index] = value.slice(0, 55) // Limitar caracteres a 55
     setCriterios(updatedCriterios)
-    setGeneralError('')
 
-    const newValidationErrors = { ...validationErrors }
-    if (value.trim().length === 0) {
-      newValidationErrors[`criteriosAcept.${index}.descripcion`] = ['']
-      setValidationErrors(newValidationErrors)
-      return
+    // Validar duplicados al actualizar
+    if (!validateDuplicates(updatedCriterios)) {
+      setGeneralError('No se permiten criterios duplicados.')
+    } else {
+      setGeneralError('')
     }
+
+    // Validar longitud de caracteres
+    const newValidationErrors = { ...validationErrors }
     if (value.trim().length < 10) {
       newValidationErrors[`criteriosAcept.${index}.descripcion`] = ['El criterio debe tener al menos 10 caracteres']
     } else if (value.trim().length > 50) {
@@ -134,12 +127,17 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     setLengthError('')
     setValidationErrors(null)
     setGeneralError('')
+    if (!validateDuplicates(criterios)) {
+      setGeneralError('No se permiten criterios duplicados.')
+      return
+    }
 
     // Validar nombre usando el endpoint para verificar duplicados
     if (selectedObjetivo) {
       try {
-        const response = await fetch(`https://cocoabackend.onrender.com/api/objetivos/${selectedObjetivo.identificador}/entregables`)
-        const existingEntregables = await response.json()
+        const response = await getEntregablesWithObjetive(selectedObjetivo.identificador)
+
+        const existingEntregables = await response.data
         const exists = existingEntregables.some((e: { nombre: string }) => e.nombre === currentEntregable.nombre.trim())
 
         if (exists) {
@@ -260,7 +258,12 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
     updatedCriterios.splice(index, 1)
     setCriterios(updatedCriterios)
 
-    // Limpiar el error correspondiente al índice eliminado
+    // Limpiar el error si no hay duplicados
+    if (validateDuplicates(updatedCriterios)) {
+      setGeneralError('')
+    }
+
+    // Limpiar errores específicos del criterio eliminado
     const newValidationErrors = { ...validationErrors }
     delete newValidationErrors[`criteriosAcept.${index}.descripcion`]
     setValidationErrors(newValidationErrors)
@@ -316,15 +319,21 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
           criteriosAcept: e.criteriosAcept,
         }
 
-        const response = await fetch('https://cocoabackend.onrender.com/api/objetivos/entregables', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-        if (response.status !== 201) {
-          const responseBody = await response.json()
-          setErrorMessage(responseBody.message || 'Error al crear el entregable.')
-          setValidationErrors(responseBody.errors || null)
+        try {
+          const response = await postEntregables(payload)
+
+          if (response.status !== 201) {
+            setErrorMessage(response.data.message || 'Error al crear el entregable.')
+            setValidationErrors(response.data.errors || null)
+            return
+          }
+        } catch (error: any) {
+          if (error.response) {
+            setErrorMessage(error.response.data.message || 'Error al crear el entregable.')
+            setValidationErrors(error.response.data.errors || null)
+          } else {
+            setErrorMessage('Error de red o del servidor.')
+          }
           return
         }
       }
@@ -335,6 +344,18 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
       console.error('Error creando el entregable:', error)
       setErrorMessage('Error desconocido al crear el entregable.')
     }
+  }
+
+  useEffect(() => {
+    // Desplaza el scroll al final después de agregar un criterio
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [criterios])
+
+  const validateDuplicates = (criteriosList: string[]) => {
+    const uniqueCriterios = new Set(criteriosList.map((c) => c.trim()))
+    return uniqueCriterios.size === criteriosList.length // Devuelve false si hay duplicados
   }
 
   if (!isOpen) return null
@@ -402,7 +423,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
             <h6 className="text-base mb-2 flex">
               Criterios de aceptación para Entregable <p className="text-red-600">*</p>
             </h6>
-            <div className="max-h-40 overflow-y-auto">
+            <div ref={scrollRef} className="max-h-40 overflow-y-auto">
               {criterios.map((criterio, index) => (
                 <div className="mb-4" key={index}>
                   <div className="flex items-center relative">
@@ -420,7 +441,6 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                       className="w-6 h-6 absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
                     />
                   </div>
-                  {/* Mostrar error específico para cada input de criterio */}
                   {validationErrors?.[`criteriosAcept.${index}.descripcion`] && (
                     <div className="text-red-500 text-sm my-1">{validationErrors[`criteriosAcept.${index}.descripcion`].join(', ')}</div>
                   )}
@@ -428,7 +448,6 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
               ))}
             </div>
 
-            {/* Mostrar error general si no hay criterios válidos */}
             {generalError && <div className="text-red-500 text-sm my-2">{generalError}</div>}
 
             <div className="flex justify-center">
@@ -451,7 +470,12 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                 <button type="button" onClick={handleCancel} className="button-secondary_outlined">
                   Cancelar
                 </button>
-                <button type="button" onClick={saveEntregable} className="button-primary">
+                <button
+                  type="button"
+                  onClick={saveEntregable}
+                  className={`button-primary ${generalError ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={!!generalError} // Deshabilitado si hay un error general
+                >
                   Siguiente
                 </button>
               </div>
@@ -476,7 +500,7 @@ const NewEntregableModal: React.FC<NewEntregableModalProps> = ({ isOpen, onClose
                     type="text"
                     value={`${e.nombre} - ${e.criteriosAcept.length} ${e.criteriosAcept.length === 1 ? 'Criterio' : 'Criterios'}`}
                     readOnly
-                    className="border text-gray-900 rounded-lg block w-full p-2.5"
+                    className="border text-gray-900 rounded-lg block w-full p-2.5 pr-16" // Añade pr-12 para espacio a la derecha
                   />
 
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">

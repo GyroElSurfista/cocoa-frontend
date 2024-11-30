@@ -38,7 +38,7 @@ const EvaluacionPage: React.FC = () => {
           <div className="flex items-center justify-center text-center">
             <h2 className="text-[19.2px] mr-2">Generado el:</h2>
             <span className="text-[19.2px] text-[#462FA4] leading-normal pt-1" style={{ fontFamily: 'Inter, sans-serif' }}>
-              {new Date(fechaEvaluFinalGener).toLocaleDateString('es-ES', {
+              {new Date(new Date(fechaEvaluFinalGener).setDate(new Date(fechaEvaluFinalGener).getDate() + 1)).toLocaleDateString('es-ES', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',

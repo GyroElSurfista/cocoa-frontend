@@ -12,6 +12,7 @@ import SelectorServices from './pages/SelectorServices'
 import CrearPlantillaPage from './pages/PlantillaPage/CrearPlantillaPage'
 import { PlantillaDeletePage } from './pages/Plantillas/Delete/PlantillaDeletePage'
 import LlenarPlaniEvaObjPage from './pages/LlenarPlaniEvaObjPage/LlenarPlaniEvaObjPage'
+import PlanillaEquipoPage from './pages/PlanillasPage/Equipo/PlanillaEquipoPage'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route path="servicios" element={<SelectorServices />} />
           <Route path="objetivos" element={<ObjectivePage />} />
+          <Route path="/planilla-equipo/:planillaId" element={<PlanillaEquipoPage />} />
           <Route path="eliminar-plantillas" element={<PlantillaDeletePage />} />
           <Route path="eliminar-observaciones" element={<DeleteObservationPage />} />
           <Route path="objetivos-entregables" element={<EntregablePage />} />

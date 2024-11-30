@@ -43,6 +43,7 @@ const GenerateTrackerModal = () => {
         navigate(`/planillas-seguimiento/${selectedProject.identificador}`, {
           state: { project: response.data, generated: true },
         })
+        handleClose()
       } catch (error) {
         console.error('Error generating tracking sheet:', error)
         setError('Ocurrió un error al generar la planilla de seguimiento. Inténtalo de nuevo.')
