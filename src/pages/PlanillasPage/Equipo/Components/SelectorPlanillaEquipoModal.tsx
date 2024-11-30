@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import { Autocomplete, TextField, Snackbar } from '@mui/material'
 import * as Equipo from './../../../../interfaces/equipo.interface'
 import PlaniSeguiIcon from '../../../../assets/PlaniSeguiIcon'
@@ -18,11 +17,13 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
   const [projectOptions, setProjectOptions] = useState<string[]>([])
   const [projectInputValue, setProjectInputValue] = useState('')
+  const [showMessageLlenada, setShowMessageLlenada] = useState(false)
 
   const [objectives, setObjectives] = useState<Equipo.Objective[]>([])
-  const [filteredObjectives, setFilteredObjectives] = useState<Equipo.Objective[]>([])
-  const [selectedObjective, setSelectedObjective] = useState<Equipo.Objective | null>(null)
-  const [objectiveInputValue, setObjectiveInputValue] = useState('')
+  const [autoSelectedObjective, setAutoSelectedObjective] = useState<Equipo.Objective | null>(null)
+  const [recommendedPlanilla, setRecommendedPlanilla] = useState<Equipo.Planilla | null>(null)
+  const [showWarning, setShowWarning] = useState(false)
+  const [noPlanillasError, setNoPlanillasError] = useState(false)
 
   const [planillas, setPlanillas] = useState<Equipo.Planilla[]>([])
   const [selectedPlanilla, setSelectedPlanilla] = useState<Equipo.Planilla | null>(null)
@@ -59,6 +60,30 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
       console.error('Error al cargar los objetivos y planificaciones:', error)
     }
   }
+  useEffect(() => {
+    if (!loadingPlanillas && planillas.length === 0) {
+      setNoPlanillasError(true)
+    } else {
+      setNoPlanillasError(false)
+    }
+  }, [loadingPlanillas, planillas])
+
+  useEffect(() => {
+    if (selectedProject && objectives.length > 0) {
+      const today = new Date()
+
+      // Encontrar el objetivo en curso basado en las fechas
+      const currentObjective = objectives.find(
+        (obj) => obj.nombrePlani === selectedProject && new Date(obj.fechaInici) <= today && new Date(obj.fechaFin) >= today
+      )
+
+      if (currentObjective) {
+        setAutoSelectedObjective(currentObjective)
+      } else {
+        setAutoSelectedObjective(null)
+      }
+    }
+  }, [selectedProject, objectives])
 
   // Recargar opciones cuando se abre el modal del proyecto
   const handleOpenProjectModal = () => {
@@ -67,24 +92,27 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
   }
 
   useEffect(() => {
-    if (selectedProject) {
-      const filtered = objectives.filter((obj) => obj.nombrePlani === selectedProject)
-      setFilteredObjectives(filtered)
+    if (selectedPlanilla && recommendedPlanilla) {
+      // Mostrar advertencia si la planilla seleccionada ya está llenada
+      setShowWarning(selectedPlanilla.llenada || selectedPlanilla.identificador !== recommendedPlanilla.identificador)
+    } else {
+      setShowWarning(false)
     }
-  }, [selectedProject, objectives])
+  }, [selectedPlanilla, recommendedPlanilla])
 
   useEffect(() => {
-    if (selectedObjective) {
+    if (autoSelectedObjective) {
       setLoadingPlanillas(true)
 
       const fetchAndFilterPlanillas = async () => {
         try {
-          // Obtener información de planificaciones
           const planificacionesResponse = await getAllPlanificaciones()
-          const planificacion = planificacionesResponse.data.find((plani) => plani.identificador === selectedObjective.identificadorPlani)
+          const planificacion = planificacionesResponse.data.find(
+            (plani) => plani.identificador === autoSelectedObjective.identificadorPlani
+          )
 
           if (!planificacion) {
-            console.error(`Planificación con identificador ${selectedObjective.identificadorPlani} no encontrada`)
+            console.error(`Planificación con identificador ${autoSelectedObjective.identificadorPlani} no encontrada`)
             setPlanillas([])
             setLoadingPlanillas(false)
             return
@@ -92,33 +120,44 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
 
           const empresaId = planificacion.identificadorGrupoEmpre
 
-          // Obtener planillas del objetivo seleccionado
-          const planillasResponse = await getPlanillasSeguimiento(selectedObjective.identificador)
+          const planillasResponse = await getPlanillasSeguimiento(autoSelectedObjective.identificador)
           const allPlanillas = planillasResponse.data
 
-          // Obtener fecha actual
           const today = new Date()
-
-          // Verificar estado de llenado de cada planilla y filtrar por fecha
           const filteredPlanillas = []
+
           for (const planilla of allPlanillas) {
             const planillaDate = new Date(planilla.fecha)
 
-            // Ignorar planillas con fecha futura
-            if (planillaDate > today) {
-              continue
-            }
+            // Verificar si la planilla está dentro del rango de 7 días desde su fecha original
+            const planillaEndDate = new Date(planillaDate)
+            planillaEndDate.setDate(planillaEndDate.getDate() + 7)
 
             // Verificar si la planilla ya fue llenada
             const asistenciaResponse = await getAsistenciasDate(empresaId, planilla.fecha)
+            const isPlanillaLlenada = asistenciaResponse.data.length > 0
 
-            if (asistenciaResponse.data.length === 0) {
-              filteredPlanillas.push(planilla)
+            // Si no ha sido llenada o está en el rango de 7 días, incluirla
+            if (!isPlanillaLlenada || (today >= planillaDate && today <= planillaEndDate)) {
+              filteredPlanillas.push({
+                ...planilla,
+                llenada: isPlanillaLlenada, // Marcar si está llenada
+              })
             }
+            setShowMessageLlenada(isPlanillaLlenada)
           }
 
-          setPlanillas(filteredPlanillas) // Guardar planillas no llenadas y con fecha válida
-          setFechasPlanillas(filteredPlanillas.map((planilla) => planilla.fecha))
+          setPlanillas(filteredPlanillas)
+
+          // Preseleccionar la planilla más cercana
+          const closestPlanilla = filteredPlanillas.reduce((prev, curr) => {
+            const prevDiff = Math.abs(new Date(prev.fecha) - today)
+            const currDiff = Math.abs(new Date(curr.fecha) - today)
+            return currDiff < prevDiff ? curr : prev
+          }, filteredPlanillas[0])
+
+          setRecommendedPlanilla(closestPlanilla)
+          setSelectedPlanilla(closestPlanilla) // Preselecciona la más cercana
         } catch (error) {
           console.error('Error al cargar o filtrar planillas:', error)
         } finally {
@@ -130,24 +169,40 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
     } else {
       setPlanillas([])
       setFechasPlanillas([])
+      setRecommendedPlanilla(null)
+      setNoPlanillasError(true) // Sin objetivo seleccionado, asumimos error
     }
-  }, [selectedObjective])
+  }, [autoSelectedObjective])
 
   const handleCancel = () => {
+    // Ocultar modales
     setShowProjectModal(false)
     setShowObjectivePlanillaModal(false)
+
+    // Limpiar campos seleccionados
     setSelectedProject(null)
     setProjectInputValue('')
-    setSelectedObjective(null)
-    setObjectiveInputValue('')
     setSelectedPlanilla(null)
     setPlanillaInputValue('')
     setPlanillaError(false)
+    setNoPlanillasError(false)
+
+    // Reiniciar opciones y datos cargados
     setProjectOptions([])
+    setObjectives([])
+    setPlanillas([])
+    setFechasPlanillas([])
+
+    // Limpiar estados automáticos
+    setAutoSelectedObjective(null)
+    setRecommendedPlanilla(null)
+
+    // Reiniciar mensajes y advertencias
+    setShowWarning(false)
   }
 
   const handleAccept = () => {
-    if (selectedObjective && selectedPlanilla && selectedPlanilla.fecha) {
+    if (autoSelectedObjective && selectedPlanilla && selectedPlanilla.fecha) {
       const observations = selectedPlanilla.actividad_seguimiento.flatMap((activity) =>
         activity.observacion.map((obs) => ({
           id: obs.identificador,
@@ -160,21 +215,21 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
 
       onRedirect(
         observations,
-        selectedObjective.identificador,
+        autoSelectedObjective.identificador,
         selectedPlanilla.fecha,
         selectedPlanilla.identificador,
-        selectedObjective.nombre,
-        selectedObjective.identificadorPlani,
+        autoSelectedObjective.nombre,
+        autoSelectedObjective.identificadorPlani,
         fechasPlanillas
       )
 
       navigate(`/planilla-equipo/${selectedPlanilla.identificador}`, {
         state: {
           observations,
-          objectiveId: selectedObjective.identificador,
+          objectiveId: autoSelectedObjective.identificador,
           planillaDate: selectedPlanilla.fecha,
-          objectiveName: selectedObjective.nombre,
-          identificadorPlani: selectedObjective.identificadorPlani,
+          objectiveName: autoSelectedObjective.nombre,
+          identificadorPlani: autoSelectedObjective.identificadorPlani,
           planillaSeguiId: selectedPlanilla.identificador,
           fechas: fechasPlanillas,
         },
@@ -239,21 +294,33 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
           <div className="bg-white w-[375px] max-w-lg p-6 rounded-[20px] shadow-lg">
             <h5 className="text-xl font-semibold text-center">Llenar planilla de Seguimiento</h5>
             <hr className="border-[1.5px] mb-4 mt-4" />
-            <p className="font-inter font-normal mb-2 text-sm">
-              Selecciona el objetivo y la planilla correspondiente para la cual desees agregar la observación
+            <p className="font-inter font-normal mb-4 text-sm">
+              {autoSelectedObjective?.nombre ? (
+                <>
+                  Planillas para el objetivo en curso: <p className="font-semibold">{autoSelectedObjective.nombre}</p>
+                </>
+              ) : (
+                <p>
+                  <b className="text-red-600">No existe objetivos en curso</b> para la planificación:{' '}
+                  <p className="font-semibold">{selectedProject}</p>
+                </p>
+              )}
             </p>
-            <label className="block mb-3 text-sm font-medium text-gray-900">
-              Objetivo <span className="text-[#f60c2e]">*</span>
-            </label>
-            <Autocomplete
-              options={filteredObjectives}
-              getOptionLabel={(option) => option.nombre}
-              value={selectedObjective}
-              onChange={(_, newValue) => setSelectedObjective(newValue)}
-              inputValue={objectiveInputValue}
-              onInputChange={(_, newValue) => setObjectiveInputValue(newValue)}
-              renderInput={(params) => <TextField {...params} label="Selecciona un objetivo" variant="outlined" className="w-full mb-4" />}
-            />
+
+            {recommendedPlanilla && (
+              <p className="text-black text-sm mb-4">
+                {recommendedPlanilla.llenada ? (
+                  <>
+                    La planilla <b>{recommendedPlanilla.fecha}</b>, correspondiente a la semana ya ha sido llenada.
+                  </>
+                ) : (
+                  <>
+                    La planilla que debe llenar esta semana es: <p className="font-semibold">{recommendedPlanilla.fecha}</p>
+                  </>
+                )}
+              </p>
+            )}
+
             <label className="block mb-3 text-sm font-medium text-gray-900">
               Planilla <span className="text-[#f60c2e]">*</span>
             </label>
@@ -265,15 +332,30 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
               inputValue={planillaInputValue}
               onInputChange={(_, newValue) => setPlanillaInputValue(newValue)}
               loading={loadingPlanillas}
-              disabled={!selectedObjective || loadingPlanillas}
+              disabled={noPlanillasError}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   label="Selecciona una planilla"
                   variant="outlined"
                   className="w-full mb-4"
-                  error={planillaError}
-                  helperText={planillaError ? 'Por favor, selecciona una planilla válida' : ''}
+                  error={noPlanillasError}
+                  helperText={
+                    noPlanillasError ? (
+                      <>
+                        Debe generar las planillas de seguimiento semanal para la planificación:
+                        <p className="font-semibold">{selectedProject}</p>
+                      </>
+                    ) : showWarning ? (
+                      selectedPlanilla?.llenada ? (
+                        <p className="text-red-600">La planilla ({selectedPlanilla?.fecha}) ya ha sido llenada ¿Desea continuar?</p>
+                      ) : (
+                        <p className="text-red-600">La planilla ({selectedPlanilla?.fecha}) es una pasada ¿Desea continuar?</p>
+                      )
+                    ) : (
+                      ''
+                    )
+                  }
                   InputProps={{
                     ...params.InputProps,
                     endAdornment: (
@@ -292,7 +374,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
                 Cancelar
               </button>
               <button type="button" onClick={handleAccept} className="button-primary" disabled={!selectedPlanilla}>
-                Aceptar
+                {showWarning ? 'Continuar' : 'Aceptar'}
               </button>
             </div>
           </div>
