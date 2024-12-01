@@ -8,6 +8,7 @@ import { createObjective } from '../../../../services/objective.service'
 import { Objective } from '../../Models/objective'
 import dayjs from 'dayjs'
 import { formatDateToDMY } from '../../../../utils/formatDate'
+import WarningIcon from '@mui/icons-material/Warning'
 
 interface NewObjectiveModalProps {
   isOpen: boolean
@@ -80,7 +81,10 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       case 0:
         return (
           <>
-            <p className="pb-2">Selecciona la planificación para la cual deseas registrar el objetivo.</p>
+            <p className="pb-2">Selecciona el proyecto para el cual deseas registrar el objetivo.</p>
+            <p className="pb-2">
+              <WarningIcon sx={{ color: '#F20519' }} /> Solo se puede seleccionar proyectos en etapa de planificaión.{' '}
+            </p>
             <div className="pb-2 font-medium">
               Proyecto <span className="text-red-500">*</span>
             </div>
@@ -112,7 +116,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               Proyecto seleccionado: <span className="font-normal">{selectedProject?.nombre}</span>
             </p>
             <p className="font-semibold">
-              Fecha de inicio y fin:{' '}
+              Duración del proyecto:{' '}
               <span className="font-normal">
                 {formatDateToDMY(selectedProject?.fechaInici)} - {formatDateToDMY(selectedProject?.fechaFin)}
               </span>
@@ -120,8 +124,9 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
             <p className="pb-2 font-semibold">
               Dia de revision: <span className="font-normal">{selectedProject?.diaRevis}</span>
             </p>
-            <p className="pb-2 font-semibold">
-              Siguiente fecha disponible: <span className="font-normal">{formatDateToDMY(selectedProject?.siguienteFechaIniciDispo)}</span>
+            <p className="pb-2">
+              Define la duración de tu objetivo a partir de la siguiente fecha disponible{' '}
+              <span className="font-normal">{formatDateToDMY(selectedProject?.siguienteFechaIniciDispo)}</span>
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="">
@@ -247,6 +252,11 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                 {errors.finDate && <p className="text-red-500 text-sm">{errors.finDate.message}</p>}
               </div>
             </div>
+          </>
+        )
+      case 2:
+        return (
+          <>
             <div className="pt-4">
               <label htmlFor="objective" className="block mb-1 text-md font-medium text-gray-900 dark:text-white">
                 Nombre del objetivo
@@ -270,11 +280,6 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
               />
               {errors.objective && <p className="text-red-500 text-sm">{errors.objective.message}</p>}
             </div>
-          </>
-        )
-      case 2:
-        return (
-          <>
             <div className="pt-4">
               <p className="pb-2">
                 Agrega un valor porcentual a los entregables de este objetivo.
@@ -386,7 +391,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
           })
         }
         if (errorData.errors.nombre) {
-          setActiveStep(1)
+          //setActiveStep(2)
           setError('objective', {
             type: 'manual',
             message: errorData.errors.nombre.join('. '),
@@ -455,9 +460,9 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
       case 0:
         return selectedProject !== null
       case 1:
-        return watch('iniDate') && watch('finDate') && watch('objective')
+        return watch('iniDate') && watch('finDate')
       case 2:
-        return watch('valueP')
+        return watch('objective') && watch('valueP')
       default:
         return false
     }

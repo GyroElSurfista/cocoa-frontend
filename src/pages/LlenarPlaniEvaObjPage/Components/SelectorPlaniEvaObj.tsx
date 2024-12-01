@@ -1,4 +1,4 @@
-import { Autocomplete, TextField } from '@mui/material'
+import { Autocomplete, TextField, Chip } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { getPlannings, ObjectiveData } from '../../../services/objective.service'
 import { getObjectivesEvaluables, verificarLlenadoObj } from '../../../services/planiEvaObj.service'
@@ -23,7 +23,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
   const [error, setError] = useState<string | null>(null)
   const [projects, setProjects] = useState<Array<Planning>>([])
   const [selectedProject, setSelectedProject] = useState<Planning | null>(null)
-  const [objectives, setObjectives] = useState<Array<ObjectiveData>>([])
+  const [objectives, setObjectives] = useState<Array<ObjectiveData & { status?: string }>>([])
   const [selectedObjective, setSelectedObjective] = useState<ObjectiveData | null>(null)
 
   const navigate = useNavigate()
@@ -58,7 +58,6 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
     try {
       const response = await getPlannings()
       const today = new Date()
-
       const validProjects = response.data.filter((project: Planning) => {
         const startDate = new Date(project.fechaInici)
         const endDate = new Date(project.fechaFin)
@@ -74,8 +73,21 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
   const fetchObjectives = async (idProject: number) => {
     try {
       const response = await getObjectivesEvaluables(idProject)
-      console.log(response.data)
-      setObjectives(response.data.data)
+      const today = new Date()
+      const savedDate = new Date(localStorage.getItem('date') || today)
+
+      const updatedObjectives = response.data.data.map((objective: ObjectiveData) => {
+        const endDate = new Date(objective.fechaFin)
+
+        if (savedDate.getTime() === endDate.getTime()) {
+          return { ...objective, status: 'siguiente a evaluar' }
+        } else if (savedDate > endDate) {
+          return { ...objective, status: 'pendiente' }
+        } else {
+          return { ...objective, status: 'evaluado' }
+        }
+      })
+      setObjectives(updatedObjectives)
     } catch (error) {
       console.error('Error fetching objectives for project:', error)
     }
@@ -126,12 +138,25 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
           </div>
           <Autocomplete
             options={objectives}
-            getOptionLabel={(option) => option.nombre} // Adjusted to "nombre" assuming "objective" was incorrect
+            getOptionLabel={(option) => `${option.nombre}${option.status ? ` - ${option.status}` : ''}`}
             value={selectedObjective}
             onChange={(_, newValue) => {
               setSelectedObjective(newValue)
               setError(null) // Clear error when a valid selection is made
             }}
+            renderOption={(props, option) => (
+              <li {...props}>
+                {option.nombre}
+                {option.status && (
+                  <Chip
+                    label={option.status}
+                    size="small"
+                    color={option.status === 'siguiente a evaluar' ? 'primary' : 'warning'}
+                    className="ml-2"
+                  />
+                )}
+              </li>
+            )}
             renderInput={(params) => <TextField {...params} label="Selecciona un objetivo" variant="outlined" />}
             disabled={!selectedProject} // Disable the field if no project is selected
             noOptionsText="No existen objetivos que puedan ser evaluados"

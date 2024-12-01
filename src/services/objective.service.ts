@@ -11,6 +11,7 @@ export interface ObjectiveData {
   valorPorce: number
   nombrePlani: string
   actividad?: ActivityData[]
+  status?: 'pendiente' | 'siguiente a evaluar' | 'evaluado'
 }
 
 export const createObjective = async (objectiveData: ObjectiveData) => {
