@@ -208,12 +208,7 @@ const LlenarPlaniEvaObjPage = () => {
             background: snackbarColor,
             color: snackbarColor === '#D3FFD2' ? '#00A407' : '#A40000',
           }}
-          message={
-            <span className="inline-flex w-full items-center">
-              <img src={IconDanger} alt="icon-danger" className="w-6 pr-1" />
-              {snackbarMessage}
-            </span>
-          }
+          message={<span className="inline-flex w-full items-center">{snackbarMessage}</span>}
         />
       </Snackbar>
     </div>
