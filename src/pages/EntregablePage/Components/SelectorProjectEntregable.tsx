@@ -86,7 +86,7 @@ const SelectorProjectEntregable: React.FC<ProjectSelectorModalProps> = ({ isOpen
           <h5 className="text-xl font-semibold text-center">Seleccionar Proyecto</h5>
           <hr className="border-[1.5px] my-2" />
           <p className="text-sm my-2">
-            Selecciona un proyecto para continuar con la creación de entregables asociados (solo para proyectos en desarrollo).
+            Selecciona un proyecto para continuar con la creación de entregables asociados (solo para proyectos en etapa de planificación).
           </p>
 
           <h2 className="pb-2 font-medium">Proyectos</h2>
