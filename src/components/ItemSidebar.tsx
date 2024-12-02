@@ -1,4 +1,5 @@
 import { ReactElement, useState } from 'react'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 
 interface ItemSidebarProps {
   name: string
@@ -14,8 +15,9 @@ const ItemSidebar = ({ name, children }: ItemSidebarProps) => {
 
   return (
     <>
-      <div className="pb-2 cursor-pointer" onClick={toggleAccordion}>
+      <div className="mb-2 mx-2 pb-1 cursor-pointer flex justify-between border-b border-[#888888]" onClick={toggleAccordion}>
         <p className="font-semibold">{name}</p>
+        <KeyboardArrowDownIcon />
       </div>
       {isExpanded && <div className="pl-2">{children}</div>}
     </>
