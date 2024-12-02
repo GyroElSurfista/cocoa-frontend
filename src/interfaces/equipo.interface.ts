@@ -1,3 +1,4 @@
+import { Planificacion } from './project.interface'
 export interface NewEntregableModalProps {
   isOpen: boolean
   onClose: () => void
@@ -9,6 +10,23 @@ export interface NewEntregableModalProps {
   objectiveName: string
   planillaSeguiId?: number
   fechas: string[]
+}
+
+export interface Planificacion {
+  identificador: number
+  nombre: string
+  fechaInici: string
+  fechaFin: string
+  costo: string
+  identificadorGrupoEmpre: number
+  diaRevis: string
+  planillasSeguiGener: boolean
+  fechaPlaniSeguiGener: string
+  grupo_empresa: {
+    identificador: number
+    nombreLargo: string
+    nombreCorto: string
+  }
 }
 
 export interface Observation {
@@ -150,6 +168,7 @@ export interface Planilla {
   fecha: string
   identificadorObjet: number
   actividad_seguimiento: ActividadSeguimiento[]
+  llenada?: boolean
 }
 
 export interface SelectorObservationModalProps {

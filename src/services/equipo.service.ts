@@ -14,11 +14,11 @@ export const getAllEntregables = (): AxiosPromise<any[]> => {
 }
 
 export const getUsersGrupoEmpresa = (idGrupoEmpresa: any): AxiosPromise<any> => {
-  return axiosInstance.get(`grupoEmpresas/${idGrupoEmpresa}/usuarios`)
+  return axiosInstance.get(`/grupoEmpresas/${idGrupoEmpresa}/usuarios`)
 }
 
 export const getAsistencias = (identificadorPlani: number, fecha: string): AxiosPromise<any> => {
-  return axiosInstance.get('/api/grupo-empresa/asistencia', {
+  return axiosInstance.get('/grupo-empresa/asistencia', {
     params: {
       identificadorGrupoEmpre: identificadorPlani,
       fecha,
@@ -27,15 +27,15 @@ export const getAsistencias = (identificadorPlani: number, fecha: string): Axios
 }
 
 export const getEntregablesDinamicos = (idObjective: number, fecha: string): AxiosPromise<any> => {
-  return axiosInstance.get(`entregables-dinamicos?identificadorObjet=${idObjective}&fecha=${fecha}`)
+  return axiosInstance.get(`/entregables-dinamicos?identificadorObjet=${idObjective}&fecha=${fecha}`)
 }
 
 export const getAsistenciasDate = (idEmpresa: any, fecha: string): AxiosPromise<any> => {
-  return axiosInstance.get(`asistencia?grupoEmpresaId=${idEmpresa}&fecha=${fecha}`)
+  return axiosInstance.get(`/asistencia?grupoEmpresaId=${idEmpresa}&fecha=${fecha}`)
 }
 
 export const getActivities = (idPlanilla: any): AxiosPromise<any> => {
-  return axiosInstance.get(`planilla-seguimiento/${idPlanilla}/actividades`)
+  return axiosInstance.get(`/planilla-seguimiento/${idPlanilla}/actividades`)
 }
 
 export const postAsistencia = (usuarioId: number, fecha: string): AxiosPromise<any> => {
@@ -63,7 +63,7 @@ export const postActividadSeguimiento = (nombre: string, identificadorPlaniSegui
 }
 
 export const getPlanillasSeguimiento = (idObjective: number): AxiosPromise<any> => {
-  return axiosInstance.get(`objetivos/${idObjective}/planillas-seguimiento`)
+  return axiosInstance.get(`/objetivos/${idObjective}/planillas-seguimiento`)
 }
 
 export const updateEntregable = (identificador: any, payload: any): AxiosPromise<any> => {
