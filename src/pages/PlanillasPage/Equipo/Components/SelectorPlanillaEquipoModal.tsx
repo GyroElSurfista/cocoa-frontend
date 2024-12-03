@@ -124,41 +124,59 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
           const planillasResponse = await getPlanillasSeguimiento(autoSelectedObjective.identificador)
           const allPlanillas = planillasResponse.data
 
-          const today = new Date(localStorage.getItem('date'))
-          const filteredPlanillas = []
+          const storedDate = localStorage.getItem('date')
+          const today = new Date(storedDate || new Date().toISOString())
 
-          for (const planilla of allPlanillas) {
-            const planillaDate = new Date(planilla.fecha)
+          const filteredPlanillas = await Promise.all(
+            allPlanillas.map(async (planilla) => {
+              const planillaDate = new Date(planilla.fecha)
 
-            // Verificar si la planilla está dentro del rango de 7 días desde su fecha original
-            const planillaEndDate = new Date(planillaDate)
-            planillaEndDate.setDate(planillaEndDate.getDate() + 7)
+              // Filtrar solo planillas pasadas o actuales
+              if (planillaDate > today) {
+                return null
+              }
 
-            // Verificar si la planilla ya fue llenada
-            const asistenciaResponse = await getAsistenciasDate(empresaId, planilla.fecha)
-            const isPlanillaLlenada = asistenciaResponse.data.length > 0
+              const planillaEndDate = new Date(planillaDate)
+              planillaEndDate.setDate(planillaEndDate.getDate() + 7)
 
-            // Si no ha sido llenada o está en el rango de 7 días, incluirla
-            if (!isPlanillaLlenada || (today >= planillaDate && today <= planillaEndDate)) {
-              filteredPlanillas.push({
-                ...planilla,
-                llenada: isPlanillaLlenada, // Marcar si está llenada
-              })
-            }
-            setShowMessageLlenada(isPlanillaLlenada)
+              // Verificar si la planilla ya fue llenada
+              const asistenciaResponse = await getAsistenciasDate(empresaId, planilla.fecha)
+              const isPlanillaLlenada = asistenciaResponse.data.length > 0
+
+              // Retornar la planilla solo si cumple las condiciones
+              if (!isPlanillaLlenada || (today >= planillaDate && today <= planillaEndDate)) {
+                return {
+                  ...planilla,
+                  llenada: isPlanillaLlenada, // Marcar si está llenada
+                }
+              }
+
+              return null
+            })
+          )
+
+          // Filtrar nulos y establecer las planillas válidas
+          const validPlanillas = filteredPlanillas.filter((planilla) => planilla !== null)
+
+          if (validPlanillas.length === 0) {
+            console.warn('No se encontraron planillas válidas')
+            setPlanillas([])
+            setRecommendedPlanilla(null)
+            setNoPlanillasError(true)
+            return
           }
 
-          setPlanillas(filteredPlanillas)
+          setPlanillas(validPlanillas)
 
           // Preseleccionar la planilla más cercana
-          const closestPlanilla = filteredPlanillas.reduce((prev, curr) => {
+          const closestPlanilla = validPlanillas.reduce((prev, curr) => {
             const prevDiff = Math.abs(new Date(prev.fecha) - today)
             const currDiff = Math.abs(new Date(curr.fecha) - today)
             return currDiff < prevDiff ? curr : prev
-          }, filteredPlanillas[0])
+          })
 
           setRecommendedPlanilla(closestPlanilla)
-          setSelectedPlanilla(closestPlanilla) // Preselecciona la más cercana
+          setSelectedPlanilla(closestPlanilla)
         } catch (error) {
           console.error('Error al cargar o filtrar planillas:', error)
         } finally {
@@ -171,7 +189,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
       setPlanillas([])
       setFechasPlanillas([])
       setRecommendedPlanilla(null)
-      setNoPlanillasError(true) // Sin objetivo seleccionado, asumimos error
+      setNoPlanillasError(true)
     }
   }, [autoSelectedObjective])
 
