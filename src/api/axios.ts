@@ -7,7 +7,7 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const currentDate = localStorage.getItem('date') ?? '2024-10-28' // Si es null entonces le pasamos la fecha inicial
+    const currentDate = localStorage.getItem('date') ?? '2024-08-12' // Si es null entonces le pasamos la fecha inicial
 
     config.headers = config.headers || {} // Asegurarse de que los headers existan
     ;(config.headers as Record<string, string>)['X-Current-Date'] = currentDate
