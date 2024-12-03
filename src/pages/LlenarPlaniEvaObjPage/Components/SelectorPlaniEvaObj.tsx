@@ -57,7 +57,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
   const fetchProjects = async () => {
     try {
       const response = await getPlannings()
-      const today = new Date()
+      const today = new Date(localStorage.getItem('date'))
       const validProjects = response.data.filter((project: Planning) => {
         const startDate = new Date(project.fechaInici)
         const endDate = new Date(project.fechaFin)
@@ -73,7 +73,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
   const fetchObjectives = async (idProject: number) => {
     try {
       const response = await getObjectivesEvaluables(idProject)
-      const today = new Date()
+      const today = new Date(localStorage.getItem('date'))
       const savedDate = new Date(localStorage.getItem('date') || today)
 
       const updatedObjectives = response.data.data.map((objective: ObjectiveData) => {

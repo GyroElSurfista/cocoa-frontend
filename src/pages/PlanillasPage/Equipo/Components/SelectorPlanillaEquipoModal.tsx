@@ -41,7 +41,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
       const objetivosData = await objetivosResponse.data
       const planificacionesData = await planificacionesResponse.data
 
-      const today = new Date()
+      const today = new Date(localStorage.getItem('date'))
       const planificacionesEnCursoIds = new Set(
         planificacionesData
           .filter((plan) => {
@@ -71,7 +71,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
 
   useEffect(() => {
     if (selectedProject && objectives.length > 0) {
-      const today = new Date()
+      const today = new Date(localStorage.getItem('date'))
 
       // Encontrar el objetivo en curso basado en las fechas
       const currentObjective = objectives.find(
@@ -124,7 +124,7 @@ const SelectorPlanillaEquipoModal = ({ onRedirect }: Equipo.SelectorObservationM
           const planillasResponse = await getPlanillasSeguimiento(autoSelectedObjective.identificador)
           const allPlanillas = planillasResponse.data
 
-          const today = new Date()
+          const today = new Date(localStorage.getItem('date'))
           const filteredPlanillas = []
 
           for (const planilla of allPlanillas) {
