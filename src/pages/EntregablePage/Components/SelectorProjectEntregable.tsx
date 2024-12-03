@@ -26,7 +26,7 @@ const SelectorProjectEntregable: React.FC<ProjectSelectorModalProps> = ({ isOpen
       setAllObjectives(objetivosData)
 
       // Obtener la fecha actual
-      const today = new Date()
+      const today = new Date(localStorage.getItem('date'))
 
       // Filtrar planificaciones que aún no han iniciado
       const planificacionesValidas = planificacionesData.filter((plan: any) => {
