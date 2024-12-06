@@ -147,7 +147,7 @@ const DeleteActivityPage = (): JSX.Element => {
           fechaInici: new Date(actividad.fechaInici),
           fechaFin: new Date(actividad.fechaFin),
         }))
-        setActivities(actividades.filter((actividad) => actividad.esEliminable === true))
+        setActivities(actividades) // setActivities(actividades.filter((actividad) => actividad.esEliminable === true))
         const objetivos = (await getObjectivesFromPlanification(3)).data
         setObjectives(objetivos)
       } catch (error) {
@@ -228,25 +228,24 @@ const DeleteActivityPage = (): JSX.Element => {
       ) : activities.length === 0 ? (
         <h3 className="flex justify-center font-semibold mt-2">No existen actividades disponibles</h3>
       ) : (
-        activities.map((actividad, index) =>
-          actividad.esEliminable ? (
-            <ActivityRowDelete
-              key={actividad.identificador}
-              fechaFin={actividad.fechaFin}
-              fechaInici={actividad.fechaInici}
-              index={index + 1}
-              nombre={actividad.nombre}
-              responsable={actividad.responsable}
-              identificador={actividad.identificador}
-              objetivo={actividad.objetivo}
-              proyecto={actividad.proyecto}
-              onCheckboxChange={handleCheckboxChange}
-              checked={selectedActivities.includes(actividad.identificador)}
-              esEliminable={true}
-            />
-          ) : (
-            <></>
-          )
+        activities.map(
+          (actividad, index) =>
+            !actividad.esEliminable && (
+              <ActivityRowDelete
+                key={actividad.identificador}
+                fechaFin={actividad.fechaFin}
+                fechaInici={actividad.fechaInici}
+                index={index + 1}
+                nombre={actividad.nombre}
+                responsable={actividad.responsable}
+                identificador={actividad.identificador}
+                objetivo={actividad.objetivo}
+                proyecto={actividad.proyecto}
+                onCheckboxChange={handleCheckboxChange}
+                checked={selectedActivities.includes(actividad.identificador)}
+                esEliminable={true}
+              />
+            )
         )
       )}
 
