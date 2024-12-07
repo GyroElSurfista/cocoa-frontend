@@ -57,7 +57,7 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
   const fetchProjects = async () => {
     try {
       const response = await getPlannings()
-      const today = new Date(localStorage.getItem('date'))
+      const today = new Date()
       const validProjects = response.data.filter((project: Planning) => {
         const startDate = new Date(project.fechaInici)
         const endDate = new Date(project.fechaFin)
@@ -73,18 +73,18 @@ const SelectorPlaniEvaObj = ({ isOpen, onClose }: SelectorPlaniEvaObj) => {
   const fetchObjectives = async (idProject: number) => {
     try {
       const response = await getObjectivesEvaluables(idProject)
-      const today = new Date(localStorage.getItem('date'))
-      const savedDate = new Date(localStorage.getItem('date') || today)
+      const today = new Date()
 
       const updatedObjectives = response.data.data.map((objective: ObjectiveData) => {
         const endDate = new Date(objective.fechaFin)
 
-        if (savedDate.getTime() === endDate.getTime()) {
-          return { ...objective, status: 'siguiente a evaluar' }
-        } else if (savedDate > endDate) {
-          return { ...objective, status: 'pendiente' }
+        if (today.getTime() === endDate.getTime()) {
+          return { ...objective, status: 'siguiente' } // Objetivo para evaluar hoy
+        } else if (today > endDate) {
+          return { ...objective, status: 'pendiente' } // Objetivo vencido pero no evaluado
         }
       })
+
       setObjectives(updatedObjectives)
     } catch (error) {
       console.error('Error fetching objectives for project:', error)

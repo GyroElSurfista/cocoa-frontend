@@ -13,8 +13,7 @@ axiosInstance.interceptors.request.use(
     const currentSemester = localStorage.getItem('idSemester') // Le pasamos el semestre seleccionado (CAMBIAR)
 
     config.headers = config.headers || {} // Asegurarse de que los headers existan
-    ;(config.headers as Record<string, number>)['X-Current-Semester'] = currentSemester
-
+    config.headers['X-Current-Semester'] = currentSemester || ''
     return config
   },
   (error) => {
