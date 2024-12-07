@@ -10,7 +10,7 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const currentSemester = 1 // Le pasamos el semestre seleccionado (CAMBIAR)
+    const currentSemester = localStorage.getItem('idSemester') // Le pasamos el semestre seleccionado (CAMBIAR)
 
     config.headers = config.headers || {} // Asegurarse de que los headers existan
     ;(config.headers as Record<string, number>)['X-Current-Semester'] = currentSemester
