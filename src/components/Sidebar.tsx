@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight'
@@ -18,6 +18,8 @@ import GenerateTrackerModal from '../pages/SeguimientoPage/GenerateTrackerModal/
 import SelectorPlanillaEquipoModal from '../pages/PlanillasPage/Equipo/Components/SelectorPlanillaEquipoModal'
 import ObservationPage from '../pages/SeguimientoPage/NewObservation/ObservationPage'
 import PlanillaEquipoPage from '../pages/PlanillasPage/Equipo/PlanillaEquipoPage'
+import { getSemester, Semester } from '../services/semester.service'
+import { CircularProgress } from '@mui/material'
 
 const Sidebar = () => {
   const [observations, setObservations] = useState<any[] | null>(null)
@@ -33,9 +35,18 @@ const Sidebar = () => {
   const [isProjectModalEntregableOpen, setIsProjectModalEntregableOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
+  const [semester, setSemester] = useState<Semester>()
+  const currentDate = localStorage.getItem('date')
 
   const navigate = useNavigate()
   const location = useLocation()
+
+  useEffect(() => {
+    const fetchSemester = async () => {
+      setSemester((await getSemester()).data)
+    }
+    fetchSemester()
+  }, [])
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen)
@@ -130,133 +141,159 @@ const Sidebar = () => {
         <nav className={`${isOpen ? 'block' : 'hidden'} pl-16 pt-8`}>
           <h2 className="text-black text-xl font-semibold">Servicios</h2>
           <div className="flex flex-col mt-9">
-            <ItemSidebar name="Registrar y Añadir">
-              <>
-                <NavLink
-                  to="/objetivos"
-                  className={({ isActive }) =>
-                    `hover:text-[#6344e7] py-3 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      {/* Pasa el estado isActive para cambiar el color del icono */}
-                      <GoalIcon fill={isActive ? '#6344e7' : '#5d5d5d'} />
-                      Objetivos
-                    </>
-                  )}
-                </NavLink>
-                <div
-                  className="hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex"
-                  onClick={openProjectModalEntregable}
-                >
-                  <EntregableIcon />
-                  Entregables
-                </div>
-                <SelectorProjectEntregable
-                  isOpen={isProjectModalEntregableOpen}
-                  onClose={closeProjectModalEntregable}
-                  onSelect={handleProjectSelect}
-                />
-                <NavLink
-                  to="/crear-actividad"
-                  className={({ isActive }) =>
-                    `hover:text-[#6344e7] py-3 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <CheckIcon fill={isActive ? '#6344e7' : '#5d5d5d'} />
-                      Actividades
-                    </>
-                  )}
-                </NavLink>
-              </>
-            </ItemSidebar>
-            <ItemSidebar name="Generar y Crear">
-              <>
-                <GenerateTrackerModal />
-                <div
-                  className={`hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex 
+            {/* {semester && currentDate ? ( */}
+            <>
+              {/* {currentDate >= semester.fechaPlaniInici && currentDate < semester.fechaEvaluInici && ( */}
+              <ItemSidebar name="Registrar y Añadir">
+                <>
+                  {/* {currentDate >= semester.fechaPlaniInici && currentDate < semester.fechaPlaniFin && ( */}
+                  <>
+                    <NavLink
+                      to="/objetivos"
+                      className={({ isActive }) =>
+                        `hover:text-[#6344e7] py-3 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          {/* Pasa el estado isActive para cambiar el color del icono */}
+                          <GoalIcon fill={isActive ? '#6344e7' : '#5d5d5d'} />
+                          Objetivos
+                        </>
+                      )}
+                    </NavLink>
+
+                    <div
+                      className="hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex"
+                      onClick={openProjectModalEntregable}
+                    >
+                      <EntregableIcon />
+                      Entregables
+                    </div>
+                    <SelectorProjectEntregable
+                      isOpen={isProjectModalEntregableOpen}
+                      onClose={closeProjectModalEntregable}
+                      onSelect={handleProjectSelect}
+                    />
+                  </>
+                  {/* )} */}
+
+                  {/* {currentDate >= semester.fechaPlaniInici && currentDate < semester.fechaDesaFin && ( */}
+                  <NavLink
+                    to="/crear-actividad"
+                    className={({ isActive }) =>
+                      `hover:text-[#6344e7] py-3 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <CheckIcon fill={isActive ? '#6344e7' : '#5d5d5d'} />
+                        Actividades
+                      </>
+                    )}
+                  </NavLink>
+                  {/* )} */}
+                </>
+              </ItemSidebar>
+              {/* )} */}
+              <ItemSidebar name="Generar y Crear">
+                <>
+                  {/* {currentDate >= semester.fechaDesaInici && currentDate < semester.fechaDesaFin && ( */}
+                  <>
+                    <GenerateTrackerModal />
+                    <div
+                      className={`hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex 
                     ${location.pathname === '/planilla-evaluacion' ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`}
-                  onClick={openProjectModal}
-                >
-                  <PlaniEvaIcon />
-                  Planillas de Evaluación de Objetivo
-                </div>
-                <ProjectSelectorModalEvaluacion isOpen={isProjectModalOpen} onClose={closeProjectModal} />
+                      onClick={openProjectModal}
+                    >
+                      <PlaniEvaIcon />
+                      Planillas de Evaluación de Objetivo
+                    </div>
+                    <ProjectSelectorModalEvaluacion isOpen={isProjectModalOpen} onClose={closeProjectModal} />
+                  </>
+                  {/* )} */}
 
-                <NavLink
-                  to="/crear-plantilla"
-                  className={({ isActive }) =>
-                    `hover:text-[#6344e7] py-2 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <PlantillaEva fill={isActive ? '#6344e7' : '#5d5d5d'} />
-                      Plantillas de Evaluación Final
-                    </>
-                  )}
-                </NavLink>
-              </>
-            </ItemSidebar>
-            <ItemSidebar name="Llenar y Completar">
-              <>
-                <SelectorPlanillaEquipoModal
-                  onRedirect={(observations, objectiveId, date, planiId, objectiveName, identificadorPlani, fechas) => {
-                    setObservations(observations)
-                    setObjectiveId(objectiveId)
-                    setPlanillaDate(date)
-                    setplaniSeguiId(planiId)
-                    setObjectiveName(objectiveName)
-                    setFechaPlanilla(fechas)
-                    setIdentificadorPlani(identificadorPlani)
-                  }}
-                />
+                  <NavLink
+                    to="/crear-plantilla"
+                    className={({ isActive }) =>
+                      `hover:text-[#6344e7] py-2 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <PlantillaEva fill={isActive ? '#6344e7' : '#5d5d5d'} />
+                        Plantillas de Evaluación Final
+                      </>
+                    )}
+                  </NavLink>
+                </>
+              </ItemSidebar>
+              {/* {currentDate >= semester.fechaDesaInici && currentDate < semester.fechaDesaFin && ( */}
+              <ItemSidebar name="Llenar y Completar">
+                <>
+                  <SelectorPlanillaEquipoModal
+                    onRedirect={(observations, objectiveId, date, planiId, objectiveName, identificadorPlani, fechas) => {
+                      setObservations(observations)
+                      setObjectiveId(objectiveId)
+                      setPlanillaDate(date)
+                      setplaniSeguiId(planiId)
+                      setObjectiveName(objectiveName)
+                      setFechaPlanilla(fechas)
+                      setIdentificadorPlani(identificadorPlani)
+                    }}
+                  />
 
-                <div
-                  className={`hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex ${
-                    location.pathname.startsWith('/planilla-evaluacion/') ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
-                  }`}
-                  onClick={openModal}
-                >
-                  <PlaniEvaIcon />
-                  Planillas de Evaluación de Objetivo
-                </div>
-                <SelectorPlaniEvaObj isOpen={isModalOpen} onClose={closeModal} />
-              </>
-            </ItemSidebar>
-            <ItemSidebar name="Eliminar">
-              <>
-                <NavLink
-                  to="/eliminar-actividad"
-                  className={({ isActive }) =>
-                    `hover:text-[#6344e7] py-2 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <CheckIcon fill={isActive ? '#6344e7' : '#5d5d5d'} />
-                      Actividades
-                    </>
-                  )}
-                </NavLink>
-                <NavLink
-                  to="/eliminar-plantillas"
-                  className={({ isActive }) =>
-                    `hover:text-[#6344e7] py-2 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <EntregableIcon fill={isActive ? '#6344e7' : '#5d5d5d'} />
-                      Planillas de Evaluación Final
-                    </>
-                  )}
-                </NavLink>
-              </>
-            </ItemSidebar>
+                  <div
+                    className={`hover:text-[#6344e7] cursor-pointer py-3 px-2.5 text-base font-normal gap-1 items-center flex ${
+                      location.pathname.startsWith('/planilla-evaluacion/') ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''
+                    }`}
+                    onClick={openModal}
+                  >
+                    <PlaniEvaIcon />
+                    Planillas de Evaluación de Objetivo
+                  </div>
+                  <SelectorPlaniEvaObj isOpen={isModalOpen} onClose={closeModal} />
+                </>
+              </ItemSidebar>
+              {/* )} */}
+              <ItemSidebar name="Eliminar">
+                <>
+                  {/* {currentDate >= semester.fechaPlaniInici && currentDate < semester.fechaDesaFin && ( */}
+                  <NavLink
+                    to="/eliminar-actividad"
+                    className={({ isActive }) =>
+                      `hover:text-[#6344e7] py-2 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <CheckIcon fill={isActive ? '#6344e7' : '#5d5d5d'} />
+                        Actividades
+                      </>
+                    )}
+                  </NavLink>
+                  {/* )} */}
+                  <NavLink
+                    to="/eliminar-plantillas"
+                    className={({ isActive }) =>
+                      `hover:text-[#6344e7] py-2 px-2.5 text-base font-normal gap-1 items-center flex ${isActive ? 'bg-[#e0e3ff] text-[#6344e7] border-l-2 border-[#6344e7]' : ''}`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <EntregableIcon fill={isActive ? '#6344e7' : '#5d5d5d'} />
+                        Planillas de Evaluación Final
+                      </>
+                    )}
+                  </NavLink>
+                </>
+              </ItemSidebar>
+            </>
+            {/*  ) : (
+              <div className="flex justify-center items-center h-16">
+                <CircularProgress />
+              </div>
+            )} */}
           </div>
           <div className=""></div>
         </nav>

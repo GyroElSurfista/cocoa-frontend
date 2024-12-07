@@ -29,7 +29,7 @@ const ProjectSelectorModalEvaluacion: React.FC<Evaluacion.ProjectSelectorModalPr
         const planificacionesData = await planificacionesResponse.data
 
         // Obtener la fecha actual
-        const today = new Date()
+        const today = new Date(localStorage.getItem('date'))
 
         // Filtrar planificaciones que están en curso
         const planificacionesEnCursoIds = new Set(
