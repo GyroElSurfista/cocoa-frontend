@@ -20,14 +20,13 @@ const NavBar = (): JSX.Element => {
       try {
         const response = await getSemesters()
         console.log('semester', response.data)
-        const semesterData: Semester = response.data
+        const semesterData: Semester[] = response.data
 
-        // ToDO: ep to get all semesters
-        setSemesters([semesterData])
+        setSemesters(semesterData)
 
         // Si no hay un semestre seleccionado, seleccionar el primero por defecto
-        if (!localStorage.getItem('id-semester') && semesterData.identificador) {
-          const defaultSemesterId = semesterData.identificador.toString()
+        if (!localStorage.getItem('id-semester') && semesterData[0].identificador) {
+          const defaultSemesterId = semesterData[0].identificador.toString()
           setSelectedSemester(defaultSemesterId)
           localStorage.setItem('id-semester', defaultSemesterId)
         }

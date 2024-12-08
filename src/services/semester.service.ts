@@ -16,6 +16,6 @@ export interface Semester {
 export const getSemester = (): AxiosPromise<Semester> => {
   return axiosInstance.get('/semestres/actual')
 }
-export const getSemesters = (): AxiosPromise<Semester> => {
-  return axiosInstance.get('/semestres/actual')
+export const getSemesters = (): AxiosPromise<Array<Semester>> => {
+  return axiosInstance.get('/semestres')
 }
