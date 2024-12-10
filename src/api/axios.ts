@@ -1,5 +1,5 @@
 import axios from 'axios'
-const BASE_URL = 'https://cocoabackend.onrender.com/api'
+const BASE_URL = import.meta.env.VITE_API_URL
 
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -10,11 +10,10 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const currentSemester = localStorage.getItem('idSemester') // Le pasamos el semestre seleccionado (CAMBIAR)
+    const currentSemester = localStorage.getItem('id-semester') // Le pasamos el semestre seleccionado (CAMBIAR)
 
     config.headers = config.headers || {} // Asegurarse de que los headers existan
-    ;(config.headers as Record<string, number>)['X-Current-Semester'] = currentSemester
-
+    config.headers['X-Current-Semester'] = currentSemester || ''
     return config
   },
   (error) => {

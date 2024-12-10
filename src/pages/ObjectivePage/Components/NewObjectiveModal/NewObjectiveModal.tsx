@@ -143,7 +143,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                     onChange: () => clearErrors('iniDate'),
                     validate: {
                       notPast: (value) => {
-                        const today = new Date(localStorage.getItem('date')).toISOString().split('T')[0]
+                        const today = new Date().toISOString().split('T')[0]
                         return value >= today || 'La fecha de inicio no puede ser anterior a la fecha actual'
                       },
                       afterNextAvailableDate: (value) => {
@@ -201,7 +201,7 @@ const NewObjectiveModal: React.FC<NewObjectiveModalProps> = ({ isOpen, onClose, 
                     onChange: () => clearErrors('finDate'),
                     validate: {
                       notPast: (value) => {
-                        const today = new Date(localStorage.getItem('date')).toISOString().split('T')[0]
+                        const today = new Date().toISOString().split('T')[0]
                         return value >= today || 'La fecha de fin no puede ser anterior a la fecha actual'
                       },
                       afterStartDate: (value) => {
