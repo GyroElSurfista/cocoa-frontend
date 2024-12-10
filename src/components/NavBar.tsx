@@ -1,44 +1,21 @@
 import logo from '../assets/Logo Project.png'
-import { useEffect, useState } from 'react'
-import { getSemesters, Semester } from '../services/semester.service'
 import { FormControl, InputLabel, MenuItem, Select, Tooltip, Typography, SelectChangeEvent } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { formatDateToDMY } from '../utils/formatDate'
+import { useSemester } from '../hooks/useSemester'
 
 const NavBar = (): JSX.Element => {
-  const [selectedSemester, setSelectedSemester] = useState<string | null>(localStorage.getItem('id-semester'))
-  const [semesters, setSemesters] = useState<Array<Semester>>([])
+  const { currentSemester, setCurrentSemester, semesters } = useSemester()
 
   const handleChange = (event: SelectChangeEvent<string>) => {
-    const semesterId = event.target.value
-    setSelectedSemester(semesterId)
-    localStorage.setItem('id-semester', semesterId)
-  }
+    const selectedId = event.target.value as string
+    const selectedSemester = semesters?.find((semester) => semester.identificador.toString() === selectedId)
 
-  useEffect(() => {
-    const fetchSemester = async () => {
-      try {
-        const response = await getSemesters()
-        console.log('semester', response.data)
-        const semesterData: Semester[] = response.data
-
-        setSemesters(semesterData)
-
-        // Si no hay un semestre seleccionado, seleccionar el primero por defecto
-        if (!localStorage.getItem('id-semester') && semesterData[0].identificador) {
-          const defaultSemesterId = semesterData[0].identificador.toString()
-          setSelectedSemester(defaultSemesterId)
-          localStorage.setItem('id-semester', defaultSemesterId)
-        }
-      } catch (error) {
-        console.error('Error fetching semesters:', error)
-      }
+    if (selectedSemester) {
+      setCurrentSemester(selectedSemester)
+      localStorage.setItem('id-semester', selectedId)
     }
-
-    fetchSemester()
-  }, [])
-
-  const currentSemester = semesters.find((semester) => semester.identificador.toString() === selectedSemester)
+  }
 
   return (
     <div className="w-full h-20 bg-[#e0e3ff] shadow">
@@ -69,11 +46,11 @@ const NavBar = (): JSX.Element => {
             <Select
               labelId="semester-select-label"
               id="semester-select"
-              value={selectedSemester || ''}
+              value={currentSemester?.identificador?.toString() || ''}
               onChange={handleChange}
               label="Selecciona el semestre"
             >
-              {semesters.map((semester) => (
+              {semesters?.map((semester) => (
                 <MenuItem value={semester.identificador.toString()} key={semester.identificador}>
                   {semester.nombre}
                 </MenuItem>

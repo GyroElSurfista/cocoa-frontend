@@ -13,59 +13,49 @@ import CrearPlantillaPage from './pages/PlantillaPage/CrearPlantillaPage'
 import { PlantillaDeletePage } from './pages/Plantillas/Delete/PlantillaDeletePage'
 import LlenarPlaniEvaObjPage from './pages/LlenarPlaniEvaObjPage/LlenarPlaniEvaObjPage'
 import PlanillaEquipoPage from './pages/PlanillasPage/Equipo/PlanillaEquipoPage'
-import { getSemester, Semester } from './services/semester.service'
-import { useEffect, useState } from 'react'
+import { SemesterProvider } from './contexts/SemesterContext'
 
 function App(): JSX.Element {
-  const [semester, setSemester] = useState<Semester>()
-  const currentDate = localStorage.getItem('date') ?? '2024-08-12'
-
-  useEffect(() => {
-    const fetchSemester = async () => {
-      setSemester((await getSemester()).data)
-    }
-
-    fetchSemester()
-  }, [])
-
   return (
     <>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          {/* {semester && currentDate && ( */}
-          <>
-            <Route path="servicios" element={<SelectorServices />} />
-            {/* {currentDate >= semester.fechaPlaniInici && currentDate < semester.fechaPlaniFin && ( */}
+      <SemesterProvider>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            {/* {semester && currentDate && ( */}
             <>
-              <Route path="objetivos" element={<ObjectivePage />} />
-              <Route path="objetivos-entregables" element={<EntregablePage />} />
-              <Route path="eliminar-observaciones" element={<DeleteObservationPage />} />
+              <Route path="servicios" element={<SelectorServices />} />
+              {/* {currentDate >= semester.fechaPlaniInici && currentDate < semester.fechaPlaniFin && ( */}
+              <>
+                <Route path="objetivos" element={<ObjectivePage />} />
+                <Route path="objetivos-entregables" element={<EntregablePage />} />
+                <Route path="eliminar-observaciones" element={<DeleteObservationPage />} />
+              </>
+              {/* )} */}
+
+              {/* <Route path="planillas" element={<PlanillasPage />} /> */}
+              <Route path="planillas-seguimiento/:idProject" element={<SeguimientoPage />} />
+              {/* {currentDate >= semester.fechaPlaniInici && currentDate < semester.fechaDesaFin && ( */}
+              <>
+                <Route path="crear-actividad" element={<ActivityPage />}></Route>
+                <Route path="eliminar-actividad" element={<DeleteActivityPage />}></Route>
+              </>
+              {/* )} */}
+
+              {/* {currentDate >= semester.fechaDesaInici && currentDate < semester.fechaDesaFin && ( */}
+              <>
+                <Route path="/planilla-equipo/:planillaId" element={<PlanillaEquipoPage />} />
+                <Route path="planilla-evaluacion/:idObjetivo" element={<LlenarPlaniEvaObjPage />}></Route>
+                <Route path="planilla-evaluacion" element={<EvaluacionPage />} />
+              </>
+              {/* )} */}
+
+              <Route path="crear-plantilla" element={<CrearPlantillaPage />}></Route>
+              <Route path="eliminar-plantillas" element={<PlantillaDeletePage />} />
             </>
             {/* )} */}
-
-            {/* <Route path="planillas" element={<PlanillasPage />} /> */}
-            <Route path="planillas-seguimiento/:idProject" element={<SeguimientoPage />} />
-            {/* {currentDate >= semester.fechaPlaniInici && currentDate < semester.fechaDesaFin && ( */}
-            <>
-              <Route path="crear-actividad" element={<ActivityPage />}></Route>
-              <Route path="eliminar-actividad" element={<DeleteActivityPage />}></Route>
-            </>
-            {/* )} */}
-
-            {/* {currentDate >= semester.fechaDesaInici && currentDate < semester.fechaDesaFin && ( */}
-            <>
-              <Route path="/planilla-equipo/:planillaId" element={<PlanillaEquipoPage />} />
-              <Route path="planilla-evaluacion/:idObjetivo" element={<LlenarPlaniEvaObjPage />}></Route>
-              <Route path="planilla-evaluacion" element={<EvaluacionPage />} />
-            </>
-            {/* )} */}
-
-            <Route path="crear-plantilla" element={<CrearPlantillaPage />}></Route>
-            <Route path="eliminar-plantillas" element={<PlantillaDeletePage />} />
-          </>
-          {/* )} */}
-        </Route>
-      </Routes>
+          </Route>
+        </Routes>
+      </SemesterProvider>
     </>
   )
 }
