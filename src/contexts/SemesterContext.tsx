@@ -23,7 +23,7 @@ export const SemesterProvider = ({ children }: { children: ReactNode }): JSX.Ele
         const selectedSemesterId = localStorage.getItem('id-semester')
 
         // Configura el semestre actual basándote en el almacenamiento local o selecciona el primero por defecto
-        const defaultSemester = semesters.find((semester) => semester.identificador.toString() === selectedSemesterId) || semesters[0]
+        const defaultSemester = semesters?.find((semester) => semester.identificador.toString() === selectedSemesterId) || semesters[0]
 
         if (defaultSemester) {
           setCurrentSemester(defaultSemester)
